@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'frame_pub = piProj_jw.webcam_pub:main',
+            'frame_sub = piProj_jw.webcam_sub:main',
         ],
     },
 )
