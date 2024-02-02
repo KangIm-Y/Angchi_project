@@ -3,13 +3,25 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from std_msgs.msg import String
 import RPi.GPIO as GPIO
-import time
 import serial
-import threading
 
 led_pin = 17
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(led_pin, GPIO.OUT)
+header1 = 0xFF
+header2 = 0xFE
+id = 0x00
+dataSize = 0x07
+mode = 0x01
+dirCCW = 0x00
+dirCW = 0x01
+position1 = 0x23
+position2 = 0x28
+position3 = 0x46
+position4 = 0x50
+velocity1 = 0x00
+velocity2 = 0x32
+
 
 class GPIO_control(Node):
 
@@ -25,9 +37,11 @@ class GPIO_control(Node):
         self.timer = self.create_timer(1.0, self.LED_control)
 
         self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=3)
+        self.trig = 0
 
     def subscribe_topic_message(self, msg):
         self.last_msg_data = msg.data
+        self.trig = 1
         print("Terminal Data Input: ", self.last_msg_data)
 
     def LED_control(self):
@@ -48,9 +62,28 @@ class GPIO_control(Node):
             return
 
     def send_serial_data(self, data):
-        str_cmd = '[' + data + ']'
-        print('send data=' + str_cmd)
-        self.ser.write(str_cmd.encode())
+        if self.trig == 1:
+            if data == "Left":                
+                checkSum = (~ (id + dataSize + mode + dirCCW + position1 + position2 + velocity1 + velocity2)) & 0xFF
+                rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+\
+                    bytes([mode])+bytes([dirCCW])+bytes([position1])+bytes([position2])+bytes([velocity1])+bytes([velocity2])
+                print('send data=' + rs485_send.hex())
+                self.ser.write(rs485_send)
+                self.trig = 0
+
+            elif data == "Right":                
+                checkSum = (~ (id + dataSize + mode + dirCW + position3 + position4 + velocity1 + velocity2)) & 0xFF
+                rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+\
+                    bytes([mode])+bytes([dirCW])+bytes([position3])+bytes([position4])+bytes([velocity1])+bytes([velocity2])
+                print('send data=' + rs485_send.hex())
+                self.ser.write(rs485_send)
+                self.trig = 0
+            else:
+                return
+
+            
+        else:
+            return
 
 def main(args=None):
     rclpy.init(args=args)
@@ -66,3 +99,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
