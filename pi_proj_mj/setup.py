@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'git'
+package_name = 'pi_proj_mj'
 
 setup(
     name=package_name,
@@ -20,6 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+        'left_motor_callback = pi_proj_mj.left_motor_callback:main',
+        'right_motor_callback = pi_proj_mj.right_motor_callback:main',
+        
+        
         ],
     },
 )

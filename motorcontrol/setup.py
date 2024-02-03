@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'hi = robot_ws.motorcontrol.hi:main',
+            'hi = motorcontrol.hi:main',
         ],
     },
 )
