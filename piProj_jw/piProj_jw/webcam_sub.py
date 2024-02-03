@@ -13,7 +13,7 @@ class WebcamSubscriber(Node):
         
         qos_profile = QoSProfile(depth=10)
         self.frame_subscriber = self.create_subscription(Image, 'webcam_frame',callback=self.webcam_callback , qos_profile=qos_profile)
-        self.order_publisher = self.create_publisher(String, 'order', qos_profile=qos_profile)
+        self.motor_control_publisher = self.create_publisher(String, 'Motor_control', qos_profile=qos_profile)
         self.aruco_publisher = self.create_publisher(Image, 'aruco_frame', qos_profile=qos_profile)
         self.br = CvBridge()
 
@@ -23,15 +23,15 @@ class WebcamSubscriber(Node):
         aruco_frame, aruco_ids = self.detect_aruco(frame)
         # self.aruco_publisher.publish(self.br.cv2_to_imgmsg(aruco_frame))
 
-        order = String()
+        motor_control = String()
         if aruco_ids == 1:
-            order.data = 'Left'
+            motor_control.data = 'Left'
         elif aruco_ids == 2:
-            order.data = 'Right'
+            motor_control.data = 'Right'
         else:
-            order.data = 'retry'
+            motor_control.data = 'retry'
 
-        self.order_publisher.publish(order)
+        self.motor_control_publisher.publish(motor_control)
         # cv2.imshow('frame sub', frame)
         cv2.imshow('aruco frame', aruco_frame)
         cv2.waitKey(1)
