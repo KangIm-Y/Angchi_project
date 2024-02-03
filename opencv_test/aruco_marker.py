@@ -24,10 +24,10 @@ def aruco_display(corners, ids, rejected, image):
             cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 1)
             cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 1)
 
-            # cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-            # cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
-            # cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
+            cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
 
             cv2.putText(image, str(markerID), (topLeft[0], topLeft[1]+15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
