@@ -4,29 +4,29 @@ from rclpy.qos import QoSProfile
 from std_msgs.msg import String
 import serial
 
-header1 = 0xFF
-header2 = 0xFE
-motor_id = 0x00
-datasize = 0x07
-mode = 0x01
-direction = 0x00
-position1 = 0x46
-position2 = 0x50
-velocity1 = 0x00
-velocity2 = 0x32
-
-checksum = (~(motor_id + datasize + mode + direction + position1 + position2 + velocity1 + velocity2)&0xFF)
-
-data_array = bytes([header1, header2, motor_id, datasize, checksum, mode, direction, position1, position2, velocity1, velocity2])
-
 class MotorControllerNode(Node):
     def __init__(self):
         super().__init__('motor_controller_node')
         
         qos_profile = QoSProfile(depth=10)
         self.motor_controll_listener = self.create_publisher(String, 'Motor_control', qos_profile)
-        
+
         self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=5)
+        
+        self.header1 = 0xFF
+        self.header2 = 0xFE
+        self.motor_id = 0x00
+        self.datasize = 0x07
+        self.mode = 0x01
+        self.direction = 0x00
+        self.position1 = 0x46
+        self.position2 = 0x50
+        self.velocity1 = 0x00
+        self.velocity2 = 0x32
+
+        self.checksum = (~(self.motor_id + self.datasize + self.mode + self.direction + self.position1 + self.position2 + self.velocity1 + self.velocity2) & 0xFF)
+
+        self.data_array = bytes([self.header1, self.header2, self.motor_id, self.datasize, self.checksum, self.mode, self.direction, self.position1, self.position2, self.velocity1, self.velocity2])
 
         self.timer = self.create_timer(1, self.motor_controller)
         self.count = 0
