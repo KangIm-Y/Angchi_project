@@ -20,10 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-	     'left_motor_node = pi_proj_mj.Motor_control:main',
-	     'right_motor_node = pi_proj_mj.Motor_control:main',
-	     'left_node = pi_proj_mj.left_node:main',
-	     'right_node = pi_proj_mj.right_node:main',
+	     'Left = pi_proj_mj.Left:main',
+	     'Right = pi_proj_mj.Right:main',
+	     'Left_p = pi_proj_mj.Right:main',
+	     'Right_p = pi_proj_mj.Right:main',	     
         ],
     },
 )
