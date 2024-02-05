@@ -16,13 +16,12 @@ class MotorControllerNode(Node):
         self.header1 = 0xFF
         self.header2 = 0xFE
         self.motor_id = 0x00
-        self.datasize = 0x07
-        self.mode = 0x01
+        self.datasize = 0x06
+        self.mode = 0x03
         self.direction = 0x00
-        self.position1 = 0x46
-        self.position2 = 0x50
         self.velocity1 = 0x00
-        self.velocity2 = 0x32
+        self.velocity2 = 0x64
+        self.duration = 0xff
 
     def motor_controller(self, msg):
         self.get_logger().info(f'{msg.data} is recieved')
@@ -41,8 +40,8 @@ class MotorControllerNode(Node):
         
             
     def update_data_array(self) :
-        self.checksum = (~(self.motor_id + self.datasize + self.mode + self.direction + self.position1 + self.position2 + self.velocity1 + self.velocity2) & 0xFF)
-        self.data_array = bytes([self.header1, self.header2, self.motor_id, self.datasize, self.checksum, self.mode, self.direction, self.position1, self.position2, self.velocity1, self.velocity2])
+        self.checksum = (~(self.motor_id + self.datasize + self.mode + self.direction + self.velocity1 + self.velocity2 + self.duration) & 0xFF)
+        self.data_array = bytes([self.header1, self.header2, self.motor_id, self.datasize, self.checksum, self.mode, self.direction, self.velocity1, self.velocity2, self.duration])
         
     def send_data_array(self) :
         for data in self.data_array:
