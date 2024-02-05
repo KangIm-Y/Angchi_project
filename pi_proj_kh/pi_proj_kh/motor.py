@@ -24,26 +24,30 @@ class MotorControllerNode(Node):
         self.velocity1 = 0x00
         self.velocity2 = 0x32
 
-        self.timer = self.create_timer(1, self.motor_controller)
-        self.count = 0
-
-    def motor_controller(self):
+    def motor_controller(self, msg):
         
         if msg.data == "LEFT" : #CW is 1 ,, CCW is 0
             self.get_logger().info(f'{msg.data} is recieved')
             self.mode = 0x00
-        else if msg.data == "RIGHT" :
+        elif msg.data == "RIGHT" :
             self.get_logger().info(f'{msg.data} is recieved')
             self.mode = 0x01
         else :
             self.get_logger().info(f'{msg.data} is not defined')
-            return 1
+            return
+        self.update_data_array()
+        self.send_data_array()
+        
             
+    def update_data_array(self) :
         self.checksum = (~(self.motor_id + self.datasize + self.mode + self.direction + self.position1 + self.position2 + self.velocity1 + self.velocity2) & 0xFF)
         self.data_array = bytes([self.header1, self.header2, self.motor_id, self.datasize, self.checksum, self.mode, self.direction, self.position1, self.position2, self.velocity1, self.velocity2])
-
+        
+    def send_data_array(self) :
         for data in self.data_array:
             self.ser.write(data.to_bytes(1, byteorder='big'))
+        
+        
 
 def main(args=None):
     rclpy.init(args=args)
