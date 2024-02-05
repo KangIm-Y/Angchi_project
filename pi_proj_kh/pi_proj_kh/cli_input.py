@@ -4,26 +4,26 @@ from rclpy.qos import QoSProfile
 from std_msgs.msg import String
 
 
-class CLI_Input_node(Node):
+class CLIInputNode(Node):
 
     def __init__(self):
         super().__init__('cli_input_pub')
         qos_profile = QoSProfile(depth=10)
         self.cli_input_pub = self.create_publisher(String, 'Motor_control', qos_profile)
-        self.timer = self.create_timer(1, self.input_callback)
+        self.timer = self.create_timer(1, self.input_callbacker)
 
-    def input_callback(self):
-        user_input = input("input string for test motor")
+    def input_callbacker(self):
+        user_input = input("input string for test motor : ")
         
         msg = String()
         msg.data = user_input
         self.cli_input_pub.publish(msg)
-        self.get_logger().info(f'발행된 메시지 : {msg.data}')
+        self.get_logger().info(f'published : {msg.data}')
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = CLI_Input_node()
+    node = CLIInputNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
