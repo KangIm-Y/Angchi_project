@@ -20,10 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'left_motor_callback = pi_proj_mj.left_motor_callback:main',
-        'right_motor_callback = pi_proj_mj.right_motor_callback:main',
-        
-        
+	     'left_motor_node = pi_proj_mj.Motor_control:main',
+	     'right_motor_node = pi_proj_mj.Motor_control:main',
+	     'left_node = pi_proj_mj.left_node:main',
+	     'right_node = pi_proj_mj.right_node:main',
         ],
     },
 )
