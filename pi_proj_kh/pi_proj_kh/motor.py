@@ -9,7 +9,7 @@ class MotorControllerNode(Node):
         super().__init__('motor_controller_node')
         
         qos_profile = QoSProfile(depth=10)
-        self.motor_controll_listener = self.create_subscription(String, 'Motor_control', self.motor_controller,qos_profile)
+        self.motor_controller_node = self.create_subscription(String, 'Motor_control', self.motor_controller,qos_profile)
 
         self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=5)
         
@@ -25,6 +25,7 @@ class MotorControllerNode(Node):
         self.velocity2 = 0x32
 
     def motor_controller(self, msg):
+        self.get_logger().info(f'{msg.data} is recieved')
         
         if msg.data == "LEFT" : #CW is 1 ,, CCW is 0
             self.get_logger().info(f'{msg.data} is recieved')
