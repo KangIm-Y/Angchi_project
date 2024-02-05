@@ -9,7 +9,7 @@ class MotorControllerNode(Node):
         super().__init__('motor_controller_node')
         
         qos_profile = QoSProfile(depth=10)
-        self.motor_controll_listener = self.create_publisher(String, 'Motor_control', qos_profile)
+        self.motor_controll_listener = self.create_subscription(String, 'Motor_control', self.motor_controller,qos_profile)
 
         self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=5)
         
@@ -24,19 +24,23 @@ class MotorControllerNode(Node):
         self.velocity1 = 0x00
         self.velocity2 = 0x32
 
-        self.checksum = (~(self.motor_id + self.datasize + self.mode + self.direction + self.position1 + self.position2 + self.velocity1 + self.velocity2) & 0xFF)
-
-        self.data_array = bytes([self.header1, self.header2, self.motor_id, self.datasize, self.checksum, self.mode, self.direction, self.position1, self.position2, self.velocity1, self.velocity2])
-
         self.timer = self.create_timer(1, self.motor_controller)
         self.count = 0
 
     def motor_controller(self):
-        msg = String()
-        msg.data = 'Hello World: {0}'.format(self.count)
-        self.motor_controll_listener.publish(msg)
-        self.get_logger().info('Published message: {0}'.format(msg.data))
-        self.count += 1
+        
+        if msg.data == "LEFT" : #CW is 1 ,, CCW is 0
+            self.get_logger().info(f'{msg.data} is recieved')
+            self.mode = 0x00
+        else if msg.data == "RIGHT" :
+            self.get_logger().info(f'{msg.data} is recieved')
+            self.mode = 0x01
+        else :
+            self.get_logger().info(f'{msg.data} is not defined')
+            return 1
+            
+        self.checksum = (~(self.motor_id + self.datasize + self.mode + self.direction + self.position1 + self.position2 + self.velocity1 + self.velocity2) & 0xFF)
+        self.data_array = bytes([self.header1, self.header2, self.motor_id, self.datasize, self.checksum, self.mode, self.direction, self.position1, self.position2, self.velocity1, self.velocity2])
 
         for data in self.data_array:
             self.ser.write(data.to_bytes(1, byteorder='big'))
