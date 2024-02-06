@@ -20,10 +20,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-	     'Left = pi_proj_mj.subscriber_left:main',
-	     'Right = pi_proj_mj.subscriber_right:main',
+
+
 	     'pubt = pi_proj_mj.pubt:main',
-	     'subf = pi_proj_mj.subf:main',    
+	     'subF = pi_proj_mj.subf:main',
+	     'sub3 = pi_proj_mj.subf:main',     
         ],
     },
 )

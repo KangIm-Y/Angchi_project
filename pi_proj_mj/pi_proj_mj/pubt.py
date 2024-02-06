@@ -14,7 +14,7 @@ class Publisher(Node):
     def publish_msg(self):
         user_input = input('MESSAGE: ')
         msg = String()
-        msg.data = 'input: {0}'.format(user_input)
+        msg.data = user_input
         self.publisher.publish(msg)
         self.get_logger().info('Published message: {0}'.format(msg.data))
 
@@ -24,7 +24,6 @@ def main():
     pubt = Publisher()
 
     try:
-        while rclpy.ok():
             pubt.publish_msg()
             rclpy.spin(pubt)
 
