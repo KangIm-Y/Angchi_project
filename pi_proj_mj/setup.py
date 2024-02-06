@@ -23,8 +23,12 @@ setup(
 
 
 	     'pubt = pi_proj_mj.pubt:main',
-	     'subF = pi_proj_mj.subf:main',
-	     'sub3 = pi_proj_mj.subf:main',     
+	     'subF = pi_proj_mj.subF:main',
+	     'sub3 = pi_proj_mj.subf:main',
+	     'Aruco_kh = pi_proj_mj.Aruco_kh:main',
+	     'Aruco_js = pi_proj_mj.Aruco_js1:main',
+	     'Aruco_js2 = pi_proj_mj.Aruco_js2:main',	    
+	          
         ],
     },
 )
