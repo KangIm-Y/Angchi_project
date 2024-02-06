@@ -22,7 +22,8 @@ setup(
         'console_scripts': [
 	     'Left = pi_proj_mj.subscriber_left:main',
 	     'Right = pi_proj_mj.subscriber_right:main',
-	     'pubt = pi_proj_mj.pubt:main',    
+	     'pubt = pi_proj_mj.pubt:main',
+	     'subf = pi_proj_mj.subf:main',    
         ],
     },
 )
