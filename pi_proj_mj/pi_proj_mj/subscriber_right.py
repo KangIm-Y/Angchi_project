@@ -25,13 +25,13 @@ class RightNode(Node):
             self.ser.write(control_R)
             rclpy.get_logger().info('RIGHT')
 
-def main(args=None):
-    rclpy.init(args=args)
+def main():
+    rclpy.init()
     Right = RightNode()
 
     try:
         while rclpy.ok():
-            rclpy.spin_once(Right)
+            rclpy.spin(Right)
 
     except KeyboardInterrupt:
         Right.get_logger().info('Keyboard Interrupt (SIGINT)')

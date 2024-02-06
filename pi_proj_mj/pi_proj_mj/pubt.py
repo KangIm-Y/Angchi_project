@@ -9,11 +9,6 @@ class Publisher(Node):
         super().__init__('pubt')
         qos_profile = QoSProfile(depth=10)
         self.publisher = self.create_publisher(String, 'Motor_control', qos_profile)
-        self.subscription = self.create_subscription(
-            String,
-            'Motor_control',
-            self.subscribe_topic_message,
-            qos_profile)
         self.get_logger().info('Publisher created')
 
     def publish_msg(self):
@@ -23,16 +18,15 @@ class Publisher(Node):
         self.publisher.publish(msg)
         self.get_logger().info('Published message: {0}'.format(msg.data))
 
-    def subscribe_topic_message(self, msg):
-        self.get_logger().info('Received message: {0}'.format(msg.data))
-
-def main(args=None):
-    rclpy.init(args=args)
+def main():
+    rclpy.init()
     
     pubt = Publisher()
 
     try:
-        rclpy.spin(pubt)
+        while rclpy.ok():
+            pubt.publish_msg()
+            rclpy.spin(pubt)
 
     except KeyboardInterrupt:
         pubt.get_logger().info('Keyboard Interrupt (SIGINT)')
