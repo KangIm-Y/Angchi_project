@@ -3,58 +3,42 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from std_msgs.msg import String
 
-class LeftPublisher(Node):
+class Publisher(Node):
 
     def __init__(self):
-        super().__init__('left_publisher_node')
+        super().__init__('pubt')
         qos_profile = QoSProfile(depth=10)
-        self.left_publisher = self.create_publisher(String, 'left', qos_profile)
-        self.timer = self.create_timer(1.0, self.publish_left_msg)  
-        self.count = 0
+        self.publisher = self.create_publisher(String, 'Motor_control', qos_profile)
+        self.subscription = self.create_subscription(
+            String,
+            'Motor_control',
+            self.subscribe_topic_message,
+            qos_profile)
+        self.get_logger().info('Publisher created')
 
-    def publish_left_msg(self):
-
+    def publish_msg(self):
         user_input = input('MESSAGE: ')
         msg = String()
-        msg.data = 'left: {0}'.format(user_input)
-        self.left_publisher.publish(msg)
+        msg.data = 'input: {0}'.format(user_input)
+        self.publisher.publish(msg)
         self.get_logger().info('Published message: {0}'.format(msg.data))
-        self.count += 1
 
-class RightPublisher(Node):
-
-    def __init__(self):
-        super().__init__('right_publisher_node')
-        qos_profile = QoSProfile(depth=10)
-        self.right_publisher = self.create_publisher(String, 'right', qos_profile)
-        self.timer = self.create_timer(1.0, self.publish_right_msg)  
-        self.count = 0
-
-    def publish_right_msg(self):
-        user_input = input('MESSAGE: ')
-        msg = String()
-
-        msg.data = 'right: {0}'.format(user_input)
-        self.right_publisher.publish(msg)
-        self.get_logger().info('Published message: {0}'.format(msg.data))
-        self.count += 1
+    def subscribe_topic_message(self, msg):
+        self.get_logger().info('Received message: {0}'.format(msg.data))
 
 def main(args=None):
     rclpy.init(args=args)
     
-    Left_p = LeftPublisher()
-    Right_p = RightPublisher()
+    pubt = Publisher()
 
     try:
-        rclpy.spin(Left_p)
-        rclpy.spin(Right_p)
+        rclpy.spin(pubt)
 
     except KeyboardInterrupt:
-        left_node.get_logger().info('Keyboard Interrupt (SIGINT)')
+        pubt.get_logger().info('Keyboard Interrupt (SIGINT)')
 
     finally:
-        Left_p.destroy_node()
-        Right_p.destroy_node()
+        pubt.destroy_node()
         rclpy.shutdown()
 
 if __name__ == '__main__':
