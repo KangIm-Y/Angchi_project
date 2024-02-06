@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'motor = pi_proj_kh.motor:main',
             'cli_input = pi_proj_kh.cli_input:main',
+            'aruco_pub = pi_proj_kh.aruco_pub.py',
         ],
     },
 )
