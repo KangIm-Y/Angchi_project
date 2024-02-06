@@ -35,7 +35,14 @@ class ArucoDetectionNode(Node):
             if ids_before != ids[0]:
                 ids_before = ids[0]
                 msg = String()
-                msg.data = str(ids[0])
+                
+                if ids[0] == 0 :
+                    msg.data = str("LEFT")
+                elif ids[0] == 1 :
+                    msg.data = str("RIGHT")
+                else :
+                    msg.data = str("UNDEFINED")
+                    
                 self.publisher.publish(msg)
                 self.get_logger().info(f'Detected ArUco Marker ID: {ids[0]}')
 
