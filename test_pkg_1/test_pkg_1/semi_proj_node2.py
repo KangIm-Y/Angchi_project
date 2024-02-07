@@ -8,7 +8,7 @@ import time
 class SemiProjectNode1(Node):
 
     def __init__(self):
-        super().__init__('node1')
+        super().__init__('node2')
         qos_profile = QoSProfile(depth=10)
         
         self.count = 0
