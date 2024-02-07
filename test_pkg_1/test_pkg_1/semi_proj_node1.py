@@ -53,6 +53,7 @@ class SemiProjectNode1(Node):
     def node2_pub_callback(self,msg) :
         if self.start_flag == True :
             self.get_logger().info(f'Ive got msg.data : {msg.data} from node2')
+            self.count = msg.data
             self.count += 1
         else : 
             return
