@@ -34,34 +34,34 @@ class SemiProjectNode1(Node):
             qos_profile
         )
         
-        self.timer = self.create_timer(1, self.publisher1)
+        self.timer = self.create_timer(1, self.publisher1_msg)
 
     def order_callback(self, msg):
-        if self.msg == "stop" :
+        if msg.data == "stop" :
             self.start_flag = False
             self.get_logger().info('stopped by master')
             return
         elif msg.data== '2' :
             self.start_flag = True
             self.get_logger().info(f'node2 start first. at count 0')
-            self.publisher_msg()
+            self.publisher1_msg()
         elif msg.data == '1' :
             self.start_flag = True
         else :
+            self.get_logger().info('worng data')
             return
         
     def node1_pub_callback(self,msg) :
         if self.start_flag == True :
             self.get_logger().info(f'Ive got msg.data : {msg.data} from node1')
-            self.count = msg.data
             self.count += 1
         else : 
             return
         
-    def publisher_msg(self) :
+    def publisher1_msg(self) :
         if self.start_flag == True :
             msg = String()  
-            msg.data = self.count
+            msg.data = f'publish data : {self.count}'
             self.publisher1.publish(msg)
         else :
             return

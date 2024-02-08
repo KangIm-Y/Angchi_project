@@ -25,6 +25,10 @@ setup(
             'test_talker1 =test_pkg_1.test_talker1:main',
             'test_talker2 = test_pkg_1.test_talker2:main',
             'test_listener = test_pkg_1.test_listener:main',
+            'semi_proj_node1 = test_pkg_1.semi_proj_node1:main',
+            'semi_proj_node2 = test_pkg_1.semi_proj_node2:main',
+            'semi_proj_master = test_pkg_1.semi_proj_master:main',
+            
         ],
     },
 )
