@@ -29,6 +29,8 @@ class WebcamPublisher(Node):
         
         self.frame_publisher.publish(self.br.cv2_to_imgmsg(frame))
         self.get_logger().info('Frame Publish Start')
+        cv2.imshow('frame_pub', frame)
+        cv2.waitKey(1)
 
 
 def main(args=None):
