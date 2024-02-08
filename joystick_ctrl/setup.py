@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'pi_proj_kh'
+package_name = 'joystick_ctrl'
 
 setup(
     name=package_name,
@@ -13,16 +13,13 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='skh',
+    maintainer='kangim',
     maintainer_email='tls3162@naver.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'motor = pi_proj_kh.motor:main',
-            'cli_input = pi_proj_kh.cli_input:main',
-            'aruco_pub = pi_proj_kh.aruco_pub:main',
         ],
     },
 )
