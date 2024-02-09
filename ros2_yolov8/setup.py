@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'yolov8 = ros2_yolov8.yolov8:main',
+            'yolov8_sub_webcam = ros2_yolov8.yolov8_sub_webcam:main',
         ],
     },
 )
