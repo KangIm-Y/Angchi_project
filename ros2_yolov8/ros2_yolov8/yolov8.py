@@ -1,5 +1,6 @@
 import cv2
 from ultralytics import YOLO
+import datetime
 
 import rclpy
 from rclpy.node import Node
@@ -35,11 +36,19 @@ class Yolov8(Node):
         self.br = CvBridge()
 
     def timer_callback(self):
+        start = datetime.datetime.now()
         ret, frame = self.cap.read()
         if not ret:
             self.get_logger().info('Webcam Frame Error')
         
         yolov8_result = self.yolov8_app(frame)
+        end = datetime.datetime.now()
+
+        total = (end - start).total_seconds()
+        print(f'Time to process 1 frame: {total * 1000:.0f} milliseconds')
+
+        fps = f'FPS: {1 / total:.2f}'
+        cv2.putText(yolov8_result, fps, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
         cv2.imshow('yolov8 frame', yolov8_result)
         cv2.waitKey(1)
