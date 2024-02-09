@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'test_joy_sub = test_pkg_1.test_joy_sub:main',
+            'test_joy_sub = joystick_ctrl.test_joy_sub:main',
         ],
     },
 )

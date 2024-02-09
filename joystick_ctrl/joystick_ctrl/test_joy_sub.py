@@ -17,7 +17,11 @@ class TestJoystickSub(Node):
             qos_profile)
 
     def subscribe_joy_message(self, msg):
-        self.get_logger().info('Received message: {0}'.format(msg.data))
+        axes = msg.axes
+        btn = msg.buttons
+
+        self.get_logger().info(f'Axes : {axes}')
+        self.get_logger().info(f'buttons : {btn}')
         
 
 
