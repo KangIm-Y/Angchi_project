@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'test_joy_sub = joystick_ctrl.test_joy_sub:main',
+            'test_joy_echo = joystick_ctrl.test_joy_echo:main',
         ],
     },
 )
