@@ -1,0 +1,107 @@
+#include <SoftwareSerial.h>
+SoftwareSerial RS485(3, 2);
+
+byte dataArr[6];
+const int CHECKSUM_CONSTANT = 256;
+int AA = 9;
+int AB = 10;
+int BA = 5;
+int BB = 6;
+
+void setup() {
+  Serial.begin(9600);
+  RS485.begin(9600);
+  pinMode(7, OUTPUT);
+  pinMode(8, OUTPUT);
+  digitalWrite(7, LOW);
+  digitalWrite(8, LOW);
+  pinMode(AA, OUTPUT);
+  pinMode(AB, OUTPUT);
+  pinMode(BA, OUTPUT);
+  pinMode(BB, OUTPUT);
+  Serial.println("Start");
+}
+void loop() {
+  if (RS485.available() > 0) {
+    for (int i = 0; i < 6; i++) {
+      byte data = RS485.read();
+      dataArr[i] = data;
+      delay(1); //Error without delay 
+      //            Serial.print(dataArr[i]);
+      //            Serial.print(" ");
+    }
+    //        Serial.println("");
+
+    if (dataArr[0] == 255) {
+      if (dataArr[1] == 254) {
+        if (check_checkSum()) {
+
+          for (int i = 0; i < 6; i++) {
+            Serial.print(dataArr[i]);
+            Serial.print(" ");
+          }
+          Serial.println("");
+
+          switch (dataArr[5]) {
+            case 0:
+              Serial.println("Go");
+              digitalWrite(AA, LOW);           //motor A front
+              digitalWrite(AB, HIGH);
+              digitalWrite(BA, HIGH);          //motor B front
+              digitalWrite(BB, LOW);
+              break;
+            case 1:
+              Serial.println("Left");
+              digitalWrite(AA, LOW);           //motor A front
+              digitalWrite(AB, HIGH);
+              digitalWrite(BA, LOW);           //motor B back
+              digitalWrite(BB, HIGH);
+              break;
+            case 2:
+              Serial.println("Right");
+              digitalWrite(AA, HIGH);          //motor A back
+              digitalWrite(AB, LOW);
+              digitalWrite(BA, HIGH);          //motor B front
+              digitalWrite(BB, LOW);
+              break;
+            case 3:
+              Serial.println("Stop");
+              digitalWrite(AA, LOW);           //motor A stop
+              digitalWrite(AB, LOW);
+              digitalWrite(BA, LOW);           //motor B stop
+              digitalWrite(BB, LOW);
+              break;
+            case 4:
+              Serial.println("Feedback");
+              digitalWrite(7, HIGH);
+              digitalWrite(8, HIGH);
+              byte dataArray[] = {0xFF, 0xFE, 0x00, 0x02, 0xF8, 0x05};
+              RS485.write(dataArray, sizeof dataArray);
+              digitalWrite(7, LOW);
+              digitalWrite(8, LOW);
+              break;
+            default:
+              Serial.println("Error");
+              digitalWrite(AA, LOW);           //motor A stop
+              digitalWrite(AB, LOW);
+              digitalWrite(BA, LOW);           //motor B stop
+              digitalWrite(BB, LOW);
+              break;
+          }
+        }
+      }
+    }
+  }
+
+}
+boolean check_checkSum() {
+
+  if (dataArr[4] == (CHECKSUM_CONSTANT + ~(dataArr[2] + dataArr[3] + dataArr[5]))) {
+    //Serial.println("O");
+    return true;
+  }
+  else {
+    //    Serial.println("X");
+    return false;
+  }
+}
