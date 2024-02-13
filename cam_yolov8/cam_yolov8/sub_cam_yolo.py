@@ -3,20 +3,21 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from std_msgs.msg import String
 import serial
+import threading
+
+
+global header1
+global header2
+global id
+global dataSize
+global mode
 
 header1 = 0xFF
 header2 = 0xFE
 id = 0x00
-dataSize = 0x07
-mode = 0x01
-dirCCW = 0x00
-dirCW = 0x01
-position1 = 0x23
-position2 = 0x28
-position3 = 0x46
-position4 = 0x50
-velocity1 = 0x00
-velocity2 = 0x32
+dataSize = 0x02
+mode = 0x00
+
 
 
 class CamYoloSubscriber(Node):
@@ -32,8 +33,11 @@ class CamYoloSubscriber(Node):
         self.last_msg_data = ""
         self.timer = self.create_timer(1.0, self.RS485_commu)
 
-        self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=3)
+        self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.1)
         self.trig = 0
+        
+        self.serial_thread = threading.Thread(target=self.serial_reader, daemon=True)
+        self.serial_thread.start()
 
     def subscribe_topic_message(self, msg):
         self.last_msg_data = msg.data
@@ -43,20 +47,20 @@ class CamYoloSubscriber(Node):
     def RS485_commu(self):
         input_data = self.last_msg_data
 
-        if input_data == "Left":
-            self.send_serial_data("Left") 
+        if input_data == "Go":
+            self.send_serial_data(0)
+
+        elif input_data == "Left":
+            self.send_serial_data(1) 
 
         elif input_data == "Right":
-            self.send_serial_data("Right")
-
-        elif input_data == "Go":
-            self.send_serial_data("Go")
+            self.send_serial_data(2)
 
         elif input_data == "Stop":
-            self.send_serial_data("Stop")
+            self.send_serial_data(3)
 
         elif input_data == "Feedback":
-            self.send_serial_data("Feedback")
+            self.send_serial_data(4)
 
         else:
             print("Data Empty \n")
@@ -64,51 +68,22 @@ class CamYoloSubscriber(Node):
 
     def send_serial_data(self, data):
         if self.trig == 1:
-            if data == "Left":                
-                checkSum = (~ (id + dataSize + mode + dirCCW + position1 + position2 + velocity1 + velocity2)) & 0xFF
-                rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+\
-                    bytes([mode])+bytes([dirCCW])+bytes([position1])+bytes([position2])+bytes([velocity1])+bytes([velocity2])
-                print('send data=' + rs485_send.hex())
-                self.ser.write(rs485_send)
-                self.trig = 0
-
-            elif data == "Right":                
-                checkSum = (~ (id + dataSize + mode + dirCW + position3 + position4 + velocity1 + velocity2)) & 0xFF
-                rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+\
-                    bytes([mode])+bytes([dirCW])+bytes([position3])+bytes([position4])+bytes([velocity1])+bytes([velocity2])
-                print('send data=' + rs485_send.hex())
-                self.ser.write(rs485_send)
-                self.trig = 0
-
-            elif data == "Go":                
-                checkSum = (~ (id + dataSize + mode + dirCW + position3 + position4 + velocity1 + velocity2)) & 0xFF
-                rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+\
-                    bytes([mode])+bytes([dirCW])+bytes([position3])+bytes([position4])+bytes([velocity1])+bytes([velocity2])
-                print('send data=' + rs485_send.hex())
-                self.ser.write(rs485_send)
-                self.trig = 0
-
-            elif data == "Stop":                
-                checkSum = (~ (id + dataSize + mode + dirCW + position3 + position4 + velocity1 + velocity2)) & 0xFF
-                rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+\
-                    bytes([mode])+bytes([dirCW])+bytes([position3])+bytes([position4])+bytes([velocity1])+bytes([velocity2])
-                print('send data=' + rs485_send.hex())
-                self.ser.write(rs485_send)
-                self.trig = 0
-
-            elif data == "Feedback":                
-                checkSum = (~ (id + dataSize + mode + dirCW + position3 + position4 + velocity1 + velocity2)) & 0xFF
-                rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+\
-                    bytes([mode])+bytes([dirCW])+bytes([position3])+bytes([position4])+bytes([velocity1])+bytes([velocity2])
-                print('send data=' + rs485_send.hex())
-                self.ser.write(rs485_send)
-                self.trig = 0
-            else:
-                return
-
-            
+            mode = int(hex(data),16)
+            checkSum = (~ (id + dataSize + mode)) & 0xFF
+            rs485_send = bytes([header1])+bytes([header2])+bytes([id])+bytes([dataSize])+bytes([checkSum])+bytes([mode])
+            print('send data=' + rs485_send.hex())
+            self.ser.write(rs485_send)
+            self.trig = 0
         else:
             return
+        
+    def serial_reader(self):
+        while True:
+            received_data = self.ser.readline().strip()
+            if received_data:
+                hex_data = ' '.join([f'{byte:02X}' for byte in received_data])
+                print("RS485 Receive data:", hex_data)
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -116,7 +91,6 @@ def main(args=None):
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        
         node.get_logger().info('Keyboard Interrupt (SIGINT)')
     finally:
         node.destroy_node()
