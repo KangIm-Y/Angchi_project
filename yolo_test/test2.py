@@ -6,12 +6,12 @@ CONFIDENCE_THRESHOLD = 0.6
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 
-coco128 = open('/home/jinsil/yolo_ws/coco128.txt')
+coco128 = open('/home/jinsil/robot_ws/src/Angchi_project/yolo_test/coco128.txt')
 data = coco128.read()
 class_list = data.split('\n')
 coco128.close()
 
-model = YOLO('/home/jinsil/yolo_ws/yolov8n.pt')
+model = YOLO('/home/jinsil/robot_ws/src/Angchi_project/yolo_test/yolov8n.pt')
 
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
