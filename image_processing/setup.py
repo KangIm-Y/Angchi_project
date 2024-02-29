@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'detection=image_processing.hand_detector:main',
+            'commander=image_processing.commander:main'
         ],
     },
 )
