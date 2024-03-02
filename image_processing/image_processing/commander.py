@@ -18,19 +18,19 @@ class ArduinoCommander(Node):
         
         if msg.data == "none" : #cannot detect
             self.get_logger().info(f'{msg.data} is recieved')
-            self.direction = 0x01
+            self.direction = 0x56
         elif msg.data == "nope" : #rock hand
             self.get_logger().info(f'{msg.data} is recieved')
-            self.direction = 0xFF
+            self.direction = 0x60
         elif msg.data == "yeah" : #V
             self.get_logger().info(f'{msg.data} is recieved')
-            self.direction = 0x03
-        elif msg.data == "hello" : #high five
+            self.direction = 0x58
+        elif msg.data == "Hello" : #high five
             self.get_logger().info(f'{msg.data} is recieved')
-            self.direction = 0x04
+            self.direction = 0x59
         else :
             self.get_logger().info(f'{msg.data} is not defined')
-            self.direction = 0xFF
+            self.direction = 0x60
             return
         
         self.send_data()
