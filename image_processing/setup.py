@@ -21,7 +21,10 @@ setup(
     entry_points={
         'console_scripts': [
             'detection=image_processing.hand_detector:main',
-            'commander=image_processing.commander:main'
+            'commander=image_processing.commander:main',
+            'img_catch=image_processing.image_catcher:main',
+            'img_indi=image_processing.image_indicater:main',
+
         ],
     },
 )
