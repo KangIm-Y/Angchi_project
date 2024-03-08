@@ -24,6 +24,9 @@ class ImageIndicater(Node):
 
         current_img = self.cvbrid.imgmsg_to_cv2(msg)
 
+        cv2.imshow("title", current_img)
+        cv2.waitKey(1)
+
 
 
 def main(args=None):
@@ -35,6 +38,7 @@ def main(args=None):
         node.get_logger().info('Keyboard Interrupt (SIGINT)')
     finally:
         node.destroy_node()
+        cv2.destroyAllWindows()
         rclpy.shutdown()
 
 

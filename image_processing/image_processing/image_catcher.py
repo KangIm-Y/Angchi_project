@@ -13,7 +13,7 @@ class ImageCatcher(Node):
     def __init__(self):
         super().__init__('Image_catcher')
         qos_profile = QoSProfile(depth=10)
-        self.image_publisher = self.create_publisher(String, 'img_data', qos_profile)
+        self.image_publisher = self.create_publisher(Image, 'img_data', qos_profile)
         self.timer = self.create_timer(0.1, self.image_capture)
 
         self.cap = cv2.VideoCapture(0)
@@ -25,7 +25,7 @@ class ImageCatcher(Node):
         if not ret :
             self.get_logger().info('cannot detect camera')
         else :
-            self.image_publisher.publish(self.cvbrid(img))
+            self.image_publisher.publish(self.cvbrid.cv2_to_imgmsg(img))
 
 
 
