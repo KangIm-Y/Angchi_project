@@ -39,7 +39,7 @@ class DepthIndicater(Node):
     def color_indi(self, msg):
         color_img = self.cvbrid.imgmsg_to_cv2(msg)
 
-        cv2.imshow("depth data", color_img)
+        cv2.imshow("color data", color_img)
         cv2.waitKey(1)
 
 

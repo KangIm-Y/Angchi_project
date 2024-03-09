@@ -25,6 +25,7 @@ setup(
             'img_catch=image_processing.image_catcher:main',
             'img_indi=image_processing.image_indicater:main',
             'depth_cap=image_processing.depth_capture:main',
+            'depth_indi=image_processing.depth_indicater:main',
 
         ],
     },
