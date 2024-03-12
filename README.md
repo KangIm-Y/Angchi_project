@@ -14,3 +14,4 @@ git config --global credential.helper store
 
 To input Token only once, u must input this command
 
+setuptools ver 58.2.0
