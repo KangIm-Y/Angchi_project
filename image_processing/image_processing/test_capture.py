@@ -11,7 +11,7 @@ from cv_bridge import CvBridge
 class TestCapture(Node):
 
     def __init__(self):
-        super().__init__('communication test capture')
+        super().__init__('communication_test_capture')
         qos_profile = QoSProfile(depth=10)
         self.image_publisher = self.create_publisher(Image, 'img_data', qos_profile)
         self.timer = self.create_timer(0.1, self.image_capture)
