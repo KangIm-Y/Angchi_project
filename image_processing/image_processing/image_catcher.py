@@ -14,7 +14,7 @@ class ImageCatcher(Node):
         super().__init__('Image_catcher')
         qos_profile = QoSProfile(depth=10)
         self.image_publisher = self.create_publisher(Image, 'img_data', qos_profile)
-        self.timer = self.create_timer(0.1, self.image_capture)
+        self.timer = self.create_timer(1/24, self.image_capture)
 
         self.cap = cv2.VideoCapture(0)
         self.cvbrid = CvBridge()
