@@ -31,8 +31,6 @@ class DepthCapture(Node):
         ##end setting
 
         self.timer = self.create_timer(1/30, self.depth_cap)
-
-        # self.cap = cv2.VideoCapture(0)
         self.cvbrid = CvBridge()
 
     def depth_cap(self):
