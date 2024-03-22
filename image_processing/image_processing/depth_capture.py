@@ -30,7 +30,7 @@ class DepthCapture(Node):
         self.pipeline.start(self.config)
         ##end setting
 
-        self.timer = self.create_timer(0.1, self.depth_cap)
+        self.timer = self.create_timer(1/30, self.depth_cap)
 
         # self.cap = cv2.VideoCapture(0)
         self.cvbrid = CvBridge()
