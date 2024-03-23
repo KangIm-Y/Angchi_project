@@ -3,42 +3,42 @@ kinematics:
   joint0:
     x: 0
     y: 0
-    z: 0.0775
+    z: 0.665 #0.0775
     roll: 0
     pitch: 0
     yaw: 0
   joint1:
     x: 0
-    y: -0.109
-    z: 0.222
-    roll: 1.570796327
-    pitch: 1.570796327
-    yaw: 0
-  joint2:
-    x: -0.45
     y: 0
-    z: -0.0305
+    z: 0.2
+    roll: 0
+    pitch: -1.570796327
+    yaw:  0
+  joint2:
+    x:  0
+    y:  -1.5
+    z:  0
     roll: 0
     pitch: 0
     yaw: 0
   joint3:
-    x: -0.267
-    y: 0
-    z: -0.075
-    roll: -1.570796327
-    pitch: 0
-    yaw: 1.570796327
+    x: 0
+    y: 1.053
+    z: 0
+    roll: 0
+    pitch: 1.570797
+    yaw: 1.570797
   joint4:
     x: 0
-    y: -0.114
-    z: +0.083
-    roll: 1.570796327
-    pitch: 1.570796327
-    yaw: 0
-  joint5:
-    x: -0.168
     y: 0
-    z: 0.069
-    roll: -1.570796327
+    z: 0.45
+    roll: 1.570797
     pitch: 0
-    yaw: 1.570796327
+    yaw: 1.570797
+  joint5:
+    x: 0.015
+    y: 0.495
+    z: -0.13
+    roll: 0 #1.570797
+    pitch: -1.570797
+    yaw: 0 #$1.570797
