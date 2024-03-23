@@ -29,6 +29,9 @@ setup(
             
             'test_cap=image_processing.test_capture:main',
             'test_indi=image_processing.test_indicator:main',
+            
+            'align_cap=image_processing.align_capture:main',
+            'align_indi=image_processing.align_indi:main',
 
         ],
     },

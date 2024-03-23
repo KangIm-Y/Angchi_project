@@ -10,6 +10,8 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge
 
+import time
+
 
 class DepthCapture(Node):
 
@@ -48,6 +50,8 @@ class DepthCapture(Node):
         self.cvbrid = CvBridge()
 
     def depth_cap(self):
+        
+        start_time = time.time()
 
         frames = self.pipeline.wait_for_frames()
         
@@ -64,7 +68,11 @@ class DepthCapture(Node):
         
         self.depth_frame_pub.publish(self.cvbrid.cv2_to_imgmsg(bg_removed))
         self.color_frame_pub.publish(self.cvbrid.cv2_to_imgmsg(color_image))
-
+        
+        end_time = time.time()
+        frame_rate = end_time - start_time
+        self.get_logger().info(f'frame rate is {1/frame_rate}')
+        
 
 
 def main(args=None):
