@@ -7,8 +7,8 @@
   joint5: 0.0
 7dof:
   joint0: 0.0
-  joint1: 0.0
-  joint2: 0.0
+  joint1: 0.872665
+  joint2: -0.872665
   joint3: 0.0
   joint4: 0.0
   joint5: 0.0
