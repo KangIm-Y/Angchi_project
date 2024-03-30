@@ -3,6 +3,10 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from std_msgs.msg import String
 
+from rclpy.qos import QoSHistoryPolicy
+from rclpy.qos import QoSReliabilityPolicy
+from rclpy.qos import QoSDurabilityPolicy
+
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge

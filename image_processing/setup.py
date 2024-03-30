@@ -33,8 +33,10 @@ setup(
             'align_cap=image_processing.align_capture:main',
             'align_indi=image_processing.align_indi:main',
             
-            'qos_setting_cap=image_processing.qos_setting_cap:main',
-            'qos_setting_indi=image_processing.qos_setting_indi:main',
+            'qos_align_cap=image_processing.dir_test.qos_align_cap:main',
+            'qos_align_indi=image_processing.dir_test.qos_align_indi:main',
+            'qos_test_cap=image_processing.dir_test.qos_test_cap:main',
+            'qos_test_indi=image_processing.dir_test.qos_test_indi:main',
 
         ],
     },
