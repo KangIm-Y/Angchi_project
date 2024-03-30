@@ -23,8 +23,8 @@ class DepthCapture(Node):
         super().__init__('Image_catcher')
         qos_profile = QoSProfile(
             history=QoSHistoryPolicy.KEEP_LAST,
-            reliabilty=QoSReliabilityPolicy.BEST_EFFORT,
-            qualability=QoSDurabilityPolicy.VOLATILE,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
             depth=10
         )
 

@@ -20,8 +20,8 @@ class DepthIndicater(Node):
         super().__init__('Image_indicater')
         qos_profile = QoSProfile(
             history=QoSHistoryPolicy.KEEP_LAST,
-            reliabilty=QoSReliabilityPolicy.BEST_EFFORT,
-            qualability=QoSDurabilityPolicy.VOLATILE,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
             depth=10
         )
         self.depth_subscribtion = self.create_subscription(
