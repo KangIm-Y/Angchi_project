@@ -32,6 +32,9 @@ setup(
             
             'align_cap=image_processing.align_capture:main',
             'align_indi=image_processing.align_indi:main',
+            
+            'qos_setting_cap=image_processing.qos_setting_cap:main',
+            'qos_setting_indi=image_processing.qos_setting_indi:main',
 
         ],
     },
