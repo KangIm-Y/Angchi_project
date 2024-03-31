@@ -6,8 +6,8 @@ joint_limits:
     has_acceleration_limits: false
     max_effort: 431.97
     max_velocity: !degrees 150.0
-    max_position: !degrees  175.0
-    min_position: !degrees -175.0
+    max_position: !degrees  90.0
+    min_position: !degrees -90.0
   joint1:
     has_effort_limits: true
     has_velocity_limits: true
@@ -15,8 +15,8 @@ joint_limits:
     has_acceleration_limits: false
     max_effort: 431.97
     max_velocity: !degrees 150.0
-    max_position: !degrees  175.0
-    min_position: !degrees -175.0
+    max_position: !degrees  180.0
+    min_position: !degrees -0.0
   joint2:
     has_effort_limits: true
     has_velocity_limits: true
