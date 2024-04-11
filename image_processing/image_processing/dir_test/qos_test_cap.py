@@ -17,19 +17,19 @@ class TestCapture(Node):
     def __init__(self):
         super().__init__('communication_test_capture')
         qos_profile = QoSProfile(
-            # history=QoSHistoryPolicy.KEEP_LAST,
-            # reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            # durability=QoSDurabilityPolicy.VOLATILE,
-            depth=30
+            history=QoSHistoryPolicy.KEEP_LAST,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            depth=10
         )
         self.image_publisher0 = self.create_publisher(Image, 'img_data0', qos_profile)
         self.image_publisher1 = self.create_publisher(Image, 'img_data1', qos_profile)
         self.image_publisher2 = self.create_publisher(Image, 'img_data2', qos_profile)
         self.image_publisher3 = self.create_publisher(Image, 'img_data3', qos_profile)
-        self.timer = self.create_timer(1/30, self.image_capture0)
-        self.timer = self.create_timer(1/30, self.image_capture1)
-        self.timer = self.create_timer(1/30, self.image_capture2)
-        self.timer = self.create_timer(1/30, self.image_capture3)
+        self.timer0 = self.create_timer(1/30, self.image_capture0)
+        self.timer1 = self.create_timer(1/30, self.image_capture1)
+        self.timer2 = self.create_timer(1/30, self.image_capture2)
+        self.timer3 = self.create_timer(1/30, self.image_capture3)
 
         self.cap = cv2.VideoCapture(0)
         self.cvbrid = CvBridge()

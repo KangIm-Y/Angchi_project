@@ -36,7 +36,11 @@ setup(
             'qos_align_cap=image_processing.dir_test.qos_align_cap:main',
             'qos_align_indi=image_processing.dir_test.qos_align_indi:main',
             'qos_test_cap=image_processing.dir_test.qos_test_cap:main',
+            'qos_test_cap1=image_processing.dir_test.qos_test_cap1:main',
             'qos_test_indi=image_processing.dir_test.qos_test_indi:main',
+            
+            'person_dis_pub=image_processing.yolo_depth.person_distance_cap:main',
+            'person_dis_sub=image_processing.yolo_depth.person_distance_indi:main',
 
         ],
     },

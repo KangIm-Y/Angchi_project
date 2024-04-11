@@ -20,7 +20,7 @@ class ImageIndicater(Node):
             # history=QoSHistoryPolicy.KEEP_LAST,
             # reliability=QoSReliabilityPolicy.BEST_EFFORT,
             # durability=QoSDurabilityPolicy.VOLATILE,
-            depth=30
+            depth=10
         )
         self.image_subscribtion0 = self.create_subscription(
             Image,
