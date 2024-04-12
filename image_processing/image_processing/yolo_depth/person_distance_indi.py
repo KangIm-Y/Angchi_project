@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
-from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 
 import numpy
 
@@ -26,9 +26,9 @@ class PersonDistanceSub(Node):
             self.color_indi,
             qos_profile)
         self.distance_subscribtion = self.create_subscription(
-            Float32,
+            Float64,
             'distance_data',
-            self.diatance_indi,
+            self.distance_indi,
             qos_profile)
         
         self.cvbrid = CvBridge()
@@ -44,7 +44,7 @@ class PersonDistanceSub(Node):
     def color_indi(self, msg):
         color_img = self.cvbrid.imgmsg_to_cv2(msg)
         
-        cv2.putText(color_img, f'{self.distance_Data:.4f} meters', (0,0), 2, 2, (0,0,255),cv2.LINE_AA)
+        cv2.putText(color_img, f'{self.distance_Data:.4f} meters', (30,30), cv2.FONT_HERSHEY_DUPLEX, 1, (0,0,255),2)
 
         cv2.imshow("color data", color_img)
         cv2.waitKey(1)

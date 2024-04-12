@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from sensor_msgs.msg import Image
-from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 
 import pyrealsense2 as rs
 import numpy as np
@@ -20,7 +20,7 @@ class PersonDistancePub(Node):
         ##depth setting
         self.depth_frame_pub = self.create_publisher(Image, 'depth_data', qos_profile)
         self.color_frame_pub = self.create_publisher(Image, 'color_data', qos_profile)
-        self.distance_data_pub = self.create_publisher(Float32, 'distance_data', qos_profile)
+        self.distance_data_pub = self.create_publisher(Float64, 'distance_data', qos_profile)
 
         self.pipeline = rs.pipeline()
         self.config = rs.config()
@@ -54,6 +54,8 @@ class PersonDistancePub(Node):
         
 
     def depth_cap(self):
+        distance_msg = Float64()
+        
         frames = self.pipeline.wait_for_frames()
         
         aligned_frames = self.align.process(frames)
@@ -81,7 +83,8 @@ class PersonDistancePub(Node):
             
             annotated_img = cv2.circle(annotated_img,((object_xy[0]),(object_xy[1])),10,(0,0,255), -1, cv2.LINE_AA)
             
-            self.distance_data_pub.publish(distance)
+            distance_msg.data = float(distance)
+            self.distance_data_pub.publish(distance_msg)
             
         else :
             self.get_logger().info(f'any object detected')
@@ -96,7 +99,7 @@ class PersonDistancePub(Node):
         bg_removed = np.where((depth_image_3d > self.clipping_distance) | (depth_image_3d <= 0), grey_color, color_image) #need to search what is np.where.
         
         self.depth_frame_pub.publish(self.cvbrid.cv2_to_imgmsg(bg_removed))
-        self.color_frame_pub.publish(self.cvbrid.cv2_to_imgmsg(color_image))
+        self.color_frame_pub.publish(self.cvbrid.cv2_to_imgmsg(annotated_img))
         
         # self.get_logger().info(f'frame rate is ///')
         
