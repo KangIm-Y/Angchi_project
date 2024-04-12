@@ -10,8 +10,6 @@ global id
 global dataSize
 global sumpose
 
-#poseArr = []
-
 
 header1 = 0xFF
 header2 = 0xFE
@@ -32,7 +30,7 @@ class JointStateSubscriber(Node):
             self.subscribe_topic_message,
             qos_profile)
 
-        self.timer = self.create_timer(0.5, self.send_serial_data)
+        self.timer = self.create_timer(0.2, self.send_serial_data) # RS485 sending time : 500ms
 
         self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=3)
         self.trig = 0
@@ -59,15 +57,11 @@ class JointStateSubscriber(Node):
                 self.poseArr[4] = self.poseArrRad[i] + 90
             elif(i == 5):
                 self.poseArr[5] = 90
-        print(" ")
+        # print(" ")
         
 
         for i in range(0,len(self.poseArr)): #print to check rad2deg
             print("joint deg",i,"::",self.poseArr[i])
-        print(" ")
-
-        for i in range(0,len(self.poseArr)): #print to check rad2deg
-            print("joint old",i,"::",self.poseArrOld[i])
         print(" ")
 
         self.trig = 1
@@ -88,20 +82,24 @@ class JointStateSubscriber(Node):
             for i in range(0,len(self.poseArr)):
                 # print(self.poseArr[i],type(self.poseArr[i]))
                 self.poseArrHex[i] = int(hex(int(self.poseArr[i])),16)
-                print("joint Hex",i,bytes([self.poseArrHex[i]]))
+                # print("joint Hex",i,"%x"%self.poseArrHex[i])
                 sumpose += self.poseArrHex[i]
             
             checkSum = (~ (id + dataSize + sumpose)) & 0xFF
+
+            # print("checkSum------------------------- ","%x"%(id + dataSize + sumpose))
+            # print("checkSum------------------------- ","%x"%(~ (id + dataSize + sumpose)))
+            # print("checkSum------------------------- ","%x"%checkSum)
             # print("BBBB")
-            print("header1",type(bytes([header1])))
-            print(bytes([header1]))
-            print("arrhex",type(bytes([self.poseArrHex[0]])))
-            print(bytes([self.poseArrHex[0]]))
+            # print("header1",type(bytes([header1])))
+            # print(bytes([header1]))
+            # print("arrhex",type(bytes([self.poseArrHex[0]])))
+            # print(bytes([self.poseArrHex[0]]))
             rs485_send = bytes([header1])+bytes([header2])+bytes([id])\
                 +bytes([dataSize])+bytes([checkSum])\
                     +bytes([self.poseArrHex[0]])+bytes([self.poseArrHex[1]])+bytes([self.poseArrHex[2]])\
                     +bytes([self.poseArrHex[3]])+bytes([self.poseArrHex[4]])+bytes([self.poseArrHex[5]])
-            print('send data=' + rs485_send.hex())
+            # print('send data=' + rs485_send.hex())
             self.ser.write(rs485_send)
             self.trig = 0
         else:
