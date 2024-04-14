@@ -104,6 +104,8 @@ def launch_setup(context, *args, **kwargs):
         "publish_geometry_updates": True,
         "publish_state_updates": True,
         "publish_transforms_updates": True,
+        "publish_robot_description":True,
+        "publish_robot_description_semantic":True,
     }
 
     # Start the actual move_group node/action server
