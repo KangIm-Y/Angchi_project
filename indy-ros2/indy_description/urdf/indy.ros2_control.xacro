@@ -48,11 +48,11 @@
             <xacro:define_control_joint joint_index="joint2"/>
             <xacro:define_control_joint joint_index="joint3"/>
             <xacro:define_control_joint joint_index="joint4"/>
-            <xacro:define_control_joint joint_index="joint5"/>
+            <!-- <xacro:define_control_joint joint_index="joint5"/>
 
             <xacro:if value="${indy_type == 'indyrp2' or indy_type == 'indyrp2_v2'}">
                 <xacro:define_control_joint joint_index="joint6"/>
-            </xacro:if>
+            </xacro:if> -->
 
         </ros2_control>
 

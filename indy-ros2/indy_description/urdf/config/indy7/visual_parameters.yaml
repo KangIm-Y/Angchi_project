@@ -53,21 +53,21 @@ mesh_files:
       mesh:
         package: indy_description
         path: meshes/indy7/visual/Indy7_5.stl
-  link6:
-    visual:
-      mesh:
-        package: indy_description
-        path: meshes/indy7/visual/Indy7_6.stl
-    collision:
-      mesh:
-        package: indy_description
-        path: meshes/indy7/visual/Indy7_6.stl
-  link6_eye:
-    visual:
-      mesh:
-        package: indy_description
-        path: meshes/indy7/visual/Indy7_eye_6.stl
-    collision:
-      mesh:
-        package: indy_description
-        path: meshes/indy7/collision/Indy7_eye_6.stl
+  # link6:
+  #   visual:
+  #     mesh:
+  #       package: indy_description
+  #       path: meshes/indy7/visual/Indy7_6.stl
+  #   collision:
+  #     mesh:
+  #       package: indy_description
+  #       path: meshes/indy7/visual/Indy7_6.stl
+  # link6_eye:
+  #   visual:
+  #     mesh:
+  #       package: indy_description
+  #       path: meshes/indy7/visual/Indy7_eye_6.stl
+  #   collision:
+  #     mesh:
+  #       package: indy_description
+  #       path: meshes/indy7/collision/Indy7_eye_6.stl

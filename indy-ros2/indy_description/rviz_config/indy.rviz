@@ -91,11 +91,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        link6:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         tcp:
           Alpha: 1
           Show Axes: false

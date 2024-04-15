@@ -71,10 +71,10 @@
         <xacro:define_link link_index="link5" link_mesh="link5"/>
 
         <xacro:if value="${indy_eye and not (indy_type == 'indyrp2' or indy_type == 'indyrp2_v2')}">
-            <xacro:define_link link_index="link6" link_mesh="link6_eye"/>
+            <!-- <xacro:define_link link_index="link6" link_mesh="link6_eye"/> -->
         </xacro:if>
         <xacro:unless value="${indy_eye and not (indy_type == 'indyrp2' or indy_type == 'indyrp2_v2')}">
-            <xacro:define_link link_index="link6" link_mesh="link6"/>
+            <!-- <xacro:define_link link_index="link6" link_mesh="link6"/> -->
         </xacro:unless>
 
         <xacro:if value="${indy_type == 'indyrp2' or indy_type == 'indyrp2_v2'}">
@@ -124,7 +124,7 @@
         <xacro:define_joint joint_index="joint2" link_1_index="link2" link_2_index="link3"/>
         <xacro:define_joint joint_index="joint3" link_1_index="link3" link_2_index="link4"/>
         <xacro:define_joint joint_index="joint4" link_1_index="link4" link_2_index="link5"/>
-        <xacro:define_joint joint_index="joint5" link_1_index="link5" link_2_index="link6"/>
+        <!-- <xacro:define_joint joint_index="joint5" link_1_index="link5" link_2_index="link6"/> -->
 
         <xacro:if value="${indy_type == 'indyrp2' or indy_type == 'indyrp2_v2'}">
             <xacro:define_joint joint_index="joint6" link_1_index="link6" link_2_index="link7"/>
@@ -137,9 +137,9 @@
 
         <xacro:unless value="${indy_type == 'indyrp2' or indy_type == 'indyrp2_v2'}">
             <joint name="${prefix}tcp" type="fixed">
-                <parent link="${prefix}link6"/>
+                <parent link="${prefix}link5"/>
                 <child link="${prefix}tcp"/>
-                <origin xyz="0 0 0.06" rpy="0 0 0"/>
+                <origin xyz="0 0 0.1" rpy="0 0 0"/>
             </joint>    
         </xacro:unless>
 

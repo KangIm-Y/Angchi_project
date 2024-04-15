@@ -24,7 +24,7 @@ joint_trajectory_controller:
             - joint2
             - joint3
             - joint4
-            - joint5
+            # - joint5
         command_interfaces:
             - position
             - velocity
@@ -42,7 +42,7 @@ joint_trajectory_controller:
             joint2: { trajectory: 0.2, goal: 0.1 }
             joint3: { trajectory: 0.2, goal: 0.1 }
             joint4: { trajectory: 0.2, goal: 0.1 }
-            joint5: { trajectory: 0.2, goal: 0.1 }
+            # joint5: { trajectory: 0.2, goal: 0.1 }
 
 forward_velocity_controller:
     ros__parameters:
@@ -52,7 +52,7 @@ forward_velocity_controller:
             - joint2
             - joint3
             - joint4
-            - joint5
+            # - joint5
         interface_name: velocity
 
 forward_position_controller:
@@ -63,5 +63,5 @@ forward_position_controller:
             - joint2
             - joint3
             - joint4
-            - joint5
+            # - joint5
         interface_name: position

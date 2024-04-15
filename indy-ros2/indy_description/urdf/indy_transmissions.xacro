@@ -20,7 +20,7 @@
         <xacro:define_transmission tran="tran2" joint="joint2" motor="motor2"/>
         <xacro:define_transmission tran="tran3" joint="joint3" motor="motor3"/>
         <xacro:define_transmission tran="tran4" joint="joint4" motor="motor4"/>
-        <xacro:define_transmission tran="tran5" joint="joint5" motor="motor5"/>
+        <!-- <xacro:define_transmission tran="tran5" joint="joint5" motor="motor5"/> -->
 
         <!--indyrp2 with 7 DOF-->
         <xacro:if value="${indy_type == 'indyrp2' or indy_type == 'indyrp2_v2'}">

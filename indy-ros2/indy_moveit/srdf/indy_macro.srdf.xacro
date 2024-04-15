@@ -55,7 +55,7 @@
                 <joint name="${prefix}joint2" value="-0.872665" />
                 <joint name="${prefix}joint3" value="0" />
                 <joint name="${prefix}joint4" value="0" />
-                <joint name="${prefix}joint5" value="0" />
+                <!-- <joint name="${prefix}joint5" value="0" /> -->
             </group_state>
             <group_state name="${prefix}ZeroPos" group="${prefix}${name}_manipulator">
                 <joint name="${prefix}joint0" value="0" />
@@ -63,7 +63,7 @@
                 <joint name="${prefix}joint2" value="-1.570796327" />
                 <joint name="${prefix}joint3" value="0" />
                 <joint name="${prefix}joint4" value="0" />
-                <joint name="${prefix}joint5" value="0" />
+                <!-- <joint name="${prefix}joint5" value="0" /> -->
             </group_state>
             <!--END EFFECTOR - Purpose - Represent information about an end effector.-->
             <!--VIRTUAL JOINT - Purpose - this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
@@ -74,13 +74,13 @@
             <disable_collisions link1="link2" link2="link3" reason="Adjacent" />
             <disable_collisions link1="link3" link2="link4" reason="Adjacent" />
             <disable_collisions link1="link4" link2="link5" reason="Adjacent" />
-            <disable_collisions link1="link5" link2="link6" reason="Adjacent" />
+            <!-- <disable_collisions link1="link5" link2="link6" reason="Adjacent" /> -->
             <disable_collisions link1="link2" link2="link4" reason="Never" />
             <disable_collisions link1="link2" link2="link5" reason="Never" />
             <disable_collisions link1="link2" link2="link6" reason="Never" />
             <disable_collisions link1="link3" link2="link5" reason="Never" />
             <disable_collisions link1="link3" link2="link6" reason="Never" />
-            <disable_collisions link1="link4" link2="link6" reason="Never" />
+            <!-- <disable_collisions link1="link4" link2="link6" reason="Never" /> -->
         </xacro:unless>
 
     </xacro:macro>

@@ -12,4 +12,4 @@ joint_trajectory_controller:
         - joint2
         - joint3
         - joint4
-        - joint5
+        # - joint5
