@@ -139,7 +139,7 @@
             <joint name="${prefix}tcp" type="fixed">
                 <parent link="${prefix}link6"/>
                 <child link="${prefix}tcp"/>
-                <origin xyz="0 0 0.06" rpy="0 0 0"/>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
             </joint>    
         </xacro:unless>
 
