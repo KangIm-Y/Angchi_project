@@ -22,6 +22,8 @@ setup(
         'console_scripts': [
             'test_joy_sub = joystick_ctrl.test_joy_sub:main',
             'test_joy_echo = joystick_ctrl.test_joy_echo:main',
+            'joy_pub_testmodel = joystick_ctrl.joy_pub_testmodel:main',
+            'joy_sub_testmodel = joystick_ctrl.joy_sub_testmodel:main',
         ],
     },
 )

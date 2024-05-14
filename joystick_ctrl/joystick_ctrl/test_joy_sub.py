@@ -1,12 +1,12 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
+import numpy as np
 # from std_msgs.msg import String
 from sensor_msgs.msg import Joy
 
 
 class TestJoystickSub(Node):
-
     def __init__(self):
         super().__init__('Test_joynode')
         qos_profile = QoSProfile(depth=10)
@@ -20,8 +20,10 @@ class TestJoystickSub(Node):
         axes = msg.axes
         btn = msg.buttons
 
-        self.get_logger().info(f'Axes : {axes}')
-        self.get_logger().info(f'buttons : {btn}')
+        # self.get_logger().info(f'Axes : {axes}')
+        # self.get_logger().info(f'buttons : {btn}')
+        self.get_logger().info(str(np.array(axes)))
+        self.get_logger().info(str(np.array(btn)))
         
 
 
