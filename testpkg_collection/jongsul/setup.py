@@ -20,6 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "joy_pub_testmodel=jongsul.joy_pub_testmodel:main",
+            "joy_sub_testmodel=jongsul.joy_sub_testmodel:main",
+            "auto_person_tracking=jongsul.auto_person_tracking:main",
         ],
     },
 )

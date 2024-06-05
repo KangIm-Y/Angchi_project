@@ -27,11 +27,11 @@ class JoyPubTestmodel(Node):
         btn = msg.buttons
         
         
-        if axes[4] != -1 :
+        if axes[2] != -1 :
             self.joy_stick_data = [0. , 0. ]
             self.joy_data_publish()
         else :
-            self.joy_stick_data = [axes[1], axes[3]]
+            self.joy_stick_data = [axes[1], axes[4]]
             self.joy_data_publish()
         
         ##L2 stick :    button [6]

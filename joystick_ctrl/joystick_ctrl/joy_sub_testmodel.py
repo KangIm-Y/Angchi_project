@@ -24,6 +24,9 @@ class JoySubTestmodel(Node):
         self.Rstick_data = 0x00
 
     def circulate_joys(self, msg):
+        self.Lstick_data = 0x80
+        self.Rstick_data = 0x00
+        
         Lstick = msg.data[0]
         Rstick = msg.data[1]
         L_mapped_data = 0
@@ -31,13 +34,13 @@ class JoySubTestmodel(Node):
         if Lstick < 0 :
             self.Lstick_data = 0x80
             self.Lstick_data |= 0x40
-            # self.Lstick_data |= 0x00
-            L_mapped_data = np.uint8(((Lstick+1) / 2) * 32 )
+            self.Lstick_data |= 0x00
+            L_mapped_data = np.uint8(Lstick*(-1 if Lstick<0 else 1)*31)
         elif Lstick >0 : 
             self.Lstick_data = 0x80
             self.Lstick_data |= 0x40
             self.Lstick_data |= 0x20
-            L_mapped_data = np.uint8(((Lstick+1) / 2) * 32 )
+            L_mapped_data = np.uint8(Lstick*(-1 if Lstick<0 else 1)*31)
         else :
             self.Lstick_data = 0x80
             # self.Lstick_data |= 0x00
@@ -51,12 +54,12 @@ class JoySubTestmodel(Node):
             self.Rstick_data = 0x00
             self.Rstick_data |= 0x40
             self.Rstick_data |= 0x00
-            R_mapped_data = np.uint8(((Lstick+1) / 2) * 32 )
+            R_mapped_data = np.uint8(Rstick*(-1 if Rstick<0 else 1)*31)
         elif Rstick >0 : 
             self.Rstick_data = 0x00
             self.Rstick_data |= 0x40
             self.Rstick_data |= 0x20
-            R_mapped_data = np.uint8(((Lstick+1) / 2) * 32 )
+            R_mapped_data = np.uint8(Rstick*(-1 if Rstick<0 else 1)*31)
         else :
             self.Rstick_data = 0x00
             pass
