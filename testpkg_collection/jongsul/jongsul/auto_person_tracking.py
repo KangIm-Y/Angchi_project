@@ -103,8 +103,8 @@ class JoyPubTestmodel(Node):
             
 
         # cv2.imshow("title", self.color_image)
-        # cv2.imshow('yolo', annotated_img)
-        # cv2.waitKey(1)
+        cv2.imshow('yolo', annotated_img)
+        cv2.waitKey(1)
         
     def control_box(self) :
         if len(self.object_xy) != 0 :
