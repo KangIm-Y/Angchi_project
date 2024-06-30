@@ -7,13 +7,31 @@ class Testcar_pub(Node):
     def __init__(self):
         super().__init__('test_car_pub') 
         qos_profile = QoSProfile(depth=10)
-        self.publisher = self.create_publisher(Int32MultiArray, 'ANG', qos_profile)
+        self.publisher = self.create_publisher(Int32MultiArray, 'Odrive_control', qos_profile)
+        self.control_sub = self.create_subscription(
+            Int32MultiArray,
+            'img_joy_data',
+            self.circulate_joys,
+            qos_profile)
+        self.emergency_joy_sub = self.create_subscription(
+            Int32MultiArray,
+            'joy_data',
+            self.emergency_joy,
+            qos_profile)
 
     def publish_msg(self, mode, vel_l, vel_r):
         msg = Int32MultiArray()
         msg.data = [mode, vel_l, vel_r]
         self.publisher.publish(msg)
-        self.get_logger().info('Published message: {0}'.format(msg.data))  
+        self.get_logger().info(f'Pub msg: {msg.data}')  
+        
+    def circulate_joys(self) :
+        ##image processing data sub & pub
+        return 0
+    
+    def emergency_joy(self) :
+        ##joy data input & pub
+        return 0
 
 def main(args=None):
     rclpy.init(args=args)
@@ -22,6 +40,7 @@ def main(args=None):
     try:
         while rclpy.ok():
             try:
+                ##fix input....
                 mode, vel_l, vel_r = map(int, input('CONTROL GOGO: ').split())
                 pub.publish_msg(mode, vel_l, vel_r)
             except ValueError: 
