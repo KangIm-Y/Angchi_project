@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'blue_ratio=track_test_pkg.blue_ratio:main',
         ],
     },
 )
