@@ -39,9 +39,9 @@ class Testcar_sub(Node):
             self.my_drive.axis1.controller.config.vel_ramp_rate = 10
             self.my_drive.axis0.controller.config.input_mode = INPUT_MODE_VEL_RAMP
             self.my_drive.axis1.controller.config.input_mode = INPUT_MODE_VEL_RAMP
-            self.my_drive.axis0.controller.input_vel = -msg.data[1]
-            self.my_drive.axis1.controller.input_vel = msg.data[2]
-            self.get_logger().info('Velocity control set: axis0 = {}, axis1 = {}'.format(-msg.data[1], msg.data[2]))
+            self.my_drive.axis0.controller.input_vel = msg.data[1]
+            self.my_drive.axis1.controller.input_vel = -msg.data[2]
+            self.get_logger().info('Velocity control set: axis0 = {}, axis1 = {}'.format(msg.data[1], -msg.data[2]))
         elif msg.data[0] == 2:
             self.my_drive.axis0.controller.config.input_mode = InputMode.TRAP_TRAJ
             self.my_drive.axis1.controller.config.input_mode = InputMode.TRAP_TRAJ
