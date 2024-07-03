@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'blue_ratio=track_test_pkg.blue_ratio:main',
+            'testcar_sub=track_test_pkg.testcar_sum_mode:main',
         ],
     },
 )
