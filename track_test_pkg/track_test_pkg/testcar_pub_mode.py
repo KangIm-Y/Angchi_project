@@ -25,8 +25,22 @@ class Testcar_pub(Node):
         self.publisher.publish(msg)
         self.get_logger().info(f'Pub msg: {msg.data}')  
         
-    def circulate_joys(self) :
+    def circulate_joys(self, msg) :
         ##image processing data sub & pub
+        ##### parameters #####
+        max_vel = 10
+        
+        L_end, midpoint, R_end = msg.data
+        
+        ######################
+        
+        L_diff = midpoint- L_end
+        R_diff = R_end - midpoint
+        
+        if L_diff > R_diff :
+            L_diff 
+        
+        
         return 0
     
     def emergency_joy(self) :
