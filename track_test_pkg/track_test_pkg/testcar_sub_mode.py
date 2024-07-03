@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
-from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import Float32MultiArray
 from odrive.enums import InputMode, CONTROL_MODE_VELOCITY_CONTROL, INPUT_MODE_VEL_RAMP
 
 import odrive
@@ -14,7 +14,7 @@ class Testcar_sub(Node):
         self.calibration()
         qos_profile = QoSProfile(depth=10)
         self.subscription = self.create_subscription(
-            Int32MultiArray,
+            Float32MultiArray,
             'Odrive_control',
             self.subscribe_topic_message,
             qos_profile)
