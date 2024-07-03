@@ -1,7 +1,6 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
-from builtin_interfaces.msg import Duration
 from std_msgs.msg import String
 
 from sensor_msgs.msg import Image
@@ -18,7 +17,6 @@ class ImageIndicater(Node):
             depth=10,
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
-            deadline=Duration(sec=0, nanosec=500000000)  # 0.5 seconds,
             )
         self.image_subscribtion = self.create_subscription(
             Image,
