@@ -29,13 +29,16 @@ class BlueRatioCirculator(Node):
         self.U_detection_threshold = 140 ## 0~255
         self.img_size_x = 1280
         self.img_size_y = 720
-        self.ROI_ratio = 0.3
+        self.ROI_ratio = 0.4
         self.max_speed = 10
         
-        self.odrive_mode = 0
+        self.odrive_mode = 1.
         self.joy_status = False
         self.joy_stick_data = [0, 0]
         
+        ### dont touch parameters ###
+        self.before_R_joy = 0.
+        self.before_L_joy = 0.
         
         ##################
         self.cap = cv2.VideoCapture(cam_num)
@@ -76,19 +79,21 @@ class BlueRatioCirculator(Node):
             
                 filterd = cv2.bitwise_and(img, img, mask=max_contour_mask)
                 cv2.imshow("UUUU", filterd)
+                cv2.waitKey(1)
         
-        histogram = self.get_histo(max_contour_mask)
-        midpoint = int(self.img_size_x / 2)
-        L_histo = histogram[:midpoint]
-        R_histo = histogram[midpoint:]
-        # L_sum, R_sum = end_point_finder(max_contour_mask,histogram)
-        
-        L_sum = int(np.sum(L_histo) / 255)
-        R_sum = int(np.sum(R_histo) / 255)
-        
-        # print(f'{L_sum}   {R_sum}')
-        
-        return L_sum, midpoint, R_sum
+                histogram = np.sum(max_contour_mask, axis=0)
+                midpoint = int(self.img_size_x / 2)
+                L_histo = histogram[:midpoint]
+                R_histo = histogram[midpoint:]
+                # L_sum, R_sum = end_point_finder(max_contour_mask,histogram)
+                
+                L_sum = int(np.sum(L_histo) / 255)
+                R_sum = int(np.sum(R_histo) / 255)
+                
+                # print(f'{L_sum}   {R_sum}')
+                
+                return L_sum, midpoint, R_sum
+        return 1,1,1
             
             
     def end_point_finder(self, binary_image,histogram) :
@@ -104,17 +109,23 @@ class BlueRatioCirculator(Node):
         return L_end, midpoint, R_end
     
     
-    ### image main
+    ### img main
     def image_capture(self):
         msg = Float32MultiArray()
         ret, img = self.cap.read()
-        L_joy = 0
-        R_joy = 0
+        L_joy = 0.
+        R_joy = 0.
 
         if not ret :
             self.get_logger().info('cannot detect camera')
         else :
-            L_sum, midpoint, R_sum = self.yuv_detection(img)
+            
+            ROI = img[int(self.img_size_y * (1-self.ROI_ratio)):,:].copy()
+            cv2.rectangle(img,(0,int(self.img_size_y * (1-self.ROI_ratio))),(self.img_size_x, self.img_size_y),(255,0,0),2)
+            cv2.line(img,(int(self.img_size_x / 2 ),int(self.img_size_y * (1-self.ROI_ratio))),(int(self.img_size_x / 2 ), self.img_size_y),(255,0,0),2)
+            cv2.imshow("origin", img)
+            cv2.waitKey(1)
+            L_sum, midpoint, R_sum = self.yuv_detection(ROI)
             
             if self.joy_status == True :
                 L_joy = (self.joy_stick_data[0] * 5)
@@ -122,14 +133,24 @@ class BlueRatioCirculator(Node):
             elif(((L_sum < R_sum*1.1) & (L_sum > R_sum*0.9)) | ((R_sum < L_sum*1.1) & (R_sum > L_sum*0.9))) :
                 L_joy = (self.max_speed / 2)
                 R_joy = (self.max_speed / 2)
-            elif ((L_sum > R_sum) | (R_sum < L_sum)) :
-                L_joy = (self.max_speed * (L_sum/(R_sum+L_sum)))
-                R_joy = (self.max_speed * (R_sum/(R_sum+L_sum)))
+            elif ((L_sum < R_sum*0.25) | (R_sum < L_sum*0.25)) :
+                L_joy = (self.max_speed / 1.25 ) * (0.25 if L_sum > R_sum else 1.)
+                R_joy = (self.max_speed / 1.25 ) * (0.25 if L_sum < R_sum else 1.)
+            elif ((L_sum > R_sum) | (R_sum > L_sum)) :
+                L_joy = (self.max_speed * (R_sum/(R_sum+L_sum)))
+                R_joy = (self.max_speed * (L_sum/(R_sum+L_sum)))
             else :
-                pass
+                L_joy = self.before_L_joy
+                R_joy = self.before_R_joy
+            
+            self.get_logger().info(f'{L_joy}   {R_joy}')
             
             msg.data = [self.odrive_mode, L_joy, R_joy]
             self.auto_control_publisher.publish(msg)
+            
+            self.before_R_joy = R_joy
+            self.before_L_joy = L_joy
+            
             # msg.data = [L_sum, midpoint, R_sum]
             # self.image_publisher.publish(msg)
 
