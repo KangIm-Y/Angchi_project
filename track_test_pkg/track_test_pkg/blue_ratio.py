@@ -128,8 +128,8 @@ class BlueRatioCirculator(Node):
             L_sum, midpoint, R_sum = self.yuv_detection(ROI)
             
             if self.joy_status == True :
-                L_joy = (self.joy_stick_data[0] * 5)
-                R_joy = (self.joy_stick_data[1] * 5)
+                L_joy = (self.joy_stick_data[0] * 10)
+                R_joy = (self.joy_stick_data[1] * 10)
             elif(((L_sum < R_sum*1.1) & (L_sum > R_sum*0.9)) | ((R_sum < L_sum*1.1) & (R_sum > L_sum*0.9))) :
                 L_joy = (self.max_speed / 2)
                 R_joy = (self.max_speed / 2)
