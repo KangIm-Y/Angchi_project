@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
-from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import Joy
 
 import numpy as np
@@ -14,9 +14,9 @@ class BlueRatioCirculator(Node):
     def __init__(self):
         super().__init__('BlueRatio')
         qos_profile = QoSProfile(depth=10)
-        self.image_publisher = self.create_publisher(
-            Int32MultiArray, 
-            'img_joy_data', 
+        self.auto_control_publisher = self.create_publisher(
+            Float32MultiArray, 
+            'Odrive_control', 
             qos_profile)
         self.joy_subscriber = self.create_subscription(
             Joy,
@@ -25,12 +25,16 @@ class BlueRatioCirculator(Node):
             qos_profile)
         
         ### parameters ###
-        cam_num = 0
+        cam_num = 4
         self.U_detection_threshold = 140 ## 0~255
         self.img_size_x = 1280
         self.img_size_y = 720
         self.ROI_ratio = 0.3
         self.max_speed = 10
+        
+        self.odrive_mode = 0
+        self.joy_status = False
+        self.joy_stick_data = [0, 0]
         
         
         ##################
@@ -51,14 +55,40 @@ class BlueRatioCirculator(Node):
         
         # rescale = np.clip(U_img - V_img, 0, 255).astype(np.uint8)
         ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
-        histogram = np.sum(U_img_treated, axis=0 )
-        L_end, midpoint, R_end = self.end_point_finder(U_img_treated,histogram)
         if ret :
-            filterd = cv2.bitwise_and(img, img, mask=U_img_treated)
-            cv2.imshow("UUUU", filterd)
-            cv2.waitKey(1)
+            # filterd = cv2.bitwise_and(img, img, mask=U_img_treated)
+            # cv2.imshow("UUUU", filterd)
             
-        return L_end, midpoint, R_end
+            contours, _ = cv2.findContours(U_img_treated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            max_area = 0
+            max_contour = None
+            for contour in contours:
+                area = cv2.contourArea(contour)
+                if area > max_area:
+                    max_area = area
+                    max_contour = contour
+
+            if max_contour is not None:
+                max_contour_mask = np.zeros_like(U_img_treated)
+                cv2.drawContours(max_contour_mask, [max_contour], -1, (255, 255, 255), thickness=cv2.FILLED)
+                
+            
+                filterd = cv2.bitwise_and(img, img, mask=max_contour_mask)
+                cv2.imshow("UUUU", filterd)
+        
+        histogram = self.get_histo(max_contour_mask)
+        midpoint = int(self.img_size_x / 2)
+        L_histo = histogram[:midpoint]
+        R_histo = histogram[midpoint:]
+        # L_sum, R_sum = end_point_finder(max_contour_mask,histogram)
+        
+        L_sum = int(np.sum(L_histo) / 255)
+        R_sum = int(np.sum(R_histo) / 255)
+        
+        # print(f'{L_sum}   {R_sum}')
+        
+        return L_sum, midpoint, R_sum
             
             
     def end_point_finder(self, binary_image,histogram) :
@@ -76,7 +106,7 @@ class BlueRatioCirculator(Node):
     
     ### image main
     def image_capture(self):
-        msg = Int32MultiArray()
+        msg = Float32MultiArray()
         ret, img = self.cap.read()
         L_joy = 0
         R_joy = 0
@@ -84,15 +114,23 @@ class BlueRatioCirculator(Node):
         if not ret :
             self.get_logger().info('cannot detect camera')
         else :
-            L_end, midpoint, R_end = self.yuv_detection(img)
+            L_sum, midpoint, R_sum = self.yuv_detection(img)
             
-            if((L_end < R_end*1.1) & (L_end > R_end*0.9)) | ((R_end < L_end*1.1) & (R_end > L_end*0.9)) :
-                L_joy = int(self.max_speed / 2)
-                R_joy = int(self.max_speed / 2)
-            elif (L_end > R_end) :
-                L_joy = int(L_end / R_end * self.max_speed)
+            if self.joy_status == True :
+                L_joy = (self.joy_stick_data[0] * 5)
+                R_joy = (self.joy_stick_data[1] * 5)
+            elif(((L_sum < R_sum*1.1) & (L_sum > R_sum*0.9)) | ((R_sum < L_sum*1.1) & (R_sum > L_sum*0.9))) :
+                L_joy = (self.max_speed / 2)
+                R_joy = (self.max_speed / 2)
+            elif ((L_sum > R_sum) | (R_sum < L_sum)) :
+                L_joy = (self.max_speed * (L_sum/(R_sum+L_sum)))
+                R_joy = (self.max_speed * (R_sum/(R_sum+L_sum)))
+            else :
+                pass
             
-            # msg.data = [L_end, midpoint, R_end]
+            msg.data = [self.odrive_mode, L_joy, R_joy]
+            self.auto_control_publisher.publish(msg)
+            # msg.data = [L_sum, midpoint, R_sum]
             # self.image_publisher.publish(msg)
 
     
@@ -101,10 +139,12 @@ class BlueRatioCirculator(Node):
         # btn = msg.buttons
 
         if axes[2] != -1 :
-            pass
+            self.joy_status = False
         else :
+            self.joy_status = True
             self.joy_stick_data = [axes[1], axes[4]]
-            # self.joy_data_publish()
+            
+            
         
 
 def main(args=None):
