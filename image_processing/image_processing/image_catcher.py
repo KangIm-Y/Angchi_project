@@ -13,10 +13,10 @@ class ImageCatcher(Node):
     def __init__(self):
         super().__init__('Image_catcher')
         qos_profile = QoSProfile(
-            # history=QoSHistoryPolicy.KEEP_LAST,
+            history=QoSHistoryPolicy.KEEP_LAST,
             depth=10,
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            # durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+            durability=QoSDurabilityPolicy.VOLATILE,
             )
         self.image_publisher = self.create_publisher(Image, 'img_data', qos_profile)
         self.timer = self.create_timer(1/24, self.image_capture)
