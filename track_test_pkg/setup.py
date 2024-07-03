@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'blue_ratio=track_test_pkg.blue_ratio:main',
             'testcar_sub=track_test_pkg.testcar_sub_mode:main',
+            'testcar_img_indi=track_test_pkg.testcar_img_indicater:main',
         ],
     },
 )

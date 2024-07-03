@@ -3,6 +3,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import Joy
+from sensor_msgs.msg import Image
 
 import numpy as np
 import cv2
@@ -18,12 +19,16 @@ class BlueRatioCirculator(Node):
             Float32MultiArray, 
             'Odrive_control', 
             qos_profile)
+        self.img_publisher = self.create_publisher(
+            Image, 
+            'img_data', 
+            qos_profile)
+        
         self.joy_subscriber = self.create_subscription(
             Joy,
             'joy',
             self.joy_msg_sampling,
             qos_profile)
-        
         ### parameters ###
         cam_num = 4
         self.U_detection_threshold = 140 ## 0~255
@@ -147,6 +152,7 @@ class BlueRatioCirculator(Node):
             
             msg.data = [self.odrive_mode, L_joy, R_joy]
             self.auto_control_publisher.publish(msg)
+            self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(img))
             
             self.before_R_joy = R_joy
             self.before_L_joy = L_joy
