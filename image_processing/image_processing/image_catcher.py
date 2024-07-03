@@ -15,7 +15,7 @@ class ImageCatcher(Node):
         qos_profile = QoSProfile(
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=10,
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            reliability=QoSReliabilityPolicy.RELIABLE,
             durability=QoSDurabilityPolicy.VOLATILE,
             )
         self.image_publisher = self.create_publisher(Image, 'img_data', qos_profile)
