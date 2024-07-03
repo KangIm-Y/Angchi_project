@@ -13,7 +13,7 @@ class ImageCatcher(Node):
     def __init__(self):
         super().__init__('Image_catcher')
         qos_profile = QoSProfile(
-            history=QoSHistoryPolicy.KEEP_LAST,
+            # history=QoSHistoryPolicy.KEEP_LAST,
             depth=10,
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             # durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
