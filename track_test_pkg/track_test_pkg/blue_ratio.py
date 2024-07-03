@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from std_msgs.msg import Int32MultiArray
+from sensor_msgs.msg import Joy
 
 import numpy as np
 import cv2
@@ -13,8 +14,15 @@ class BlueRatioCirculator(Node):
     def __init__(self):
         super().__init__('BlueRatio')
         qos_profile = QoSProfile(depth=10)
-        self.image_publisher = self.create_publisher(Int32MultiArray, 'img_joy_data', qos_profile)
-
+        self.image_publisher = self.create_publisher(
+            Int32MultiArray, 
+            'img_joy_data', 
+            qos_profile)
+        self.joy_subscriber = self.create_subscription(
+            Joy,
+            'joy',
+            self.joy_msg_sampling,
+            qos_profile)
         
         ### parameters ###
         cam_num = 0
@@ -22,6 +30,7 @@ class BlueRatioCirculator(Node):
         self.img_size_x = 1280
         self.img_size_y = 720
         self.ROI_ratio = 0.3
+        self.max_speed = 10
         
         
         ##################
@@ -69,14 +78,34 @@ class BlueRatioCirculator(Node):
     def image_capture(self):
         msg = Int32MultiArray()
         ret, img = self.cap.read()
+        L_joy = 0
+        R_joy = 0
 
         if not ret :
             self.get_logger().info('cannot detect camera')
         else :
             L_end, midpoint, R_end = self.yuv_detection(img)
-            msg.data = [L_end, midpoint, R_end]
-            self.image_publisher.publish(msg)
-      
+            
+            if((L_end < R_end*1.1) & (L_end > R_end*0.9)) | ((R_end < L_end*1.1) & (R_end > L_end*0.9)) :
+                L_joy = int(self.max_speed / 2)
+                R_joy = int(self.max_speed / 2)
+            elif (L_end > R_end) :
+                L_joy = int(L_end / R_end * self.max_speed)
+            
+            # msg.data = [L_end, midpoint, R_end]
+            # self.image_publisher.publish(msg)
+
+    
+    def joy_msg_sampling(self, msg):
+        axes = msg.axes
+        # btn = msg.buttons
+
+        if axes[2] != -1 :
+            pass
+        else :
+            self.joy_stick_data = [axes[1], axes[4]]
+            # self.joy_data_publish()
+        
 
 def main(args=None):
     rclpy.init(args=args)
