@@ -41,6 +41,10 @@ setup(
             
             'person_dis_pub=image_processing.yolo_depth.person_distance_cap:main',
             'person_dis_sub=image_processing.yolo_depth.person_distance_indi:main',
+            
+            
+            'timer_pub=image_processing.img_faster.image_timer_pub:main',
+            'timer_sub=image_processing.img_faster.image_timer_sub:main',
 
         ],
     },
