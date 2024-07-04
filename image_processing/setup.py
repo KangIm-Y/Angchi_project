@@ -45,6 +45,7 @@ setup(
             
             'timer_pub=image_processing.img_faster.image_timer_pub:main',
             'timer_sub=image_processing.img_faster.image_timer_sub:main',
+            'origin_pub=image_processing.img_faster.lower_timer_pub:main',
 
         ],
     },
