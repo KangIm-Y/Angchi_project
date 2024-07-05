@@ -152,7 +152,10 @@ class BlueRatioCirculator(Node):
             
             msg.data = [self.odrive_mode, L_joy, R_joy]
             self.auto_control_publisher.publish(msg)
-            self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(img))
+            
+            
+            resized = cv2.resize(img, (320,180),interpolation=cv2.INTER_AREA)
+            self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
             
             self.before_R_joy = R_joy
             self.before_L_joy = L_joy
