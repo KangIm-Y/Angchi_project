@@ -155,6 +155,7 @@ class BlueRatioCirculator(Node):
             
             
             resized = cv2.resize(img, (320,180),interpolation=cv2.INTER_AREA)
+            gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
             self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
             
             self.before_R_joy = R_joy
