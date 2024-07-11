@@ -13,7 +13,7 @@ class ImageIndicater(Node):
 
     def __init__(self):
         super().__init__('Image_indicater')
-        qos_profile = QoSProfile(depth=10)
+        qos_profile = QoSProfile(depth=1)
         self.image_subscribtion = self.create_subscription(
             Image,
             'img_data',
