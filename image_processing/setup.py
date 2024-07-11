@@ -52,6 +52,8 @@ setup(
             'split_pub=image_processing.img_faster.image_split_pub:main',
             'split_sub=image_processing.img_faster.image_split_sub:main',
             
+            'load_test_pub=image_processing.img_faster.load_test_pub:main',
+            
 
         ],
     },

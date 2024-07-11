@@ -40,7 +40,7 @@ class ImageCatcher(Node):
             self.get_logger().info('cannot detect camera')
         else :
             start = time.time()
-            resized = cv2.resize(img, (640,360),interpolation=cv2.INTER_AREA)
+            resized = cv2.resize(img, (320,180),interpolation=cv2.INTER_AREA)
             self.image_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
             end = time.time()
             self.get_logger().info(f'{(end- start)} resize and publish complete')
