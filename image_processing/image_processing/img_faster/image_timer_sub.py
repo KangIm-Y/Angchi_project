@@ -25,7 +25,7 @@ class ImageIndicater(Node):
         start = time.time()
 
         current_img = self.cvbrid.imgmsg_to_cv2(msg)
-        resized = cv2.resize(current_img, (1280,720), interpolation=cv2.INTER_CUBIC)
+        resized = cv2.resize(current_img, (720,405), interpolation=cv2.INTER_CUBIC)
 
         cv2.imshow("title", resized)
         cv2.waitKey(1)
