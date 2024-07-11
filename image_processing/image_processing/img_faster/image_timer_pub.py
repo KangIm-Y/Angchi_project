@@ -19,8 +19,8 @@ class ImageCatcher(Node):
         
         ### parameters ###
         
-        self.img_size_x = 1280 
-        self.img_size_y = 720
+        self.img_size_x = 1920 
+        self.img_size_y = 1080
         
         cam_num = 4
         
@@ -40,7 +40,7 @@ class ImageCatcher(Node):
             self.get_logger().info('cannot detect camera')
         else :
             start = time.time()
-            resized = cv2.resize(img, (320,180),interpolation=cv2.INTER_AREA)
+            resized = cv2.resize(img, (640,360),interpolation=cv2.INTER_AREA)
             self.image_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
             end = time.time()
             self.get_logger().info(f'{(end- start)} resize and publish complete')
