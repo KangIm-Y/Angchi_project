@@ -43,6 +43,6 @@ AMENT_IGNORE
 
 # End of https://www.toptal.com/developers/gitignore/api/opencv,ros2
 
-articubot_one/
-omo_r1mini-foxy/
+testpkg_collection/articubot_one/
+testpkg_collection/omo_r1mini-foxy/
 
