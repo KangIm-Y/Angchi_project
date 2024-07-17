@@ -14,15 +14,18 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='skh',
-    maintainer_email='=',
+    maintainer_email='tls3162@naver.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'blue_ratio=track_test_pkg.blue_ratio:main',
-            'testcar_sub=track_test_pkg.testcar_sub_mode:main',
-            'testcar_img_indi=track_test_pkg.testcar_img_indicater:main',
+            'blue_ratio=track_test_pkg.usable_code.blue_ratio:main',
+            'testcar_sub=track_test_pkg.usable_code.testcar_sub_mode:main',
+            'testcar_img_indi=track_test_pkg.usable_code.testcar_img_indicater:main',
+            
+            'blue_ratio_imu=track_test_pkg.usable_code.blue_ratio_imu:main',
+            'blue_ratio_imu_nonMulti=track_test_pkg.blue_ratio_imu_nonMulti:main',
             
             
             'imu_pub=track_test_pkg.sensor.imu_pub:main',
