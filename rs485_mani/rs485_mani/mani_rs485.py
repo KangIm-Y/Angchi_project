@@ -10,6 +10,7 @@ from struct import pack
 
 
 
+
 class JointSubscriber(Node):
 
     def __init__(self):
@@ -20,15 +21,21 @@ class JointSubscriber(Node):
             'joint',
             self.subscribe_topic_message,
             qos_profile)
+        self.posarray = [0,0,0,0]
         self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=3)
         self.nuri_init()
+        self.file_path = "degarr.txt"
+        self.read_pos()
+        
+
         
 
 
     def subscribe_topic_message(self, msg):
-        subdata = msg.data
-        self.get_logger().info('Received message: {0}'.format(subdata))
-        self.pos_nuri(subdata)
+        self.posarray = msg.data
+        self.get_logger().info('Received message: {0}'.format(self.posarray))
+        self.store_pos()
+        self.pos_nuri()
     
     def nuri_init(self):
         for i in range(4):
@@ -78,16 +85,45 @@ class JointSubscriber(Node):
     def set_nuri(self):
         for i in range(4):
             self.ser.write(set_pos_con_mode(i, 0))
-            t.sleep(0.05)
     
-    def pos_nuri(self, deg):
+    def pos_nuri(self):
         id = 0
         for i in range(4):
-            self.ser.write(set_degrpm(id, deg[i]))
-            self.get_logger().info(f'motor : {id} / deg : {deg[i]} ')
-            t.sleep(0.01)
+            self.ser.write(set_degrpm(id, self.posarray[i]))
+            self.get_logger().info(f'motor : {id} / deg : {self.posarray[i]} ')
             id = id + 1
         self.get_logger().info('------------------------------------')
+
+    def read_pos(self):
+        deg = [0,0,0,0]
+        try:
+            with open(self.file_path, 'r') as f:
+                lines = f.readlines()
+                if len(lines) != 4 :
+                    self.get_logger().warn("Last data is not exist. All posdata will be zero.")
+                else:
+                    num = 0
+                    for line in lines:
+                        try:
+                            read_deg = int(line.strip())
+                            deg[num] = read_deg
+                            self.get_logger().info(f"last {num} joint data is {read_deg}.")
+                        except:
+                            self.get_logger().warn(f"Can't read data for {num} joint. It will be zero.")
+                        num += 1
+        except:
+            self.get_logger().warn("File not exist. All posdata will be zero and generate new file.")
+            self.store_pos()
+        self.posarray = deg
+
+
+    def store_pos(self):
+        with open(self.file_path, 'w') as f:
+            for i in self.posarray:
+                f.write(f"{i}\n")
+        self.get_logger().info(f"deg array saved. saved data is {self.posarray}")
+        
+        
 
 
 
