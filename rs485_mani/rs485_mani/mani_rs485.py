@@ -21,11 +21,13 @@ class JointSubscriber(Node):
             'joint',
             self.subscribe_topic_message,
             qos_profile)
+        self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
         self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=3)
-        self.nuri_init()
-        self.file_path = "degarr.txt"
         self.read_pos()
+        self.nuri_init()
+        
+        
         
 
         
@@ -69,6 +71,17 @@ class JointSubscriber(Node):
                     self.get_logger().warn(f'{i} motor no response. retry...')
                     count = count + 1
         self.set_nuri()
+        self.nuri_initpos()
+
+    def nuri_initpos(self):
+        pos_inv = []
+        for i in self.posarray:
+            pos_inv.append(~i + 1)
+        self.posarray = pos_inv
+        self.pos_nuri()
+        t.sleep(1)
+        self.set_nuri_zero()
+
 
                     
 
@@ -85,6 +98,14 @@ class JointSubscriber(Node):
     def set_nuri(self):
         for i in range(4):
             self.ser.write(set_pos_con_mode(i, 0))
+
+
+    def set_nuri_zero(self):
+        self.get_logger().info('Moving to zeropos.')
+        for i in range(4):
+            self.ser.write(init_pos(i))
+        
+
     
     def pos_nuri(self):
         id = 0
