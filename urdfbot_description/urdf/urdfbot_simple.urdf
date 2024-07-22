@@ -29,7 +29,6 @@
     </link>
 
     <joint name="mani_joint1" type="revolute">
-        <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
         <origin rpy="0 0 0" xyz="0 0 0.062" />
         <parent link="mani_link1" />
         <child link="mani_link2" />
@@ -51,7 +50,6 @@
     </link>
 
     <joint name="mani_joint2" type="revolute">
-        <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
         <origin rpy="0 -1.57075 0" xyz="0.02285 0 0.047" />
         <parent link="mani_link2" />
         <child link="mani_link3" />
@@ -73,7 +71,6 @@
     </link>
 
     <joint name="mani_joint3" type="revolute">
-        <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
         <origin rpy="0 0 0" xyz="0.3195 0 0.0455" />
         <parent link="mani_link3" />
         <child link="mani_link4" />
@@ -95,7 +92,6 @@
     </link>
 
     <joint name="mani_joint4" type="revolute">
-        <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
         <origin rpy="0 -1.57075 1.57075" xyz="0.066 -0.064 -0.022" />
         <parent link="mani_link4" />
         <child link="mani_link5" />
@@ -117,7 +113,6 @@
     </link>
 
     <joint name="mani_joint5" type="revolute">
-        <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
         <origin rpy="0 0 0" xyz="0 0 0.24875" />
         <parent link="mani_link5" />
         <child link="mani_link6" />
@@ -139,7 +134,6 @@
     </link>
 
     <joint name="mani_joint6" type="revolute">
-        <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973" />
         <origin rpy="0 0 0" xyz="0 0 0.0565" />
         <parent link="mani_link6" />
         <child link="mani_link7" />

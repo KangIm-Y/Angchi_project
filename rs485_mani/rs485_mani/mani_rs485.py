@@ -23,7 +23,7 @@ class JointSubscriber(Node):
             qos_profile)
         self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
-        self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=3)
+        self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
         self.nuri_init()
         
@@ -34,7 +34,7 @@ class JointSubscriber(Node):
 
 
     def subscribe_topic_message(self, msg):
-        self.posarray = msg.data
+        self.posarray = self.inv_data(msg.data)
         self.get_logger().info('Received message: {0}'.format(self.posarray))
         self.store_pos()
         self.pos_nuri()
@@ -71,9 +71,11 @@ class JointSubscriber(Node):
                     self.get_logger().warn(f'{i} motor no response. retry...')
                     count = count + 1
         self.set_nuri()
+        t.sleep(2)
         self.nuri_initpos()
 
     def nuri_initpos(self):
+        self.get_logger().info('Moving to zeropos.')
         pos_inv = []
         for i in self.posarray:
             pos_inv.append(~i + 1)
@@ -101,7 +103,6 @@ class JointSubscriber(Node):
 
 
     def set_nuri_zero(self):
-        self.get_logger().info('Moving to zeropos.')
         for i in range(4):
             self.ser.write(init_pos(i))
         
@@ -143,6 +144,13 @@ class JointSubscriber(Node):
             for i in self.posarray:
                 f.write(f"{i}\n")
         self.get_logger().info(f"deg array saved. saved data is {self.posarray}")
+
+
+    def inv_data(self, data):
+        inv = []
+        for i in range(len(data)):
+            inv.append((~(data[i]) + 1))
+        return inv
         
         
 

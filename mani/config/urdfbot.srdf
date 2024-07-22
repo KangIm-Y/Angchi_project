@@ -35,8 +35,6 @@
         <joint name="mani_joint5" value="-0.2517"/>
         <joint name="mani_joint6" value="0"/>
     </group_state>
-    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="arm" parent_link="mani_link1" group="mani"/>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
     <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="mani_link1"/>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
