@@ -1,0 +1,26 @@
+# This config file is used by ros2_control
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    mani_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+mani_controller:
+  ros__parameters:
+    joints:
+      - mani_joint1
+      - mani_joint2
+      - mani_joint3
+      - mani_joint4
+      - mani_joint5
+      - mani_joint6
+      - mani_joint7
+    command_interfaces:
+      []
+    state_interfaces:
+      []

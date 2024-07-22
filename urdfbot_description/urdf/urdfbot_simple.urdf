@@ -140,8 +140,21 @@
         <axis xyz="0 0 1" />
         <limit effort="87" lower="-2.9671" upper="2.9671" velocity="2.3925" />
     </joint>
-
-
-
+    
+    <link name="mani_link8">
+    	<visual>
+            <geometry>
+                <sphere radius="0.001" />
+            </geometry>
+        </visual>
+    </link>
+    
+    <joint name="mani_joint7" type="revolute">
+        <origin rpy="0 0 0" xyz="0 0 0.110" />
+        <parent link="mani_link7" />
+        <child link="mani_link8" />
+        <axis xyz="1 0 0" />
+        <limit effort="87" lower="-3.1415" upper="3.1415" velocity="2.3925" />
+    </joint>
 
 </robot>

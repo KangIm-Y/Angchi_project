@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: urdfbot_description
+    relative_path: urdf/urdfbot_simple.urdf
+  srdf:
+    relative_path: config/urdfbot.srdf
+  package_settings:
+    author_name: ascroid
+    author_email: pas123068@gmail.com
+    generated_timestamp: 1721667897
