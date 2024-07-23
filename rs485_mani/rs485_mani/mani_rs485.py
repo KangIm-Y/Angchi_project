@@ -5,6 +5,7 @@ from std_msgs.msg import Int32MultiArray
 import serial
 import time as t
 from struct import pack
+from custom_interfaces.srv import String
 #from nuri_protocool import *
 
 
@@ -21,6 +22,9 @@ class JointSubscriber(Node):
             'joint',
             self.subscribe_topic_message,
             qos_profile)
+        self.client = self.create_client(String, 'movement')
+
+
         self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
         self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
