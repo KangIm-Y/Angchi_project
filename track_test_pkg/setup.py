@@ -30,6 +30,10 @@ setup(
             
             'imu_pub=track_test_pkg.sensor.imu_pub:main',
             
+            #### depth ####
+            'cartesian_pose=track_test_pkg.usable_code.cartesian_pose:main',
+            
+            
         ],
     },
 )
