@@ -1,5 +1,3 @@
-# import the Twist module from geometry_msgs messages interface
-from geometry_msgs.msg import Twist
 # import the MyCustomServiceMessage module from custom_interfaces package
 from custom_interfaces.srv import Protocool
 # import the ROS2 Python client libraries
@@ -12,11 +10,7 @@ import serial
 class Service(Node):
 
     def __init__(self):
-        # Here you have the class constructor
-        # call the class constructor to initialize the node as service_stop
         super().__init__('serial_comm')
-        # create the Service Server object
-        # defines the type, name, and callback function
         self.srv = self.create_service(Protocool, 'command', self.custom_service_callback)
         self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         
@@ -31,11 +25,18 @@ class Service(Node):
             self.get_logger().info(f'send : {ser_comm_byte}')
             # response state
             response.success = True
-        elif request.codecomand == "Init":
+        elif request.codecommand == "Init":
             self.get_logger().info('Initializing!!')
             self.nuri_init()
             # response state
             response.success = True
+        elif request.codecommand == "Read":
+            self.get_logger().info('waiting to read!!')
+            while(1):
+                if self.ser.readable():
+                    response.feedback = list(self.ser.readline())
+                    break
+
         else:
             # response state
             response.success = False

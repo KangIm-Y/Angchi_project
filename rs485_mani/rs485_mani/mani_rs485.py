@@ -6,6 +6,9 @@ import time as t
 from struct import pack
 from custom_interfaces.srv import Protocool
 import sys
+
+from rclpy.callback_groups import ReentrantCallbackGroup, MutuallyExclusiveCallbackGroup
+from rclpy.executors import MultiThreadedExecutor, SingleThreadedExecutor
 #from nuri_protocool import *
 
 
@@ -17,18 +20,23 @@ class JointSubscriber(Node):
     def __init__(self):
         super().__init__('joint_Subscriber')
         qos_profile = QoSProfile(depth=10)
+        self.group1 = ReentrantCallbackGroup()
+        self.get_logger().warning("ReentrantCallbackGroup Set")
         self.joint_Subscriber = self.create_subscription(
             Int32MultiArray,
             'joint',
             self.subscribe_topic_message,
-            qos_profile)
-        self.client = self.create_client(Protocool, 'command')
+            qos_profile,
+            callback_group=self.group1)
+        self.client = self.create_client(Protocool, 'command', callback_group=self.group1)
+        self.create_timer(0.1, self.check_srv_res, callback_group=self.group1)
         while not self.client.wait_for_service(timeout_sec=2.0):
             # if it is not available, a message is displayed
             self.get_logger().info('service not available, waiting again...')
         
         # create an Empty request
         self.req = Protocool.Request()
+        self.send_request(codecommand="Init")
 
         self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
@@ -45,6 +53,8 @@ class JointSubscriber(Node):
         self.req.codecommand = codecommand
         # uses sys.argv to access command line input arguments for the request.
         self.future = self.client.call_async(self.req)
+        self.srv_flag = True
+        self.check_srv_res()
         
         
         
@@ -135,12 +145,13 @@ class JointSubscriber(Node):
             inv.append((~(data[i]) + 1))
         return inv
     def check_srv_res(self):
-        if (self.future.done == True):
+        if self.future.done() and self.srv_flag:
             response = self.future.result()
-            if response == True:
+            if response.success == True:
                 self.get_logger().info("success!")
             else:
                 self.get_logger().error("service call failed!")
+            self.srv_flag = False
         # to print in the console
         
         
