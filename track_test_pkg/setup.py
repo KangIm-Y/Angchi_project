@@ -32,6 +32,7 @@ setup(
             
             #### depth ####
             'cartesian_pose=track_test_pkg.usable_code.cartesian_pose:main',
+            'service_server_test=track_test_pkg.service_server_test:main',
             
             
         ],
