@@ -1,0 +1,6 @@
+uint8[] sercommand       #RS485 command
+string codecommand    #command for code
+
+---
+
+bool success  # Did it achieve it?

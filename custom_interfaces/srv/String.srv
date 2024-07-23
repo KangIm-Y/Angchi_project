@@ -1,5 +1,0 @@
-string command  #RS485 command
-
----
-
-bool success  # Did it achieve it?

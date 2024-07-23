@@ -2,10 +2,10 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from std_msgs.msg import Int32MultiArray
-import serial
 import time as t
 from struct import pack
-from custom_interfaces.srv import String
+from custom_interfaces.srv import Protocool
+import sys
 #from nuri_protocool import *
 
 
@@ -22,61 +22,40 @@ class JointSubscriber(Node):
             'joint',
             self.subscribe_topic_message,
             qos_profile)
-        self.client = self.create_client(String, 'movement')
-
+        self.client = self.create_client(Protocool, 'command')
+        while not self.client.wait_for_service(timeout_sec=2.0):
+            # if it is not available, a message is displayed
+            self.get_logger().info('service not available, waiting again...')
+        
+        # create an Empty request
+        self.req = Protocool.Request()
 
         self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
-        self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
+        #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
-        self.nuri_init()
-        
-        
-        
+        self.nuri_initpos()
 
-        
 
+
+    def send_request(self, sercomm = b'', codecommand = ''):        #사용법 : rs485 커멘드 => send_request(명령어), 코드 자체에 보낼 커멘드 => send_request(codecommand = 명령어)
+        
+        # send the request
+        self.req.sercommand = list(sercomm)
+        self.req.codecommand = codecommand
+        # uses sys.argv to access command line input arguments for the request.
+        self.future = self.client.call_async(self.req)
+        
+        
+        
+        
 
     def subscribe_topic_message(self, msg):
         self.posarray = self.inv_data(msg.data)
         self.get_logger().info('Received message: {0}'.format(self.posarray))
         self.store_pos()
         self.pos_nuri()
-    
-    def nuri_init(self):
-        for i in range(4):
-            self.get_logger().info(f'{i} motor initializing...')
-            self.ser.write(call_feedback(i, 0xA0))
-            count = 0
-            while 1:
-                if self.ser.readable():
-                    readdata = self.ser.readline()
-                    id = self.checkID(readdata)
-                    if id == i:
-                        self.get_logger().info(f'{i} motor initialized!')
-                        break
-                    elif id == -1:
-                        if count == 3:
-                            self.get_logger().error(f'{i} motor failed!!')
-                            break
-                        else:
-                            self.get_logger().warn('retry...')
-                            self.ser.write(call_feedback(i, 0xA0))
-                            count = count + 1
-                    else:
-                        self.get_logger().error(f'responsed but not {i} motor. retry...')
-                        self.ser.write(call_feedback(i, 0xA0))
-                        count = count + 1
 
-                elif count == 3:
-                    self.get_logger().error(f'{i} motor failed!!')
-                    break
-                else:
-                    self.get_logger().warn(f'{i} motor no response. retry...')
-                    count = count + 1
-        self.set_nuri()
-        t.sleep(2)
-        self.nuri_initpos()
 
     def nuri_initpos(self):
         self.get_logger().info('Moving to zeropos.')
@@ -103,19 +82,19 @@ class JointSubscriber(Node):
     
     def set_nuri(self):
         for i in range(4):
-            self.ser.write(set_pos_con_mode(i, 0))
+            self.send_request(set_pos_con_mode(i, 0))
 
 
     def set_nuri_zero(self):
         for i in range(4):
-            self.ser.write(init_pos(i))
+            self.send_request(init_pos(i))
         
 
     
     def pos_nuri(self):
         id = 0
         for i in range(4):
-            self.ser.write(set_degrpm(id, self.posarray[i]))
+            self.send_request(set_degrpm(id, self.posarray[i]))
             self.get_logger().info(f'motor : {id} / deg : {self.posarray[i]} ')
             id = id + 1
         self.get_logger().info('------------------------------------')
@@ -155,6 +134,14 @@ class JointSubscriber(Node):
         for i in range(len(data)):
             inv.append((~(data[i]) + 1))
         return inv
+    def check_srv_res(self):
+        if (self.future.done == True):
+            response = self.future.result()
+            if response == True:
+                self.get_logger().info("success!")
+            else:
+                self.get_logger().error("service call failed!")
+        # to print in the console
         
         
 
@@ -165,22 +152,24 @@ class JointSubscriber(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = JointSubscriber()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        node.get_logger().info('Keyboard Interrupt (SIGINT)')
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
+    while(1):
+        try:
+            rclpy.spin_once(node)
+            node.check_srv_res()
+
+        except KeyboardInterrupt:
+            node.get_logger().info('Keyboard Interrupt (SIGINT)')
+            node.destroy_node()
+            rclpy.shutdown()
+            break
+            
 
 
 if __name__ == '__main__':
     main()
     
     
-    
-    
-    
+
     
 #nuri_protocool_by_ep
 
@@ -253,8 +242,6 @@ def call_feedback(Id, Mode):
     return attach_checksum(data_array)
 
 
-    
-
 
 def attach_checksum(data_arr):
     sum = 0x00
@@ -277,3 +264,4 @@ def protocool_comm(dataWithChecksum):
         #print('-------')
         #print(command)
     return command
+
