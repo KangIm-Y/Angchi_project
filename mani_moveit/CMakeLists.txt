@@ -9,7 +9,9 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(moveit_visual_tools REQUIRED)
+find_package(custom_interfaces REQUIRED)
 
 add_executable(mani_moveit src/mani_moveit.cpp)
 target_include_directories(mani_moveit PUBLIC
@@ -18,13 +20,15 @@ target_include_directories(mani_moveit PUBLIC
 target_compile_features(mani_moveit PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(
   mani_moveit
-  "moveit_ros_planning_interface"
-  "moveit_visual_tools"
-  "rclcpp"
+  moveit_ros_planning_interface
+  moveit_visual_tools
+  custom_interfaces
+  rclcpp
 )
 
 install(TARGETS mani_moveit
   DESTINATION lib/${PROJECT_NAME})
+  
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

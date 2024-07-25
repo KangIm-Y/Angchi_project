@@ -1,76 +1,106 @@
+#include <thread>
 #include <memory>
 #include <iostream>
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include "custom_interfaces/srv/position_service.hpp"
+#include <signal.h>
 
-
-int main(int argc, char * argv[])
-{
-  // Initialize ROS and create the Node
-  rclcpp::init(argc, argv);
-  auto const node = std::make_shared<rclcpp::Node>(
-    "mani_moveit",
-    rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)
-  );
-  
-
-
-  // Create a ROS logger
-  auto const logger = rclcpp::get_logger("mani_moveit");
-
-  // Next step goes here
-// Create the MoveIt MoveGroup Interface
+using std::placeholders::_1;
+using std::placeholders::_2;
 using moveit::planning_interface::MoveGroupInterface;
-auto move_group_interface = MoveGroupInterface(node, "mani");
 
-move_group_interface.setMaxVelocityScalingFactor(1);
-move_group_interface.setMaxAccelerationScalingFactor(1);
-move_group_interface.setGoalPositionTolerance(0.05);
+bool moved_flag = true;
 
-
+int r = 0;
 float x = 0.0;
-float y = -0.2;
-float z = 0.1;
-float r = 0.0;
-std::cout << "Enter the X: ";
-std::cin >> x;
-std::cout << "Enter the Y: ";
-std::cin >> y;
-std::cout << "Enter the Z: ";
-std::cin >> z;
-// Set a target Pose
-auto target_pose = [=](){
-  geometry_msgs::msg::Pose msg;
-  msg.orientation.w = 1.0;
-  msg.position.x = x;
-  msg.position.y = y;
-  msg.position.z = z;
-  return msg;
-}();
-RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"target pose X: %.2f  Y: %.2f Z: %.2f", target_pose.position.x, target_pose.position.y, target_pose.position.z);
-move_group_interface.setPoseTarget(target_pose);
+float y = 0.0;
+float z = 0.0;
+float w = 1.0;
 
-// Create a plan to that target pose
-auto const [success, plan] = [&move_group_interface]{
-  moveit::planning_interface::MoveGroupInterface::Plan msg;
-  auto const ok = static_cast<bool>(move_group_interface.plan(msg));
-  return std::make_pair(ok, msg);
-}();
+std::shared_ptr<MoveGroupInterface> move_group_interface;
+rclcpp::Logger logger = rclcpp::get_logger("mani_moveit");
 
-// Execute the plan
-std::cout << "Plan success. Move:1, cancel:0 \n Enter value : ";
-std::cin >> r;
+void signal_callback_handler(int signum) {
+    std::cout << "Caught signal " << signum << std::endl;
+    // Terminate program
+    exit(signum);
+}
 
-if(success && r > 0) {
-  move_group_interface.execute(plan);
+bool PlanAndExecute() {
+    auto target_pose = [=]() {
+        geometry_msgs::msg::Pose msg;
+        msg.orientation.w = 1.0;
+        msg.position.x = x;
+        msg.position.y = y;
+        msg.position.z = z;
+        return msg;
+    }();
+    RCLCPP_INFO(logger, "Target pose X: %.2f  Y: %.2f Z: %.2f", target_pose.position.x, target_pose.position.y, target_pose.position.z);
+
+    move_group_interface->setPoseTarget(target_pose);
+
+    // Create a plan to that target pose
+    auto const [succeed, plan] = [&move_group_interface] {
+        moveit::planning_interface::MoveGroupInterface::Plan msg;
+        auto const ok = static_cast<bool>(move_group_interface->plan(msg));
+        return std::make_pair(ok, msg);
+    }();
+
+    if (succeed) {
+        move_group_interface->execute(plan);
+        RCLCPP_INFO(logger, "Execution!");
+        return true; 
+    }
+    else {
+        RCLCPP_ERROR(logger, "Planning failed!");
+        return false;
+    }
 }
-else if(success && r <= 0){
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Excute cancel!");
-}
- else {
-  RCLCPP_ERROR(logger, "Planing failed!");
-}
-  // Shutdown ROS
-  rclcpp::shutdown();
-  return 0;
+
+class MoveitServerNode : public rclcpp::Node {
+public:
+    MoveitServerNode() : Node("pos_server") {
+        server_ = this->create_service<custom_interfaces::srv::PositionService>(
+            "pos_srv",
+            std::bind(&MoveitServerNode::callbackPos, this, _1, _2));
+        RCLCPP_INFO(this->get_logger(), "Service server has been started.");
+    }
+
+private:
+    void callbackPos(const custom_interfaces::srv::PositionService::Request::SharedPtr request,
+                     const custom_interfaces::srv::PositionService::Response::SharedPtr response) {
+        x = request->coordinate[0];
+        y = request->coordinate[1];
+        z = request->coordinate[2];
+        moved_flag = false;
+
+        response->success = PlanAndExecute();
+    }
+
+    rclcpp::Service<custom_interfaces::srv::PositionService>::SharedPtr server_;
+};
+
+int main(int argc, char *argv[]) {
+    // Initialize ROS and create the Node
+    signal(SIGINT, signal_callback_handler);
+    rclcpp::init(argc, argv);
+
+    // Create the MoveIt MoveGroup Interface
+    auto const node = std::make_shared<rclcpp::Node>(
+        "mani_moveit",
+        rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true)
+    );
+    move_group_interface = std::make_shared<MoveGroupInterface>(node, "mani");
+
+    auto mani_server = std::make_shared<MoveitServerNode>();
+
+    move_group_interface->setMaxVelocityScalingFactor(1);
+    move_group_interface->setMaxAccelerationScalingFactor(1);
+
+    rclcpp::spin(mani_server);
+
+    // Shutdown ROS
+    rclcpp::shutdown();
+    return 0;
 }

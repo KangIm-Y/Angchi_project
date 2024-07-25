@@ -30,6 +30,7 @@ class Tf_jointState(Node):
 
     def subscribe_topic_message(self, msg):
         self.poseArrRad = msg.position
+        #self.get_logger().info(f'poseArr : {self.poseArrRad}')
         for i in range(0,len(self.poseArrRad)): #change rad 2 deg
             if i == 0 :
                 self.poseArr[1] = int(round((180 / PI) * self.poseArrRad[i]))
@@ -44,8 +45,11 @@ class Tf_jointState(Node):
                 self.poseArr[0] = int(round((180 / PI) * self.poseArrRad[i]))
             elif i == 5 :
                 self.poseArr[5] = int(round((180 / PI) * self.poseArrRad[i]))
+            elif i == 6:
+                pass
             else:
                 self.get_logger().error("joint states list is too long!!")
+
         print(" ")
         
         for i in range(0,len(self.poseArr)): #print to check rad2deg

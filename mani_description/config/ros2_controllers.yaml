@@ -21,6 +21,7 @@ mani_controller:
       - mani_joint6
       - mani_joint7
     command_interfaces:
-      []
+      - position
     state_interfaces:
-      []
+      - position
+      - velocity

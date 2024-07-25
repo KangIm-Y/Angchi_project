@@ -7,8 +7,6 @@ from struct import pack
 from custom_interfaces.srv import Protocool
 import sys
 
-from rclpy.callback_groups import ReentrantCallbackGroup, MutuallyExclusiveCallbackGroup
-from rclpy.executors import MultiThreadedExecutor, SingleThreadedExecutor
 #from nuri_protocool import *
 
 
@@ -20,16 +18,14 @@ class JointSubscriber(Node):
     def __init__(self):
         super().__init__('joint_Subscriber')
         qos_profile = QoSProfile(depth=10)
-        self.group1 = ReentrantCallbackGroup()
-        self.get_logger().warning("ReentrantCallbackGroup Set")
         self.joint_Subscriber = self.create_subscription(
             Int32MultiArray,
             'joint',
             self.subscribe_topic_message,
             qos_profile,
-            callback_group=self.group1)
-        self.client = self.create_client(Protocool, 'command', callback_group=self.group1)
-        self.create_timer(0.1, self.check_srv_res, callback_group=self.group1)
+            )
+        self.client = self.create_client(Protocool, 'command')
+        self.create_timer(0.1, self.check_srv_res)
         while not self.client.wait_for_service(timeout_sec=2.0):
             # if it is not available, a message is displayed
             self.get_logger().info('service not available, waiting again...')
@@ -49,7 +45,9 @@ class JointSubscriber(Node):
     def send_request(self, sercomm = b'', codecommand = ''):        #사용법 : rs485 커멘드 => send_request(명령어), 코드 자체에 보낼 커멘드 => send_request(codecommand = 명령어)
         
         # send the request
+        
         self.req.sercommand = list(sercomm)
+        self.get_logger().info(f'send data : {list(sercomm)}')
         self.req.codecommand = codecommand
         # uses sys.argv to access command line input arguments for the request.
         self.future = self.client.call_async(self.req)
