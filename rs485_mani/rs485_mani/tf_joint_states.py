@@ -19,6 +19,7 @@ class Tf_jointState(Node):
             qos_profile)
         
         self.publisher_ = self.create_publisher(Int32MultiArray, 'joint', qos_profile)
+        self.publisher_dy_ = self.create_publisher(Int32MultiArray, 'joint_dy', qos_profile)
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
@@ -62,7 +63,13 @@ class Tf_jointState(Node):
         # Publish the message to the Topic
         self.publisher_.publish(msg)
         # Display the message on the console
-        self.get_logger().info('Publishing: "%s"' % msg)
+        self.get_logger().info('Publishing joint: "%s"' % msg)
+        msg.data = self.poseArr[4:]
+        # Publish the message to the Topic
+        self.publisher_dy_.publish(msg)
+        # Display the message on the console
+        self.get_logger().info('Publishing joiny_dy: "%s"' % msg)
+
 
 
 def main(args=None):
