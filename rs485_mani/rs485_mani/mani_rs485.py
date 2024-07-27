@@ -9,6 +9,8 @@ import sys
 
 #from nuri_protocool import *
 
+term = 0.1
+
 
 
 
@@ -25,7 +27,7 @@ class JointSubscriber(Node):
             qos_profile,
             )
         self.client = self.create_client(Protocool, 'command')
-        self.create_timer(0.1, self.check_srv_res)
+        self.create_timer(term, self.check_srv_res)
         while not self.client.wait_for_service(timeout_sec=2.0):
             # if it is not available, a message is displayed
             self.get_logger().info('service not available, waiting again...')
@@ -62,7 +64,7 @@ class JointSubscriber(Node):
         self.posarray = self.inv_data(msg.data)
         self.get_logger().info('Received message: {0}'.format(self.posarray))
         self.store_pos()
-        self.pos_nuri()
+        self.pos_nuri(1)
 
 
     def nuri_initpos(self):
@@ -71,7 +73,7 @@ class JointSubscriber(Node):
         for i in self.posarray:
             pos_inv.append(~i + 1)
         self.posarray = pos_inv
-        self.pos_nuri()
+        self.pos_nuri(1)
         t.sleep(1)
         self.set_nuri_zero()
 
@@ -99,10 +101,13 @@ class JointSubscriber(Node):
         
 
     
-    def pos_nuri(self):
+    def pos_nuri(self, command_term = 2):
         id = 0
         for i in range(4):
-            self.send_request(set_degrpm(id, self.posarray[i]))
+            if i == i:
+                self.send_request(set_degtime(id, self.posarray[i], command_term))
+            else:
+                self.send_request(set_degtime(id, self.posarray[i], command_term))
             self.get_logger().info(f'motor : {id} / deg : {self.posarray[i]} ')
             id = id + 1
         self.get_logger().info('------------------------------------')
@@ -119,7 +124,10 @@ class JointSubscriber(Node):
                     for line in lines:
                         try:
                             read_deg = int(line.strip())
-                            deg[num] = read_deg
+                            if num == 1:
+                                deg[num] = int(read_deg / 4.8)
+                            else:
+                                deg[num] = read_deg
                             self.get_logger().info(f"last {num} joint data is {read_deg}.")
                         except:
                             self.get_logger().warn(f"Can't read data for {num} joint. It will be zero.")
@@ -202,7 +210,7 @@ def set_degrpm(Id, Deg, Rpm = 5):
     #print(data_array)
     return attach_checksum(data_array)
     
-def set_degtime(Id, Deg, Time):
+def set_degtime(Id, Deg, Time = term):
     motor_id = format(Id, '#04x')
     data_num = '0x06'
     mode = '0x02'
@@ -214,10 +222,8 @@ def set_degtime(Id, Deg, Time):
     pos1 = pos[:4]
     pos2 = '0x' + pos[4:]
     if Time >= 0:
-        time = format(Time, '#06x')
-        time1 = time[:4]
-        time2 = '0x' + time[4:]
-    data_array = [motor_id, data_num, mode, dir, pos1, pos2, time1, time2]
+        time = format((Time * 10), '#04x')
+    data_array = [motor_id, data_num, mode, dir, pos1, pos2, time]
     return attach_checksum(data_array)
 
 def set_id(old_id, new_id):
@@ -273,4 +279,3 @@ def protocool_comm(dataWithChecksum):
         #print('-------')
         #print(command)
     return command
-

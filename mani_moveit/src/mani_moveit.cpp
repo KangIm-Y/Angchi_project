@@ -16,7 +16,11 @@ int r = 0;
 float x = 0.0;
 float y = 0.0;
 float z = 0.0;
-float w = 1.0;
+double ori_w = 0.0;
+double ori_x = 0.0;
+double ori_y = 0.7071231592334566;
+double ori_z = -0.7070904020014414;
+
 
 std::shared_ptr<MoveGroupInterface> move_group_interface;
 rclcpp::Logger logger = rclcpp::get_logger("mani_moveit");
@@ -28,17 +32,23 @@ void signal_callback_handler(int signum) {
 }
 
 bool PlanAndExecute() {
-    auto target_pose = [=]() {
+   auto target_pose = []{
         geometry_msgs::msg::Pose msg;
-        msg.orientation.w = 1.0;
+        msg.orientation.w = ori_w;
+        msg.orientation.x = ori_x;
+        msg.orientation.y = ori_y;
+        msg.orientation.z = ori_z;
         msg.position.x = x;
         msg.position.y = y;
         msg.position.z = z;
         return msg;
-    }();
-    RCLCPP_INFO(logger, "Target pose X: %.2f  Y: %.2f Z: %.2f", target_pose.position.x, target_pose.position.y, target_pose.position.z);
-
+    }();    
+    RCLCPP_INFO(logger, "Target pose position :    X: %.2f  Y: %.2f Z: %.2f,      orientation :    X: %.2f  Y: %.2f Z: %.2f W: %.2f", target_pose.position.x, target_pose.position.y, target_pose.position.z, target_pose.orientation.x, target_pose.orientation.y, target_pose.orientation.z, target_pose.orientation.w);
+	
+    
     move_group_interface->setPoseTarget(target_pose);
+    //move_group_interface->setPoseTarget(x,y,z);
+    //move_group_interface->setRPYTarget(-1.55039099, 0, 3.141592);
 
     // Create a plan to that target pose
     auto const [succeed, plan] = [&move_group_interface] {

@@ -5,6 +5,7 @@ from std_srvs.srv import SetBool
 import rclpy
 from rclpy.node import Node
 import sys
+import time as t
 
 
 class ClientAsync(Node):
@@ -22,10 +23,9 @@ class ClientAsync(Node):
         while not self.client.wait_for_service(timeout_sec=1.0):
             # if it is not available, a message is displayed
             self.get_logger().info('Moveit service not available, waiting again...')
-        while not self.client1.wait_for_service(timeout_sec=1.0):
+        #while not self.client1.wait_for_service(timeout_sec=1.0):
             # if it is not available, a message is displayed
-            self.get_logger().info('Gripper service not available, waiting again...')
-        
+            #self.get_logger().info('Gripper service not available, waiting again...')
         # create an Empty request
         self.req = PositionService.Request()
         self.grip = SetBool.Request()
@@ -48,10 +48,11 @@ class ClientAsync(Node):
         self.grip.data = grip
         # uses sys.argv to access command line input arguments for the request.
         self.future1 = self.client1.call_async(self.grip)
+        self.get_logger().info('Gripper server called!') 
         # to print in the console
 
 def main(args=None):
-    moved = False
+    moved = 0
     # initialize the ROS communication
     rclpy.init(args=args)
     # declare the node constructor
@@ -62,42 +63,49 @@ def main(args=None):
     while rclpy.ok():
         # pause the program execution, waits for a request to kill the node (ctrl+c)
         rclpy.spin_once(client)
-        if client.future.done() and moved == False:
-            try:
-                # checks the future for a response from the Service
-                # while the system is running. 
-                # if the Service has sent a response, the result will be written
-                # to a log message.
-                response = client.future.result()
-                if response == True:
-                    moved = True
-                    client.active_gripper(True)
-            except Exception as e:
-                # Display the message on the console
-                client.get_logger().info(
-                    'Service call failed %r' % (e,))
-            else:
-                # Display the message on the console
-                client.get_logger().info(
-                    'Response state %r' % (response.success,))
-        if client.future1.done() and moved == True:
-            try:
-                # checks the future for a response from the Service
-                # while the system is running. 
-                # if the Service has sent a response, the result will be written
-                # to a log message.
-                response1 = client.future1.result()
-                if response1 == True:
-                    moved = False
-            except Exception as e:
-                # Display the message on the console
-                client.get_logger().info(
-                    'Service call failed %r' % (e,))
-            else:
-                # Display the message on the console
-                client.get_logger().info(
-                    'Response state %r' % (response1.success,))
-                break
+        if moved == 0:
+            if client.future.done():
+                try:
+                    # checks the future for a response from the Service
+                    # while the system is running. 
+                    # if the Service has sent a response, the result will be written
+                    # to a log message.
+                    response = client.future.result()
+                    if response.success == True:
+                        moved = 1
+                        t.sleep(5)
+                        client.active_gripper(True)
+                    else:
+                        client.get_logger().info(
+                        'move failed')
+                except Exception as e:
+                    # Display the message on the console
+                    client.get_logger().info(
+                        'Service call failed %r' % (e,))
+                else:
+                    # Display the message on the console
+                    client.get_logger().info(
+                        'Response state pos done :  %r' % (response.success,))
+        else:
+            if client.future1.done():
+                try:
+                    # checks the future for a response from the Service
+                    # while the system is running. 
+                    # if the Service has sent a response, the result will be written
+                    # to a log message.
+                    response1 = client.future1.result()
+                    if response1.success == True:
+                        client.get_logger().info(
+                        'grip succeed ')
+                except Exception as e:
+                    # Display the message on the console
+                    client.get_logger().info(
+                        'Service call failed %r' % (e,))
+                else:
+                    # Display the message on the console
+                    client.get_logger().info(
+                        'Response grip state %r' % (response1.success,))
+                    break
             
 
     client.destroy_node()
@@ -107,3 +115,7 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+
+
+# x -0.2  y -0.46 z 0.07
