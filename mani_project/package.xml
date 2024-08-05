@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>mani_project</name>
+  <version>0.0.0</version>
+  <description>TODO: Package description</description>
+  <maintainer email="pas123068@gmail.com">ascroid</maintainer>
+  <license>TODO: License declaration</license>
+
+  <depend>rclcpp</depend>
+  <depend>custom_interfaces</depend>
+  <depend>mani</depend>
+  <depend>indy-ros2</depend>
+  <depend>mani_description</depend>
+  <depend>mani_moveit</depend>
+  <depend>rs485_mani</depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

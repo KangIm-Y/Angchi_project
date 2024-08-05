@@ -64,7 +64,7 @@ class JointSubscriber(Node):
         self.posarray = self.inv_data(msg.data)
         self.get_logger().info('Received message: {0}'.format(self.posarray))
         self.store_pos()
-        self.pos_nuri(1)
+        self.pos_nuri(0.5)
 
 
     def nuri_initpos(self):
@@ -222,7 +222,7 @@ def set_degtime(Id, Deg, Time = term):
     pos1 = pos[:4]
     pos2 = '0x' + pos[4:]
     if Time >= 0:
-        time = format((Time * 10), '#04x')
+        time = format((int(Time * 10)), '#04x')
     data_array = [motor_id, data_num, mode, dir, pos1, pos2, time]
     return attach_checksum(data_array)
 
