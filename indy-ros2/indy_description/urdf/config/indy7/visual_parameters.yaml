@@ -1,0 +1,79 @@
+mesh_files:
+  link0:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_1.stl
+        scale: 0.001 0.001 0.001
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_1.stl
+        scale: 0.001 0.001 0.001
+  link1:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_2.stl
+        scale: 0.001 0.001 0.001
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_2.stl
+        scale: 0.001 0.001 0.001
+  link2:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_3.stl
+        scale: 0.001 0.001 0.001
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_3.stl
+        scale: 0.001 0.001 0.001
+  link3:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_4.stl
+        scale: 0.001 0.001 0.001
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_4.stl
+        scale: 0.001 0.001 0.001
+  link4:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_5.stl
+        scale: 0.001 0.001 0.001
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_5.stl
+        scale: 0.001 0.001 0.001
+  link5:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_6.stl
+        scale: 0.001 0.001 0.001
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_6.stl
+        scale: 0.001 0.001 0.001
+  link6:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_7.stl
+        scale: 0.001 0.001 0.001
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_7.stl
+        scale: 0.001 0.001 0.001
+
