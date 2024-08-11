@@ -3,14 +3,14 @@ kinematics:
   joint0:
     x: 0
     y: 0
-    z: 0.062
+    z: 0.073
     roll: 0
     pitch: 0
     yaw: 0
   joint1:
     x: 0.02285
     y: 0
-    z: 0.047
+    z: 0.051
     roll: 0
     pitch: -1.570796327
     yaw: 0
