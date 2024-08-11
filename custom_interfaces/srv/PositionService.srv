@@ -1,5 +1,12 @@
-float32[] coordinate  #Float32MultiArray
+Vector3 coordinate  #Float32MultiArray
 
 ---
 
 bool success  # Did it achieve it?
+
+
+
+
+
+
+
