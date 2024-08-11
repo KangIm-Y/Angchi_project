@@ -38,7 +38,9 @@ class ClientAsync(Node):
 
 
         # send the request
-        self.req.coordinate = arr
+        self.req.coordinate.x = arr[0]
+        self.req.coordinate.y = arr[1]
+        self.req.coordinate.z = arr[2]
         # uses sys.argv to access command line input arguments for the request.
         self.future = self.client.call_async(self.req)
         # to print in the console

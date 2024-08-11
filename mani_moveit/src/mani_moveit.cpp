@@ -80,9 +80,9 @@ public:
 private:
     void callbackPos(const custom_interfaces::srv::PositionService::Request::SharedPtr request,
                      const custom_interfaces::srv::PositionService::Response::SharedPtr response) {
-        x = request->coordinate[0];
-        y = request->coordinate[1];
-        z = request->coordinate[2];
+        x = request->coordinate.x;
+        y = request->coordinate.y;
+        z = request->coordinate.z;
         moved_flag = false;
 
         response->success = PlanAndExecute();
