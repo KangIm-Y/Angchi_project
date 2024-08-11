@@ -34,6 +34,16 @@ setup(
             'cartesian_pose=track_test_pkg.usable_code.cartesian_pose:main',
             'service_server_test=track_test_pkg.service_server_test:main',
             
+            #### test folder ###
+            'blue_ratio_ROI=track_test_pkg.testing.blue_ratio_ROI:main',
+            'ROI_multi=track_test_pkg.testing.ROI_multi:main',
+            'ROI_nonmulti=track_test_pkg.testing.ROI_nonmulti:main',
+            'positioning=track_test_pkg.testing.positioning:main',
+            'mission_positioning_test=track_test_pkg.testing.mission_positioning_test:main',
+            
+            
+            
+            
             
         ],
     },

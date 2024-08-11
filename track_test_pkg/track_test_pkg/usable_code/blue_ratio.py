@@ -34,7 +34,7 @@ class BlueRatioCirculator(Node):
         self.U_detection_threshold = 140 ## 0~255
         self.img_size_x = 1280
         self.img_size_y = 720
-        self.ROI_ratio = 0.4
+        self.ROI_ratio = 0.3
         self.max_speed = 10
         
         self.odrive_mode = 1.
@@ -150,7 +150,7 @@ class BlueRatioCirculator(Node):
             
             self.get_logger().info(f'{L_joy}   {R_joy}')
             
-            msg.data = [self.odrive_mode, L_joy, R_joy]
+            msg.data = [self.odrive_mode, L_joy, R_joy*0.9]
             self.auto_control_publisher.publish(msg)
             
             

@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from sensor_msgs.msg import Image
-from std_msgs.msg import String
+from std_msgs.msg import String, Header
 
 import pyrealsense2 as rs
 import numpy as np
@@ -18,7 +18,7 @@ class DepthCapture(Node):
         qos_profile = QoSProfile(depth=10)
 
         ##depth setting
-        self.depth_frame_pub = self.create_publisher(Image, 'depth_data', qos_profile)
+        self.depth_frame_pub = self.create_publisher(Image, '/camera/depth/registered/image_raw', qos_profile)
         self.color_frame_pub = self.create_publisher(Image, 'color_data', qos_profile)
 
         self.pipeline = rs.pipeline()
@@ -34,6 +34,8 @@ class DepthCapture(Node):
         self.cvbrid = CvBridge()
 
     def depth_cap(self):
+        depth_header = Header()
+        depth_header.frame_id = "camera_link_optical"
 
         frames = self.pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
@@ -43,8 +45,12 @@ class DepthCapture(Node):
         color_image = np.asanyarray(color_frame.get_data())
 
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-        
-        self.depth_frame_pub.publish(self.cvbrid.cv2_to_imgmsg(depth_colormap))
+        msg = self.cvbrid.cv2_to_imgmsg(depth_colormap)
+        msg.header = depth_header
+        msg.height = 480
+        msg.width = 640
+        msg.encoding = 'z16'
+        self.depth_frame_pub.publish(msg)
         self.color_frame_pub.publish(self.cvbrid.cv2_to_imgmsg(color_image))
 
 

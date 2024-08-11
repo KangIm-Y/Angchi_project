@@ -54,6 +54,12 @@ setup(
             
             'load_test_pub=image_processing.img_faster.load_test_pub:main',
             
+            ##### multi thread test####
+            'multi_cap=image_processing.multi_thread_test.multi_thread_cap:main',
+            'multi_indi=image_processing.multi_thread_test.multi_thread_indi:main',
+            'multi_cap2=image_processing.multi_thread_test.multi_thread_cap2:main',
+            'multi_indi2=image_processing.multi_thread_test.multi_thread_indi2:main',
+            
 
         ],
     },
