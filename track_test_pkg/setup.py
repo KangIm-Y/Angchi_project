@@ -41,7 +41,9 @@ setup(
             'positioning=track_test_pkg.testing.positioning:main',
             'mission_positioning_test=track_test_pkg.testing.mission_positioning_test:main',
             
-            
+            #### commu_test ####
+            'client_test=track_test_pkg.commu_test.client_test:main',
+            'server_test=track_test_pkg.commu_test.server_test:main',
             
             
             

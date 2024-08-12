@@ -330,23 +330,14 @@ class BlueRatioCirculator(Node):
         ROI_L_sum, midpoint, ROI_R_sum = self.yuv_detection(got_ROI)
         total_sum = ROI_L_sum + ROI_R_sum
         
-        if self.state == 'S2' :
+        if self.state == 'S1' :
             if ((total_sum <= (total_size * 0.2))&(total_sum != 0)) :
                 self.get_logger().info('blue track miss.')
-                self.state = 'S2pos'
-        elif self.state == 'Ssand' :
-            if (total_sum >= (total_size * 0.5)) :
-                self.get_logger().info('find blue track. switch state to S3')
-                self.state = 'S3'
-    
-        elif self.state == 'S3' :
-            if (total_sum <= (total_size * 0.2)) :
-                self.get_logger().info('blue track miss. ')
-                self.state = 'S3pos'
-        elif self.state == 'Speddle' :
+                self.state = 'Spos'
+        elif self.state == 'Sblind' :
             if (total_sum >= (total_size * 0.5)) :
                 self.get_logger().info('find blue track. switch state to S4')
-                self.state = 'Sfinish'
+                self.state = 'S1'
                 
         elif self.state == 'Sfinish' :
             result = self.model_chess.predict(got_ROI, conf = 0.55, verbose=False)
