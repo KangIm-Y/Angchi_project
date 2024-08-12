@@ -23,6 +23,7 @@ setup(
     entry_points={
         'console_scripts': [
         'serial_comm = ser_comm.serial_comm:main',
+        'test1 = ser_comm.test:main',
         ],
     },
 )

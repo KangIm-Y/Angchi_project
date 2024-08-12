@@ -10,7 +10,7 @@
   <depend>rclcpp</depend>
   <depend>custom_interfaces</depend>
   <depend>mani</depend>
-  <depend>indy-ros2</depend>
+  <depend>indy_moveit</depend>
   <depend>mani_description</depend>
   <depend>mani_moveit</depend>
   <depend>rs485_mani</depend>

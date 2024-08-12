@@ -29,7 +29,7 @@
     </link>
 
     <joint name="mani_joint1" type="revolute">
-        <origin rpy="0 0 0" xyz="0 0 0.073" />
+        <origin rpy="0 0 0" xyz="0 0 0.103" />
         <parent link="mani_link1" />
         <child link="mani_link2" />
         <axis xyz="0 0 1" />
