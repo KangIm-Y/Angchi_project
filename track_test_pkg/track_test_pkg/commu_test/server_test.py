@@ -10,8 +10,11 @@ class PositionServiceServer(Node):
 
     def handle_position_service(self, request, response):
         self.get_logger().info(f'Received coordinates: {request.coordinate}')
-        response.success = True
-        time.sleep(10)
+        res_key = input("t is true  else false")
+        if res_key == 't' :
+            response.success = True
+        else :
+            response.success = False
         return response
 
 def main(args=None):

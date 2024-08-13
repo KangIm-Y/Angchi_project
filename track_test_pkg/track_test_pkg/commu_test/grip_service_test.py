@@ -1,35 +1,17 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
-from std_msgs.msg import Float32MultiArray
-from sensor_msgs.msg import Joy
 from sensor_msgs.msg import Image
+from std_msgs.msg import Float32MultiArray
 
 import time
+import math
 import pyrealsense2 as rs
 from ultralytics import YOLO
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
 from custom_interfaces.srv import PositionService
-
-"""index
-init
-image_capture
-
-yuv_detection
-mission_decision
-track_tracking
-posisioning
-trigger
-
-main_circulates
-
-###### pubsub
-
-
-##### control preset
-"""
 
 
 class BlueRatioCirculator(Node):
@@ -41,9 +23,11 @@ class BlueRatioCirculator(Node):
             Image, 
             'img_data', 
             qos_profile)
-        self.state_mark = self.create_publisher(
-            Image, 
-            'state', 
+        
+        self.joy_subscriber = self.create_subscription(
+            Float32MultiArray,
+            'imu_data',
+            self.joy_msg_sampling,
             qos_profile)
         
         
@@ -58,6 +42,7 @@ class BlueRatioCirculator(Node):
         
         ### parameters ###
         # cam_num = 4
+        
         self.U_detection_threshold = 130 ## 0~255
         self.img_size_x = 1280
         self.img_size_y = 720
@@ -135,6 +120,16 @@ class BlueRatioCirculator(Node):
         self.depth_img = np.zeros((self.depth_size_y, self.depth_size_x, 3), dtype=np.uint8)
         self.get_logger().info("ininininininit")
         
+        
+        self.angle_data = []
+        self.theta = 0.
+        self.call_flag = False
+        self.grip_flag = 0 ## 0 is idle, 1 is true, -1 is false
+        
+    def joy_msg_sampling(self,msg) :
+        self.angle_data = msg.data
+        self.theta = self.angle_data[1]
+        
 
     
     def image_capture(self):
@@ -155,12 +150,12 @@ class BlueRatioCirculator(Node):
         # self.image_publisher.publish(msg)
         
         
-    def call_service_periodically(self):
+    def call_service(self, x,y,z):
         if self.client.service_is_ready():
             request = PositionService.Request()
-            request.coordinate.x = 5.
-            request.coordinate.y = 10.
-            request.coordinate.z = 15.
+            request.coordinate.x = x
+            request.coordinate.y = y
+            request.coordinate.z = z
             future = self.client.call_async(request)
             future.add_done_callback(self.callback_function)
         else:
@@ -170,6 +165,9 @@ class BlueRatioCirculator(Node):
         try:
             response = future.result()
             self.get_logger().info(f'Result: {response.success}')
+            self.grip_flag = 1 if response.success == True else -1
+            # self.get_logger().info(self.grip_flag)
+            
         except Exception as e:
             self.get_logger().error(f'Service call failed {e}')
 
@@ -178,13 +176,13 @@ class BlueRatioCirculator(Node):
         
         got_ROI = self.img
         ## yolo algorithom
-        result = self.model_chess.predict(got_ROI, conf = 0.55, verbose=False, max_det = 1)
+        result = self.model_post.predict(got_ROI, conf = 0.55, verbose=False, max_det = 1)
         
         if len(result[0].boxes.cls) :
             if self.state == 'S1' :
                 self.state = 'Spost'
             elif self.state == 'Spost' :
-                print(result[0].boxes.cls)
+                # print(result[0].boxes.cls)
                 annotated_img = result[0].plot()
                 object_xy = np.array(result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
                 
@@ -201,18 +199,37 @@ class BlueRatioCirculator(Node):
                 depth = self.aligned_depth_frame.get_distance(object_xy[0], object_xy[1])
                 depth_point = rs.rs2_deproject_pixel_to_point(self.depth_intrinsics, [object_xy[0], object_xy[1]], depth)
                 cv2.putText(annotated_img, f"{depth_point[0]:.2f}m,  {depth_point[1]:.2f}m,  {depth_point[2]:.2f}m,", (30,30), cv2.FONT_HERSHEY_DUPLEX, 1, (0,0,255),2)
+                x_c = depth_point[0]
+                y_c = depth_point[2]
+                z_c = - depth_point[1]
+                
+                x_w = x_c
+                y_w = y_c * math.cos(self.theta / 180 * math.pi) + z_c * math.sin(self.theta / 180 * math.pi)
+                z_w = (-y_c *math.sin(self.theta / 180 * math.pi)) + z_c * math.cos(self.theta / 180 * math.pi)
+                
+                if ((self.call_flag == False)) :
+                    self.call_service(x_w, y_w, z_w)
+                    self.get_logger().info("call!")
+                    self.call_flag = True
+                elif (self.call_flag == True) &  (self.grip_flag == -1) :
+                    self.call_flag = False
+                    self.grip_flag = 0
+                elif self.grip_flag == 1 :
+                    pass
+                    
+                    
+                    
                 # print(f'{depth_point}')
                 
                 cv2.imshow("title", annotated_img)
                 cv2.waitKey(1)
                 
                 
-                self.get_logger().info(f'object : {object_xy}    postbox : {self.postbox_ROI}')
+                # self.get_logger().info(f'object : {object_xy}    postbox : {self.postbox_ROI}')
                 
                 if (((object_xy[0] < self.postbox_ROI[1][0])& (object_xy[0] > self.postbox_ROI[0][0])) & ((object_xy[1] < self.postbox_ROI[1][1])& (object_xy[1] > self.postbox_ROI[0][0]))) :
                     self.postbox_set = True
                     self.get_logger().info(f'setting clear')
-                    self.state_mark.publish("Spost -> Sarm")
                     # self.state = 'Sarm'
                     self.state = 'Sarm'
                 else : 
@@ -222,29 +239,29 @@ class BlueRatioCirculator(Node):
                     pass
                 
                 
-                if self.postbox_set == False :
-                    ## virtical
-                    if (object_xy[0] > self.postbox_ROI[1][0]) :
-                        self.get_logger().info(f'right')
-                    elif (object_xy[0] < self.postbox_ROI[0][0]) :
-                        self.get_logger().info(f'left')
-                    else : 
-                        pass
+                # if self.postbox_set == False :
+                #     ## virtical
+                #     if (object_xy[0] > self.postbox_ROI[1][0]) :
+                #         self.get_logger().info(f'right')
+                #     elif (object_xy[0] < self.postbox_ROI[0][0]) :
+                #         self.get_logger().info(f'left')
+                #     else : 
+                #         pass
                         
                     
-                    ## horizonal
-                    if (object_xy[1] > self.postbox_ROI[1][1]) :
-                        self.get_logger().info(f'back')
-                    elif (object_xy[1] < self.postbox_ROI[0][1]) :
-                        self.get_logger().info(f'go')
-                    else : 
-                        pass
+                #     ## horizonal
+                #     if (object_xy[1] > self.postbox_ROI[1][1]) :
+                #         self.get_logger().info(f'back')
+                #     elif (object_xy[1] < self.postbox_ROI[0][1]) :
+                #         self.get_logger().info(f'go')
+                #     else : 
+                #         pass
                     
-                else : 
-                    pass
+                # else : 
+                #     pass
                 
         else :
-            # cv2.imshow('title', self.img)
+            cv2.imshow('title', self.img)
             cv2.waitKey(1)
                 
 
