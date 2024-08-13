@@ -34,17 +34,6 @@ class CameraPoseCirculate(Node):
         
         ###############
         
-        ### initialize ###
-        
-        frames = self.pipeline.wait_for_frames()
-        accel_frame = frames[0].as_motion_frame()
-        if accel_frame:
-            accel_data = accel_frame.get_motion_data()
-        
-        for i in range(5) :
-            self.tilt_array.append([accel_data.x,accel_data.y,accel_data.z])
-        
-        ##################
         
         
         self.timer = self.create_timer(self.time_period, self.circulate_pose)
@@ -58,17 +47,18 @@ class CameraPoseCirculate(Node):
         accel_frame = frames[0].as_motion_frame()
         
         if accel_frame:
-            accel_data = accel_frame.get_motion_data()
+            accel_datas = accel_frame.get_motion_data()
+            accel_data = [accel_datas.x, accel_datas.y, accel_datas.z]
             
-            self.tilt_array.pop(0)
-            self.tilt_array.append([accel_data.x,accel_data.y,accel_data.z])
+            norm = math.sqrt(accel_data[0]**2 + accel_data[1]**2 + accel_data[2]**2)
+            accel_data = [np.arccos(accel_data[0]/norm) / np.pi * 180, np.arccos(- accel_data[1]/norm)/ np.pi * 180, np.arccos(accel_data[2]/norm) / np.pi * 180]
             
-            avg_tilt_array = np.mean(self.tilt_array, axis=0)
-            tilted_roll_angle = math.atan2(-avg_tilt_array[0], -avg_tilt_array[1]) /math.pi * 180
+            tilted_roll_angle = math.atan2(-accel_data[0], -accel_data[1]) /math.pi * 180
             
             # angle, x, y, z 
-            msg.data = [tilted_roll_angle, avg_tilt_array[0],avg_tilt_array[1],avg_tilt_array[2]]
-            self.get_logger().info(f'{math.atan2(-msg.data[1], -msg.data[2]) / math.pi *180}')
+            msg.data = [accel_data[0],accel_data[1],accel_data[2]]
+            # self.get_logger().info(f'{math.atan2(-msg.data[1], -msg.data[2]) / math.pi *180}')
+            self.get_logger().info(f'{accel_data[0]:.2f}  {accel_data[1]:.2f}  {accel_data[2]:.2f} ')
             
             self.camera_pose.publish(msg)
             
