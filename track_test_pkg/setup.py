@@ -28,7 +28,6 @@ setup(
             'blue_ratio_imu_nonMulti=track_test_pkg.blue_ratio_imu_nonMulti:main',
             
             
-            'imu_pub=track_test_pkg.sensor.imu_pub:main',
             
             #### depth ####
             'cartesian_pose=track_test_pkg.usable_code.cartesian_pose:main',
@@ -44,6 +43,12 @@ setup(
             #### commu_test ####
             'client_test=track_test_pkg.commu_test.client_test:main',
             'server_test=track_test_pkg.commu_test.server_test:main',
+            'grip_service_test=track_test_pkg.commu_test.grip_service_test:main',
+            
+            
+            #### sensor ####
+            'imu_pub=track_test_pkg.sensor.imu_pub:main',
+            'imu_pub_raw=track_test_pkg.sensor.imu_pub_raw:main',
             
             
             
