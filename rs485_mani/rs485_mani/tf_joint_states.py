@@ -20,7 +20,7 @@ class Tf_jointState(Node):
         
         self.publisher_ = self.create_publisher(Int32MultiArray, 'joint', qos_profile)
         self.publisher_dy_ = self.create_publisher(Int32MultiArray, 'joint_dy', qos_profile)
-        timer_period = 0.1
+        timer_period = 0.4
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.trig = 0
@@ -52,11 +52,6 @@ class Tf_jointState(Node):
             else:
                 self.get_logger().error("joint states list is too long!!")
 
-        print(" ")
-        
-        for i in range(0,len(self.poseArr)): #print to check rad2deg
-            print("joint deg",i,"::",self.poseArr[i])
-        print(" ")
 
     def timer_callback(self):
         msg = Int32MultiArray()
@@ -64,12 +59,12 @@ class Tf_jointState(Node):
         # Publish the message to the Topic
         self.publisher_.publish(msg)
         # Display the message on the console
-        self.get_logger().info('Publishing joint: "%s"' % msg)
+        self.get_logger().debug('Publishing joint: "%s"' % msg)
         msg.data = self.poseArr[4:]
         # Publish the message to the Topic
         self.publisher_dy_.publish(msg)
         # Display the message on the console
-        self.get_logger().info('Publishing joiny_dy: "%s"' % msg)
+        self.get_logger().debug('Publishing joiny_dy: "%s"' % msg)
 
 
 

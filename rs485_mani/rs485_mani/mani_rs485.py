@@ -9,7 +9,7 @@ import sys
 
 #from nuri_protocool import *
 
-term = 0.1
+term = 0.01
 
 
 
@@ -34,7 +34,13 @@ class JointSubscriber(Node):
         
         # create an Empty request
         self.req = Protocool.Request()
+        self.req.sercommand.id0 = []
+        self.req.sercommand.id1 = []
+        self.req.sercommand.id2 = []
+        self.req.sercommand.id3 = []
+
         self.send_request(codecommand="Init")
+
 
         self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
@@ -44,12 +50,10 @@ class JointSubscriber(Node):
 
 
 
-    def send_request(self, sercomm = b'', codecommand = ''):        #사용법 : rs485 커멘드 => send_request(명령어), 코드 자체에 보낼 커멘드 => send_request(codecommand = 명령어)
+    def send_request(self, codecommand = '-'):        #사용법 : rs485 커멘드 => send_request(명령어), 코드 자체에 보낼 커멘드 => send_request(codecommand = 명령어)
         
         # send the request
-        
-        self.req.sercommand = list(sercomm)
-        self.get_logger().info(f'send data : {list(sercomm)}')
+        self.get_logger().debug(f'send data : {self.req.sercommand}')
         self.req.codecommand = codecommand
         # uses sys.argv to access command line input arguments for the request.
         self.future = self.client.call_async(self.req)
@@ -62,8 +66,8 @@ class JointSubscriber(Node):
 
     def subscribe_topic_message(self, msg):
         self.posarray = self.inv_data(msg.data)
-        self.get_logger().info('Received message: {0}'.format(self.posarray))
-        self.store_pos()
+        self.get_logger().debug('Received message: {0}'.format(self.posarray))
+        #self.store_pos()
         self.pos_nuri(0.5)
 
 
@@ -91,26 +95,30 @@ class JointSubscriber(Node):
 
     
     def set_nuri(self):
-        for i in range(4):
-            self.send_request(set_pos_con_mode(i, 0))
+        self.req.sercommand.id0 = set_pos_con_mode(0, 0)
+        self.req.sercommand.id1 = set_pos_con_mode(1, 0)
+        self.req.sercommand.id2 = set_pos_con_mode(2, 0)
+        self.req.sercommand.id3 = set_pos_con_mode(3, 0)
+        self.send_request("Move")
 
 
     def set_nuri_zero(self):
-        for i in range(4):
-            self.send_request(init_pos(i))
+        self.req.sercommand.id0 = init_pos(0)
+        self.req.sercommand.id1 = init_pos(1)
+        self.req.sercommand.id2 = init_pos(2)
+        self.req.sercommand.id3 = init_pos(3)
+        self.send_request("Move")
         
 
     
     def pos_nuri(self, command_term = 2):
-        id = 0
-        for i in range(4):
-            if i == i:
-                self.send_request(set_degtime(id, self.posarray[i], command_term))
-            else:
-                self.send_request(set_degtime(id, self.posarray[i], command_term))
-            self.get_logger().info(f'motor : {id} / deg : {self.posarray[i]} ')
-            id = id + 1
-        self.get_logger().info('------------------------------------')
+        self.req.sercommand.id0 = set_degtime(0, self.posarray[0], command_term)
+        self.req.sercommand.id1 = set_degtime(1, self.posarray[1], command_term)
+        self.req.sercommand.id2 = set_degtime(2, self.posarray[2], command_term)
+        self.req.sercommand.id3 = set_degtime(3, self.posarray[3], command_term)
+        self.get_logger().debug(f'send {self.req.sercommand}')
+        self.get_logger().debug('------------------------------------')
+        self.send_request("Move")
 
     def read_pos(self):
         deg = [0,0,0,0]
@@ -140,9 +148,9 @@ class JointSubscriber(Node):
 
     def store_pos(self):
         with open(self.file_path, 'w') as f:
-            for i in self.posarray:
+            for i in self.cur_posarr:
                 f.write(f"{i}\n")
-        self.get_logger().info(f"deg array saved. saved data is {self.posarray}")
+        self.get_logger().info(f"deg array saved. saved data is {self.cur_posarr}")
 
 
     def inv_data(self, data):
@@ -154,13 +162,29 @@ class JointSubscriber(Node):
         if self.future.done() and self.srv_flag:
             response = self.future.result()
             if response.success == True:
-                self.get_logger().info("success!")
+                try:
+                    self.cur_posarr = []
+                    self.cur_posarr.append(self.extract_deg_data(response.feedback.id0))
+                    self.cur_posarr.append(self.extract_deg_data(response.feedback.id1))
+                    self.cur_posarr.append(self.extract_deg_data(response.feedback.id2))
+                    self.cur_posarr.append(self.extract_deg_data(response.feedback.id3))
+                    self.get_logger().info(f"success! response : {self.cur_posarr}")
+                    self.store_pos()
+                except Exception as e:
+                    self.get_logger().warn("Can't convert posdata. previous data will be stored.")
+                    self.get_logger().debug(f"error : {e}")
             else:
                 self.get_logger().error("service call failed!")
             self.srv_flag = False
         # to print in the console
-        
-        
+
+    def extract_deg_data(self, data):
+        deg = list(data)
+        pos = 0.01 * int(str(hex(deg[7])) + str(hex(deg[8]))[2:], 16)
+        return pos
+
+    
+          
 
 
 
@@ -208,7 +232,7 @@ def set_degrpm(Id, Deg, Rpm = 5):
         motor_rpm2 = '0x' + motor_rpm[4:]
     data_array = [motor_id, data_num, mode, dir, pos1, pos2, motor_rpm1, motor_rpm2]
     #print(data_array)
-    return attach_checksum(data_array)
+    return list(attach_checksum(data_array))
     
 def set_degtime(Id, Deg, Time = term):
     motor_id = format(Id, '#04x')
@@ -224,7 +248,7 @@ def set_degtime(Id, Deg, Time = term):
     if Time >= 0:
         time = format((int(Time * 10)), '#04x')
     data_array = [motor_id, data_num, mode, dir, pos1, pos2, time]
-    return attach_checksum(data_array)
+    return list(attach_checksum(data_array))
 
 def set_id(old_id, new_id):
     motor_old_id = format(old_id, '#04x')
@@ -232,7 +256,7 @@ def set_id(old_id, new_id):
     mode = '0x06'
     motor_new_id = format(new_id, '#04x')
     data_array = [motor_old_id, data_num, mode, motor_new_id]
-    return attach_checksum(data_array)
+    return list(attach_checksum(data_array))
     
 def set_pos_con_mode(Id, conmode):
     motor_id = format(Id, '#04x')
@@ -240,21 +264,21 @@ def set_pos_con_mode(Id, conmode):
     mode = '0x0B'
     Conmode = format(conmode, '#04x')
     data_array = [motor_id, data_num, mode, Conmode]
-    return attach_checksum(data_array)
+    return list(attach_checksum(data_array))
 
 def init_pos(Id):
     motor_id = format(Id, '#04x')
     data_num = '0x02'
     mode = '0x0C'
     data_array = [motor_id, data_num, mode]
-    return attach_checksum(data_array)
+    return list(attach_checksum(data_array))
 
 def call_feedback(Id, Mode):
     motor_id = format(Id, '#04x')
     data_num = '0x02'
     mode = format(Mode, '#04x')
     data_array = [motor_id, data_num, mode]
-    return attach_checksum(data_array)
+    return list(attach_checksum(data_array))
 
 
 

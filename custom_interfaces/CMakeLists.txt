@@ -36,6 +36,7 @@ endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Vector3.msg"
+  "msg/SerialCommand.msg"
   "srv/Protocool.srv"
   "srv/PositionService.srv"
   LIBRARY_NAME ${PROJECT_NAME}

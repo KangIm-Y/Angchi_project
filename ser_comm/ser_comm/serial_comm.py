@@ -1,4 +1,4 @@
-# import the MyCustomServiceMessage module from custom_interfaces package
+2# import the MyCustomServiceMessage module from custom_interfaces package
 from custom_interfaces.srv import Protocool
 # import the ROS2 Python client libraries
 import time as t
@@ -12,24 +12,82 @@ class Service(Node):
     def __init__(self):
         super().__init__('serial_comm')
         self.srv = self.create_service(Protocool, 'command', self.custom_service_callback)
-        self.ser = serial.Serial('/dev/ttyRS485', 57600, timeout=0.1)
+        self.ser = serial.Serial('/dev/ttyRS485', 57600, timeout=0.05)
         
 
     def custom_service_callback(self, request, response):
         self.get_logger().info(f'received : {request.sercommand} , {request.codecommand}')
-        ser_comm_byte = bytes(request.sercommand)
 
-        if ser_comm_byte != b'':
-            self.ser.write(ser_comm_byte)
-            # print a pretty message
-            self.get_logger().info(f'send : {ser_comm_byte}')
-            # response state
-            response.success = True
+        if request.codecommand == "Move":
+            try:
+
+        #-----------------------------send command motor 0------------------------        
+                data = bytes(request.sercommand.id0)
+                if data != b'':
+                    self.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m0 : {data}')
+                    self.ser.write(call_feedback(0, 0xA1))
+                    while(1):
+                        #self.get_logger().info('waiting to read m0')
+                        if self.ser.readable():
+                            response.feedback.id0 = list(self.ser.readline())
+                            break
+
+        #-----------------------------send command motor 1------------------------  
+                data = bytes(request.sercommand.id1)
+                if data != b'':
+                    self.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m1 : {data}')
+                    self.ser.write(call_feedback(1, 0xA1))
+                    while(1):
+                        #self.get_logger().info('waiting to read m1')
+                        if self.ser.readable():
+                            response.feedback.id1 = list(self.ser.readline())
+                            break
+
+        #-----------------------------send command motor 2------------------------  
+                data = bytes(request.sercommand.id2)
+                if data != b'':
+                    self.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m2 : {data}')
+                    self.ser.write(call_feedback(2, 0xA1))
+                    while(1):
+                        #self.get_logger().info('waiting to read m2')
+                        if self.ser.readable():
+                            response.feedback.id2 = list(self.ser.readline())
+                            break
+
+        #-----------------------------send command motor 3------------------------  
+                data = bytes(request.sercommand.id3)
+                if data != b'':
+                    self.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m3 : {data}')
+                    self.ser.write(call_feedback(3, 0xA1))
+                    while(1):
+                        #self.get_logger().info('waiting to read m3')
+                        if self.ser.readable():
+                            response.feedback.id3 = list(self.ser.readline())
+                            break
+
+
+                # response state
+                response.success = True
+            except Exception as e:
+                self.get_logger().error(f'move failed!! error : {e}')
+                response.success = False
+
+#----------------------------- init ------------------------------  
         elif request.codecommand == "Init":
             self.get_logger().info('Initializing!!')
             self.nuri_init()
             # response state
             response.success = True
+
+#----------------------------- debug data ------------------------  
         elif request.codecommand == "Read":
             self.get_logger().info('waiting to read!!')
             while(1):
@@ -42,6 +100,7 @@ class Service(Node):
             response.success = False
         
         # return the response parameter
+        self.get_logger().info(f'send response : {response.success}   feedback : {response.feedback}')
         return response
     
     def nuri_init(self):
