@@ -20,7 +20,7 @@ class Tf_jointState(Node):
         
         self.publisher_ = self.create_publisher(Int32MultiArray, 'joint', qos_profile)
         self.publisher_dy_ = self.create_publisher(Int32MultiArray, 'joint_dy', qos_profile)
-        timer_period = 0.4
+        timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.trig = 0

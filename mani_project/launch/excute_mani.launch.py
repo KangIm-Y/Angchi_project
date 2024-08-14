@@ -7,9 +7,10 @@ from ament_index_python.packages import get_package_share_directory
 
 
 
-moveit_demo = get_package_share_directory('mani') + '/launch/demo.launch.py'
+
 mani_rs485 = get_package_share_directory('rs485_mani') + '/mani_rs485.launch.py'
 tf_joint_states = get_package_share_directory('rs485_mani') + '/tf_joint_states.launch.py'
+mani_indy = get_package_share_directory('indy_moveit') + '/launch/indy_moveit_gazebo.launch.py'
 
 
 def generate_launch_description():
@@ -17,7 +18,7 @@ def generate_launch_description():
 
     return launch.LaunchDescription([
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(moveit_demo)
+            PythonLaunchDescriptionSource(mani_indy)
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(mani_rs485)
