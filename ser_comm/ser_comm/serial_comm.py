@@ -1,18 +1,21 @@
 2# import the MyCustomServiceMessage module from custom_interfaces package
 from custom_interfaces.srv import Protocool
 # import the ROS2 Python client libraries
-import time as t
+import time 
 from struct import pack
 import rclpy
 from rclpy.node import Node
 import serial
+
+
+datalen = 12
 
 class Service(Node):
 
     def __init__(self):
         super().__init__('serial_comm')
         self.srv = self.create_service(Protocool, 'command', self.custom_service_callback)
-        self.ser = serial.Serial('/dev/ttyRS485', 57600, timeout=0.05)
+        self.ser = serial.Serial('/dev/ttyRS485', 230400, timeout=0.01)
         
 
     def custom_service_callback(self, request, response):
@@ -31,7 +34,17 @@ class Service(Node):
                     while(1):
                         #self.get_logger().info('waiting to read m0')
                         if self.ser.readable():
-                            response.feedback.id0 = list(self.ser.readline())
+                            responsedatabytes = b''
+                            while 1:
+                                tmpdata = self.ser.read()
+                                if tmpdata != b'':
+                                    responsedatabytes = tmpdata
+                                    break
+                            for i in range(datalen):
+                                responsedatabytes = responsedatabytes + self.ser.read()
+                            responsedata = list(responsedatabytes)
+                            response.feedback.id0 = responsedata
+                            #self.get_logger().info(f"send data : {response.feedback.id0}")
                             break
 
         #-----------------------------send command motor 1------------------------  
@@ -44,7 +57,19 @@ class Service(Node):
                     while(1):
                         #self.get_logger().info('waiting to read m1')
                         if self.ser.readable():
-                            response.feedback.id1 = list(self.ser.readline())
+                            #responsedatabytes = self.ser.readline()
+                            responsedatabytes = b''
+                            while 1:
+                                tmpdata = self.ser.read()
+                                if tmpdata != b'':
+                                    responsedatabytes = tmpdata
+                                    break
+                            for i in range(datalen):
+                                responsedatabytes = responsedatabytes + self.ser.read()
+                            #self.get_logger().info(f"feedback data : {responsedatabytes}")
+                            responsedata = list(responsedatabytes)
+                            response.feedback.id1 = responsedata
+                            #self.get_logger().info(f"send data : {response.feedback.id1}")
                             break
 
         #-----------------------------send command motor 2------------------------  
@@ -57,7 +82,18 @@ class Service(Node):
                     while(1):
                         #self.get_logger().info('waiting to read m2')
                         if self.ser.readable():
-                            response.feedback.id2 = list(self.ser.readline())
+                            #responsedatabytes = self.ser.readline()
+                            responsedatabytes = b''
+                            while 1:
+                                tmpdata = self.ser.read()
+                                if tmpdata != b'':
+                                    responsedatabytes = tmpdata
+                                    break
+                            for i in range(datalen):
+                                responsedatabytes = responsedatabytes + self.ser.read()
+                            responsedata = list(responsedatabytes)
+                            response.feedback.id2 = responsedata
+                            #self.get_logger().info(f"send data : {response.feedback.id2}")
                             break
 
         #-----------------------------send command motor 3------------------------  
@@ -70,7 +106,18 @@ class Service(Node):
                     while(1):
                         #self.get_logger().info('waiting to read m3')
                         if self.ser.readable():
-                            response.feedback.id3 = list(self.ser.readline())
+                            #responsedatabytes = self.ser.readline()
+                            responsedatabytes = b''
+                            while 1:
+                                tmpdata = self.ser.read()
+                                if tmpdata != b'':
+                                    responsedatabytes = tmpdata
+                                    break
+                            for i in range(datalen):
+                                responsedatabytes = responsedatabytes + self.ser.read()
+                            responsedata = list(responsedatabytes)
+                            response.feedback.id3 = responsedata
+                            #self.get_logger().info(f"send data : {response.feedback.id3}")
                             break
 
 
@@ -101,6 +148,7 @@ class Service(Node):
         
         # return the response parameter
         self.get_logger().info(f'send response : {response.success}   feedback : {response.feedback}')
+        self.get_logger().info("---------------------------------------------")
         return response
     
     def nuri_init(self):

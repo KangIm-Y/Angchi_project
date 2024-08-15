@@ -44,6 +44,7 @@ class JointSubscriber(Node):
 
         self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
+        self.cur_posarr = self.posarray
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
         self.nuri_initpos()
@@ -171,7 +172,7 @@ class JointSubscriber(Node):
                     self.get_logger().info(f"success! response : {self.cur_posarr}")
                     self.store_pos()
                 except Exception as e:
-                    self.get_logger().warn("Can't convert posdata. previous data will be stored.")
+                    self.get_logger().warn(f"Can't convert posdata. previous data will be stored. {e}")
                     self.get_logger().debug(f"error : {e}")
             else:
                 self.get_logger().error("service call failed!")
@@ -180,6 +181,7 @@ class JointSubscriber(Node):
 
     def extract_deg_data(self, data):
         deg = list(data)
+        self.get_logger().info(f"response bytes data : {data}")
         pos = 0.01 * int(str(hex(deg[7])) + str(hex(deg[8]))[2:], 16)
         return pos
 

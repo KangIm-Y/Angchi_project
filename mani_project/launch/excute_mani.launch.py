@@ -9,7 +9,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 mani_rs485 = get_package_share_directory('rs485_mani') + '/mani_rs485.launch.py'
-tf_joint_states = get_package_share_directory('rs485_mani') + '/tf_joint_states.launch.py'
+tf_joint_states = get_package_share_directory('rs485_mani') + '/tf_joint_states_indy.launch.py'
 mani_indy = get_package_share_directory('indy_moveit') + '/launch/indy_moveit_gazebo.launch.py'
 
 
