@@ -15,7 +15,7 @@ class Service(Node):
     def __init__(self):
         super().__init__('serial_comm')
         self.srv = self.create_service(Protocool, 'command', self.custom_service_callback)
-        self.ser = serial.Serial('/dev/ttyRS485', 230400, timeout=0.01)
+        self.ser = serial.Serial('/dev/ttyRS485', 115200, timeout=0.01)
         
 
     def custom_service_callback(self, request, response):

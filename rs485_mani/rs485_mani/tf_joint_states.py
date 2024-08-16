@@ -59,12 +59,12 @@ class Tf_jointState(Node):
         # Publish the message to the Topic
         self.publisher_.publish(msg)
         # Display the message on the console
-        self.get_logger().debug('Publishing joint: "%s"' % msg)
+        #self.get_logger().debug('Publishing joint: "%s"' % msg)
         msg.data = self.poseArr[4:]
         # Publish the message to the Topic
         self.publisher_dy_.publish(msg)
         # Display the message on the console
-        self.get_logger().debug('Publishing joiny_dy: "%s"' % msg)
+        #self.get_logger().debug('Publishing joiny_dy: "%s"' % msg)
 
 
 

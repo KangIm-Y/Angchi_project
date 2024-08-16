@@ -151,7 +151,7 @@ class JointSubscriber(Node):
         with open(self.file_path, 'w') as f:
             for i in self.cur_posarr:
                 f.write(f"{i}\n")
-        self.get_logger().info(f"deg array saved. saved data is {self.cur_posarr}")
+        self.get_logger().debug(f"deg array saved. saved data is {self.cur_posarr}")
 
 
     def inv_data(self, data):
@@ -169,7 +169,7 @@ class JointSubscriber(Node):
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id1))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id2))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id3))
-                    self.get_logger().info(f"success! response : {self.cur_posarr}")
+                    #self.get_logger().info(f"success! response : {self.cur_posarr}")
                     self.store_pos()
                 except Exception as e:
                     self.get_logger().warn(f"Can't convert posdata. previous data will be stored. {e}")
@@ -181,7 +181,7 @@ class JointSubscriber(Node):
 
     def extract_deg_data(self, data):
         deg = list(data)
-        self.get_logger().info(f"response bytes data : {data}")
+        #self.get_logger().info(f"response bytes data : {data}")
         pos = 0.01 * int(str(hex(deg[7])) + str(hex(deg[8]))[2:], 16)
         return pos
 

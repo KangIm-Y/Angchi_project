@@ -71,7 +71,36 @@
         <xacro:define_link link_index="link5" link_mesh="link5"/>
 
         <xacro:if value="${indy_eye and not (indy_type == 'indyrp2' or indy_type == 'indyrp2_v2')}">
-            <xacro:define_link link_index="link6" link_mesh="link6_eye"/>
+            <joint name="camera_joint" type="fixed">
+		<parent link="link0"/>
+		<child link="camera_link"/>
+		<origin xyz="-0.123 -0.13 0.7" rpy="0 1.0996 -1.57075"/>
+	    </joint>
+	    
+	    <xacro:define_link link_index="camera_link" link_mesh=""/>
+
+	    <link name="camera_link">
+		<visual>
+		    <geometry>
+			<mesh filename="package://urdfbot_description/meshes/visual/mani_camera.stl" scale="0.001 0.001 0.001"/>
+		    </geometry>
+		</visual>
+		<collision>
+		    <geometry>
+			<mesh filename="package://urdfbot_description/meshes/visual/mani_camera.stl" scale="0.001 0.001 0.001"/>
+		    </geometry>
+		</collision>
+	    </link>
+
+	    <joint name="camera_optical_joint" type="fixed">
+		<parent link="camera_link"/>
+		<child link="camera_link_optical"/>
+		<origin xyz="0 0 0" rpy="-1.57075 0 -1.57075"/>
+	    </joint>
+
+	    <link name="camera_link_optical">
+	    </link>
+	    
         </xacro:if>
         <xacro:unless value="${indy_eye and not (indy_type == 'indyrp2' or indy_type == 'indyrp2_v2')}">
             <xacro:define_link link_index="link6" link_mesh="link6"/>

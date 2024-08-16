@@ -34,13 +34,20 @@ class ClientAsync(Node):
     def send_request(self):
         arr = []
         for i in range(3):
-            arr.append(float(input("input : ")))
+            arr.append(float(input("[0,0,0] is zeropos, [-1,-1,-1] is homepos, anything else is coordinate. input : ")))
 
 
         # send the request
         self.req.coordinate.x = arr[0]
         self.req.coordinate.y = arr[1]
         self.req.coordinate.z = arr[2]
+
+        if arr == [0,0,0]:
+            self.req.pose = 'zero'
+        elif arr == [-1,-1,-1]:
+            self.req.pose = 'home'
+        else:
+            self.req.pose = ''
         # uses sys.argv to access command line input arguments for the request.
         self.future = self.client.call_async(self.req)
         # to print in the console

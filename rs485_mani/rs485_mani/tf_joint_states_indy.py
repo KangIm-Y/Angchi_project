@@ -34,8 +34,7 @@ class Tf_jointState(Node):
         #self.get_logger().info(f'poseArr : {self.poseArrRad}')
         for i in range(0,len(self.poseArrRad)): #change rad 2 deg
             if i == 0 :
-            	self.poseArr[0] = int(round((180 / PI) * self.poseArrRad[i]))
-                
+                self.poseArr[0] = int(round((180 / PI) * self.poseArrRad[i]))
             elif i == 1 :
                 self.poseArr[2] = int(round((180 / PI) * self.poseArrRad[i]))
             elif i == 2 :
@@ -53,11 +52,11 @@ class Tf_jointState(Node):
             else:
                 self.get_logger().error("joint states list is too long!!")
 
-        print(" ")
+        #print(" ")
         
-        for i in range(0,len(self.poseArr)): #print to check rad2deg
-            print("joint deg",i,"::",self.poseArr[i])
-        print(" ")
+        #for i in range(0,len(self.poseArr)): #print to check rad2deg
+            #print("joint deg",i,"::",self.poseArr[i])
+        #print(" ")
 
     def timer_callback(self):
         msg = Int32MultiArray()
@@ -65,12 +64,12 @@ class Tf_jointState(Node):
         # Publish the message to the Topic
         self.publisher_.publish(msg)
         # Display the message on the console
-        self.get_logger().info('Publishing joint: "%s"' % msg)
+        #self.get_logger().info('Publishing joint: "%s"' % msg)
         msg.data = self.poseArr[4:]
         # Publish the message to the Topic
         self.publisher_dy_.publish(msg)
         # Display the message on the console
-        self.get_logger().info('Publishing joiny_dy: "%s"' % msg)
+        #self.get_logger().info('Publishing joiny_dy: "%s"' % msg)
 
 
 

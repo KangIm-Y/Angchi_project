@@ -21,9 +21,9 @@ double ori_x = 0.0;
 double ori_y = 0.7071231592334566;
 double ori_z = -0.7070904020014414;
 
-float x_offset = -0.175;
-float y_offset = 0.130;
-float z_offset = 1.000;
+float x_offset = 0.0;
+float y_offset = 0.0;
+float z_offset = 0.0;
 
 
 
@@ -31,27 +31,13 @@ std::shared_ptr<MoveGroupInterface> move_group_interface;
 rclcpp::Logger logger = rclcpp::get_logger("mani_moveit");
 
 void signal_callback_handler(int signum) {
-    std::cout << "Caught signal " << signum << std::endl;
+    //std::cout << "Caught signal " << signum << std::endl;
     // Terminate program
     exit(signum);
 }
 
-bool PlanAndExecute() {
-   auto target_pose = []{
-        geometry_msgs::msg::Pose msg;
-        msg.orientation.w = ori_w;
-        msg.orientation.x = ori_x;
-        msg.orientation.y = ori_y;
-        msg.orientation.z = ori_z;
-        msg.position.x = x + x_offset;
-        msg.position.y = y + y_offset;
-        msg.position.z = z + z_offset;
-        return msg;
-    }();    
-    RCLCPP_INFO(logger, "Target pose position :    X: %.2f  Y: %.2f Z: %.2f,      orientation :    X: %.2f  Y: %.2f Z: %.2f W: %.2f", target_pose.position.x, target_pose.position.y, target_pose.position.z, target_pose.orientation.x, target_pose.orientation.y, target_pose.orientation.z, target_pose.orientation.w);
-	
+bool PlanAndExecute() {    
     
-    move_group_interface->setPoseTarget(target_pose);
     //move_group_interface->setPoseTarget(x,y,z);
     //move_group_interface->setRPYTarget(-1.55039099, 0, 3.141592);
 
@@ -85,13 +71,46 @@ public:
 private:
     void callbackPos(const custom_interfaces::srv::PositionService::Request::SharedPtr request,
                      const custom_interfaces::srv::PositionService::Response::SharedPtr response) {
-        x = request->coordinate.x;
-        y = request->coordinate.y;
-        z = request->coordinate.z;
-        moved_flag = false;
 
-        response->success = PlanAndExecute();
-    }
+            if (request->pose == "zero") {
+                move_group_interface->setNamedTarget("ZeroPos");
+                RCLCPP_INFO(logger, "--------------------------------------------------");
+                RCLCPP_INFO(logger, "Move to zeropos.");
+                RCLCPP_INFO(logger, "--------------------------------------------------");
+            }
+            else if (request->pose == "home"){
+                move_group_interface->setNamedTarget("HomePos");
+                RCLCPP_INFO(logger, "--------------------------------------------------");
+                RCLCPP_INFO(logger, "Move to homepos.");
+                RCLCPP_INFO(logger, "--------------------------------------------------");
+            }
+            else{
+            
+                x = request->coordinate.x;
+                y = request->coordinate.y;
+                z = request->coordinate.z;
+                moved_flag = false;
+
+                auto target_pose = []{
+                    geometry_msgs::msg::Pose msg;
+                    msg.orientation.w = ori_w;
+                    msg.orientation.x = ori_x;
+                    msg.orientation.y = ori_y;
+                    msg.orientation.z = ori_z;
+                    msg.position.x = x + x_offset;
+                    msg.position.y = y + y_offset;
+                    msg.position.z = z + z_offset;
+                    return msg;
+                }();
+
+                RCLCPP_INFO(logger, "--------------------------------------------------");
+                RCLCPP_INFO(logger, "Target pose position :    X: %.2f  Y: %.2f Z: %.2f,      orientation :    X: %.2f  Y: %.2f Z: %.2f W: %.2f", target_pose.position.x, target_pose.position.y, target_pose.position.z, target_pose.orientation.x, target_pose.orientation.y, target_pose.orientation.z, target_pose.orientation.w);
+                RCLCPP_INFO(logger, "--------------------------------------------------");
+                
+                move_group_interface->setPoseTarget(target_pose);
+            }
+            response->success = PlanAndExecute();
+        }
 
     rclcpp::Service<custom_interfaces::srv::PositionService>::SharedPtr server_;
 };
@@ -109,6 +128,8 @@ int main(int argc, char *argv[]) {
     move_group_interface = std::make_shared<MoveGroupInterface>(node, "indy_manipulator");
 
     auto mani_server = std::make_shared<MoveitServerNode>();
+
+
 
     move_group_interface->setMaxVelocityScalingFactor(1);
     move_group_interface->setMaxAccelerationScalingFactor(1);
