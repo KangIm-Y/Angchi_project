@@ -33,7 +33,7 @@ class BlueRatioCirculator(Node):
         
         self.capture_timer = self.create_timer(1/24, self.image_capture)
         self.mission_timer = self.create_timer(1/24, self.mission_decision)
-        self.client = self.create_client(PositionService, 'object_coordinate')
+        self.client = self.create_client(PositionService, 'pos_srv')
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for service...')
         
@@ -121,10 +121,19 @@ class BlueRatioCirculator(Node):
         self.get_logger().info("ininininininit")
         
         
+        # self.req = PositionService.request()
+        
+        
         self.angle_data = []
         self.theta = 0.
         self.call_flag = False
+        self.second_call_flag = False
         self.grip_flag = 0 ## 0 is idle, 1 is true, -1 is false
+        self.goal_x = 0.
+        self.goal_y = 0.
+        self.goal_z = 0.
+        
+        
         
     def joy_msg_sampling(self,msg) :
         self.angle_data = msg.data
@@ -153,34 +162,92 @@ class BlueRatioCirculator(Node):
     def call_service(self, x,y,z):
         if self.client.service_is_ready():
             request = PositionService.Request()
-            request.coordinate.x = x
-            request.coordinate.y = y
-            request.coordinate.z = z
+            self.goal_x = -x -0.1
+            self.goal_y = -y -0.11
+            self.goal_z = z + 0.93
+            
+            request.coordinate.x = self.goal_x 
+            request.coordinate.y = self.goal_y 
+            request.coordinate.z = self.goal_z +0.3
+            
+            
+            
+            # self.get_logger().info(f'camera x : {x}   y : {y}  z : {request.coordinate.z}')
+            self.get_logger().info(f'world  x : {request.coordinate.x}   y : {request.coordinate.y}  z : {request.coordinate.z}')
             future = self.client.call_async(request)
+            # if future.done():
+            #     self.callback_function()
+                
             future.add_done_callback(self.callback_function)
         else:
             self.get_logger().warn('Service not available')
 
     def callback_function(self, future):
-        try:
-            response = future.result()
-            self.get_logger().info(f'Result: {response.success}')
-            self.grip_flag = 1 if response.success == True else -1
-            # self.get_logger().info(self.grip_flag)
+        if future.done() :
+            try:
+                response = future.result()
+                self.get_logger().info(f'first callback Result: {response.success}')
+                
+                if response.success == True :
+                    self.second_call_service()
+                else :
+                    self.call_flag = False
+                
+                # self.grip_flag = 1 if response.success == True else -1
+                # self.get_logger().info(self.grip_flag)
+                
+            except Exception as e:
+                self.get_logger().error(f'Service call failed {e}')
             
-        except Exception as e:
-            self.get_logger().error(f'Service call failed {e}')
+    
+    
+    
+    def second_call_service(self):
+        if self.client.service_is_ready():
+            request = PositionService.Request()
+            request.coordinate.x = self.goal_x
+            request.coordinate.y = self.goal_y
+            request.coordinate.z = self.goal_z
+            time.sleep(2)
+            self.get_logger().info(f'world  x : {self.goal_x}   y : {self.goal_y}  z : {self.goal_z}')
+            future = self.client.call_async(request)
+            
+            # if response == True :
+            #     self.grip_flag = 1
+                
+            # else :
+            #     self.grip_flag = -1
+            future.add_done_callback(self.second_callback_function)
+            # if future.done() :
+            #     self.second_callback_function()
+        else:
+            self.get_logger().warn('Service not available')
+
+    def second_callback_function(self, future):
+        if future.done() :
+            try:
+                response = future.result()
+                self.get_logger().info(f'Result: {response.success}')
+                if response.success == False :
+                    self.second_call_service()
+                self.grip_flag = 1 if response.success == True else -1
+                # self.get_logger().info(self.grip_flag)
+                
+            except Exception as e:
+                self.get_logger().error(f'Service call failed {e}')
+
 
       
     def mission_decision(self) :
         
         got_ROI = self.img
         ## yolo algorithom
-        result = self.model_post.predict(got_ROI, conf = 0.55, verbose=False, max_det = 1)
+        result = self.model_post.predict(got_ROI, conf = 0.50, verbose=False, max_det = 1)
         
         if len(result[0].boxes.cls) :
             if self.state == 'S1' :
                 self.state = 'Spost'
+                time.sleep(5)
             elif self.state == 'Spost' :
                 # print(result[0].boxes.cls)
                 annotated_img = result[0].plot()
@@ -208,6 +275,7 @@ class BlueRatioCirculator(Node):
                 z_w = (-y_c *math.sin(self.theta / 180 * math.pi)) + z_c * math.cos(self.theta / 180 * math.pi)
                 
                 if ((self.call_flag == False)) :
+                    time.sleep(1)
                     self.call_service(x_w, y_w, z_w)
                     self.get_logger().info("call!")
                     self.call_flag = True

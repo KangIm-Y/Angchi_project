@@ -51,6 +51,9 @@ setup(
             'imu_pub_raw=track_test_pkg.sensor.imu_pub_raw:main',
             
             
+            #### last year ####
+            'last_spring_track=track_test_pkg.last_year.last_spring_track:main',
+            
             
         ],
     },
