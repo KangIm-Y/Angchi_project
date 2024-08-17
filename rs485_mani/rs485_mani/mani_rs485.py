@@ -26,8 +26,9 @@ class JointSubscriber(Node):
             self.subscribe_topic_message,
             qos_profile,
             )
+        self.term = 0.01
         self.client = self.create_client(Protocool, 'command')
-        self.create_timer(term, self.check_srv_res)
+        self.create_timer(self.term, self.check_srv_res)
         while not self.client.wait_for_service(timeout_sec=2.0):
             # if it is not available, a message is displayed
             self.get_logger().info('service not available, waiting again...')
@@ -39,15 +40,26 @@ class JointSubscriber(Node):
         self.req.sercommand.id2 = []
         self.req.sercommand.id3 = []
 
+
+        self.storecount = 0
+
+        
+
+        
+
         self.send_request(codecommand="Init")
 
 
         self.file_path = "degarr.txt"
         self.posarray = [0,0,0,0]
+        self.data_buf = [0,0,0,0]
+        self.pos_pre_array = [0,0,0,0]
+        self.pos_incorrect = [2,0,0,0]
         self.cur_posarr = self.posarray
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
         self.nuri_initpos()
+        
 
 
 
@@ -66,21 +78,33 @@ class JointSubscriber(Node):
         
 
     def subscribe_topic_message(self, msg):
-        self.posarray = self.inv_data(msg.data)
+        self.data_buf = self.inv_data(msg.data)
+        for i in range(4):
+            if self.data_buf[i] > self.pos_pre_array[i]:
+                self.posarray[i] = self.data_buf[i] + self.pos_incorrect[i]
+            elif self.data_buf[i] < self.pos_pre_array[i]:
+                self.posarray[i] = self.data_buf[i] - self.pos_incorrect[i]
+            else:
+                self.posarray[i] = self.data_buf[i]
+
         self.get_logger().debug('Received message: {0}'.format(self.posarray))
         #self.store_pos()
-        self.pos_nuri(0.5)
+        self.pos_nuri()
+        self.pos_pre_array = self.data_buf
+
 
 
     def nuri_initpos(self):
-        self.get_logger().info('Moving to zeropos.')
+        self.get_logger().info('\033[96m' + 'Moving to zeropos.' + '\033[0m')
         pos_inv = []
         for i in self.posarray:
             pos_inv.append(~i + 1)
         self.posarray = pos_inv
-        self.pos_nuri(1)
-        t.sleep(1)
+        self.pos_nuri()
+        t.sleep(10)
         self.set_nuri_zero()
+        self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
+        print('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
 
 
                     
@@ -112,11 +136,11 @@ class JointSubscriber(Node):
         
 
     
-    def pos_nuri(self, command_term = 2):
-        self.req.sercommand.id0 = set_degtime(0, self.posarray[0], command_term)
-        self.req.sercommand.id1 = set_degtime(1, self.posarray[1], command_term)
-        self.req.sercommand.id2 = set_degtime(2, self.posarray[2], command_term)
-        self.req.sercommand.id3 = set_degtime(3, self.posarray[3], command_term)
+    def pos_nuri(self):
+        self.req.sercommand.id0 = set_degtime(0, self.posarray[0], 3)
+        self.req.sercommand.id1 = set_degtime(1, self.posarray[1], 2)
+        self.req.sercommand.id2 = set_degtime(2, self.posarray[2], 3)
+        self.req.sercommand.id3 = set_degtime(3, self.posarray[3], 3)
         self.get_logger().debug(f'send {self.req.sercommand}')
         self.get_logger().debug('------------------------------------')
         self.send_request("Move")
@@ -151,7 +175,7 @@ class JointSubscriber(Node):
         with open(self.file_path, 'w') as f:
             for i in self.cur_posarr:
                 f.write(f"{i}\n")
-        self.get_logger().debug(f"deg array saved. saved data is {self.cur_posarr}")
+        self.get_logger().info('\033[92m' + f"deg array saved. saved data is {self.cur_posarr}" + '\033[0m')
 
 
     def inv_data(self, data):
@@ -170,7 +194,10 @@ class JointSubscriber(Node):
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id2))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id3))
                     #self.get_logger().info(f"success! response : {self.cur_posarr}")
-                    self.store_pos()
+                    self.storecount += 1
+                    if self.storecount > 5 :
+                        self.store_pos()
+                        self.storecount = 0
                 except Exception as e:
                     self.get_logger().warn(f"Can't convert posdata. previous data will be stored. {e}")
                     self.get_logger().debug(f"error : {e}")
@@ -236,7 +263,7 @@ def set_degrpm(Id, Deg, Rpm = 5):
     #print(data_array)
     return list(attach_checksum(data_array))
     
-def set_degtime(Id, Deg, Time = term):
+def set_degtime(Id, Deg, Time = term, offset = 0):
     motor_id = format(Id, '#04x')
     data_num = '0x06'
     mode = '0x02'
