@@ -39,6 +39,7 @@ setup(
             'ROI_nonmulti=track_test_pkg.testing.ROI_nonmulti:main',
             'positioning=track_test_pkg.testing.positioning:main',
             'mission_positioning_test=track_test_pkg.testing.mission_positioning_test:main',
+            'dep_checker=track_test_pkg.testing.dep_checker:main',
             
             #### commu_test ####
             'client_test=track_test_pkg.commu_test.client_test:main',

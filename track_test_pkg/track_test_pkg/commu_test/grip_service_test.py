@@ -163,7 +163,7 @@ class BlueRatioCirculator(Node):
         if self.client.service_is_ready():
             request = PositionService.Request()
             self.goal_x = -x -0.1
-            self.goal_y = -y -0.11
+            self.goal_y = -y -0.1
             self.goal_z = z + 0.93
             
             request.coordinate.x = self.goal_x 
@@ -242,7 +242,7 @@ class BlueRatioCirculator(Node):
         
         got_ROI = self.img
         ## yolo algorithom
-        result = self.model_post.predict(got_ROI, conf = 0.50, verbose=False, max_det = 1)
+        result = self.model_post.predict(got_ROI, conf = 0.4, verbose=False, max_det = 1)
         
         if len(result[0].boxes.cls) :
             if self.state == 'S1' :
