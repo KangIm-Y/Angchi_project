@@ -220,22 +220,15 @@ class BlueRatioCirculator(Node):
         if len(result[0].boxes.cls) :
             if self.state == 'S1' :
                 self.state = 'Spost'
-                time.sleep(5)
             elif self.state == 'Spost' :
                 # print(result[0].boxes.cls)
                 annotated_img = result[0].plot()
                 object_xy = np.array(result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
                 
-                # for r in result :
-                #     print(r.boxes.xywh.detach().numpy().tolist()[0]) ###원래 이건데 대체했음.
-                # print(object_xy[0], object_xy[1]) ### 640 by 480 
                 
-                distance = self.depth_img[object_xy[1]][object_xy[0]] * self.depth_scale    
-                # print(f'distance between cam and object is {depth_image[object_xy[1]][object_xy[0]]}')
-                # print(f'distance between cam and object is {distance:.4f} meters')
+                distance = self.depth_img[object_xy[1]][object_xy[0]] * self.depth_scale
                 
                 annotated_img = cv2.circle(annotated_img,((object_xy[0]),(object_xy[1])),10,(0,0,255), -1, cv2.LINE_AA)
-                # annotated_img = cv2.circle(annotated_img,((600),(400)),10,(255,0,0), -1, cv2.LINE_AA)
                 depth = self.aligned_depth_frame.get_distance(object_xy[0], object_xy[1])
                 depth_point = rs.rs2_deproject_pixel_to_point(self.depth_intrinsics, [object_xy[0], object_xy[1]], depth)
                 cv2.putText(annotated_img, f"{depth_point[0]:.2f}m,  {depth_point[1]:.2f}m,  {depth_point[2]:.2f}m,", (30,30), cv2.FONT_HERSHEY_DUPLEX, 1, (0,0,255),2)
@@ -259,8 +252,6 @@ class BlueRatioCirculator(Node):
                     pass
                     
                     
-                    
-                # print(f'{depth_point}')
                 
                 cv2.imshow("title", annotated_img)
                 cv2.waitKey(1)

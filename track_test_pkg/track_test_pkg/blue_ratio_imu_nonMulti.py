@@ -42,7 +42,7 @@ class BlueRatioCirculator(Node):
             qos_profile)
         
         ### parameters ###
-        cam_num = 4
+        cam_num = 8
         self.U_detection_threshold = 140 ## 0~255
         self.img_size_x = 1280
         self.img_size_y = 720

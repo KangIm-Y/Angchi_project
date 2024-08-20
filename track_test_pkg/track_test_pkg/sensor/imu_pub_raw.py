@@ -11,7 +11,7 @@ import math
 class CameraPoseCirculate(Node):
     def __init__(self):
         super().__init__('imu_node')
-        qos_profile = QoSProfile(depth=10)
+        qos_profile = QoSProfile(depth=2)
         self.camera_pose = self.create_publisher(
             Float32MultiArray, 
             'imu_data', 
