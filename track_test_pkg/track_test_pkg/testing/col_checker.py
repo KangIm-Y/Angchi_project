@@ -247,7 +247,7 @@ class BlueRatioCirculator(Node):
                 
                     
             elif self.robot_roll == -1 :
-                if ((self.R_sum < (self.ROI_half_size * 0.25)) * (self.R_sum > (self.ROI_half_size * 0.22))) :
+                if ((self.R_sum < (self.ROI_half_size * 0.25)) & (self.R_sum > (self.ROI_half_size * 0.22))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
                 elif self.R_sum >= (self.ROI_half_size * 0.25) :
@@ -261,7 +261,7 @@ class BlueRatioCirculator(Node):
                     self.R_joy = self.before_R_joy
             
             elif self.robot_roll == 1 :
-                if ((self.L_sum < (self.ROI_half_size * 0.25)) * (self.L_sum > (self.ROI_half_size * 0.22))) :
+                if ((self.L_sum < (self.ROI_half_size * 0.25)) & (self.L_sum > (self.ROI_half_size * 0.22))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
                 elif self.L_sum >= (self.ROI_half_size * 0.25) :
