@@ -1,0 +1,6 @@
+string mode   # Signal to define control mode
+              # "Pos" to make the Odrive set to position control mode.
+              # "Vel" to make the Odrive set to velocity control mode.
+
+---
+bool success  # Did it achieve it?
