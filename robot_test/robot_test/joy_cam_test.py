@@ -22,6 +22,7 @@ class JoyCamTest(Node) :
             self.joy_msg_sampling,
             qos_profile)
         
+        
         ### parameters ###
         self.img_size_x = 1280
         self.img_size_y = 720
