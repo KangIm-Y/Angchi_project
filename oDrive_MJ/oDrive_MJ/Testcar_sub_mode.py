@@ -53,8 +53,8 @@ class Testcar_sub(Node):
             ########################## Ramped Velocity Control #############################
             msg.data[2] = -msg.data[2]
             
-            self.my_drive.axis0.controller.input_vel = msg.data[1]
-            self.my_drive.axis1.controller.input_vel = msg.data[2]
+            self.my_drive.axis0.controller.input_vel = - msg.data[2]
+            self.my_drive.axis1.controller.input_vel = - msg.data[1]
             self.get_logger().info('Velocity control set: axis0 = {}, axis1 = {}'.format(msg.data[1], msg.data[2]))
             
         elif msg.data[0] == 2: #상대 위치제어 모드 : Trajectory
