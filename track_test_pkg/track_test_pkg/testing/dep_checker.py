@@ -262,9 +262,9 @@ class BlueRatioCirculator(Node):
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
         
-        if imu_data <= 75 :
+        if imu_data[0] <= 75 :
             self.robot_roll = -1
-        elif imu_data >= 105 :
+        elif imu_data[0] >= 105 :
             self.robot_roll = 1
         else :
             self.robot_roll = 0
