@@ -188,7 +188,7 @@ class BlueRatioCirculator(Node):
         
         cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
         cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
-        cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ (l_sum + r_sum)})   R : {r_sum:.2f} ({r_sum / (l_sum + r_sum)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
         print(l_sum + r_sum)
         
         cv2.imshow("color", self.color_img)

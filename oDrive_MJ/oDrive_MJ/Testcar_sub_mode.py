@@ -16,7 +16,7 @@ class Testcar_sub(Node):
         qos_profile = QoSProfile(depth=10)
         self.subscription = self.create_subscription(
             Int32MultiArray,
-            'ANG',
+            'Odrive_control',
             self.subscribe_topic_message,
             qos_profile)
 
