@@ -126,11 +126,11 @@ bool convertJoyToCmd(const std::vector<float>& axes, const std::vector<int>& but
   }
 
   // The bread and butter: map buttons to twist commands
-  twist->twist.linear.x = -0.001 * axes[RIGHT_STICK_X];
-  twist->twist.linear.y = -0.001 * axes[RIGHT_STICK_Y];
+  twist->twist.linear.x = -1 * axes[RIGHT_STICK_X];
+  twist->twist.linear.y = -1 * axes[RIGHT_STICK_Y];
 
-  double lin_z_right = -0.001 * (axes[RIGHT_TRIGGER] - AXIS_DEFAULTS.at(RIGHT_TRIGGER));
-  double lin_z_left = 0.001 * (axes[LEFT_TRIGGER] - AXIS_DEFAULTS.at(LEFT_TRIGGER));
+  double lin_z_right = -1 * (axes[RIGHT_TRIGGER] - AXIS_DEFAULTS.at(RIGHT_TRIGGER));
+  double lin_z_left = 1 * (axes[LEFT_TRIGGER] - AXIS_DEFAULTS.at(LEFT_TRIGGER));
   twist->twist.linear.z = lin_z_right + lin_z_left;
 
   twist->twist.angular.y = axes[LEFT_STICK_X];

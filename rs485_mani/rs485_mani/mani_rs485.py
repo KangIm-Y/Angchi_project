@@ -20,12 +20,7 @@ class JointSubscriber(Node):
     def __init__(self):
         super().__init__('joint_Subscriber')
         qos_profile = QoSProfile(depth=10)
-        self.joint_Subscriber = self.create_subscription(
-            Int32MultiArray,
-            'joint',
-            self.subscribe_topic_message,
-            qos_profile,
-            )
+        
         self.term = 0.01
         self.client = self.create_client(Protocool, 'command')
         self.create_timer(self.term, self.check_srv_res)
@@ -43,9 +38,6 @@ class JointSubscriber(Node):
 
         self.storecount = 0
 
-        
-
-        
 
         self.send_request(codecommand="Init")
 
@@ -59,6 +51,13 @@ class JointSubscriber(Node):
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
         self.nuri_initpos()
+
+        self.joint_Subscriber = self.create_subscription(
+            Int32MultiArray,
+            'joint',
+            self.subscribe_topic_message,
+            qos_profile,
+            )
         
 
 
@@ -100,6 +99,8 @@ class JointSubscriber(Node):
         for i in self.posarray:
             pos_inv.append(~i + 1)
         self.posarray = pos_inv
+        self.set_nuri_zero()
+        t.sleep(1)
         self.pos_nuri()
         t.sleep(10)
         self.set_nuri_zero()
@@ -156,14 +157,16 @@ class JointSubscriber(Node):
                     num = 0
                     for line in lines:
                         try:
-                            read_deg = int(line.strip())
+                            data = float(line.strip())
+                            #self.get_logger().info(f"data : {data} , type : {type(data)}")
+                            read_deg = int(data)
                             if num == 1:
                                 deg[num] = int(read_deg / 4.8)
                             else:
                                 deg[num] = read_deg
-                            self.get_logger().info(f"last {num} joint data is {read_deg}.")
-                        except:
-                            self.get_logger().warn(f"Can't read data for {num} joint. It will be zero.")
+                            self.get_logger().info(f"last {num} joint data is {read_deg}")
+                        except Exception as e:
+                            self.get_logger().warn(f"Can't read data for {num} joint. It will be zero. error : {e}")
                         num += 1
         except:
             self.get_logger().warn("File not exist. All posdata will be zero and generate new file.")
@@ -190,12 +193,12 @@ class JointSubscriber(Node):
                 try:
                     self.cur_posarr = []
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id0))
-                    self.cur_posarr.append(self.extract_deg_data(response.feedback.id1))
+                    self.cur_posarr.append((self.extract_deg_data(response.feedback.id1))*4.8)
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id2))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id3))
                     #self.get_logger().info(f"success! response : {self.cur_posarr}")
                     self.storecount += 1
-                    if self.storecount > 5 :
+                    if self.storecount > 2 :
                         self.store_pos()
                         self.storecount = 0
                 except Exception as e:
@@ -210,6 +213,12 @@ class JointSubscriber(Node):
         deg = list(data)
         #self.get_logger().info(f"response bytes data : {data}")
         pos = 0.01 * int(str(hex(deg[7])) + str(hex(deg[8]))[2:], 16)
+        if deg[6] == 0:
+            pos = pos * -1
+        elif deg[6] == 1:
+            pass
+        else:
+            self.get_logger().warn(f"Can't read dir. data : {deg[6]}")
         return pos
 
     
