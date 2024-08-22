@@ -1,0 +1,15 @@
+Vector3 coordinate  	#vector3
+string pose 		# zero -> move to zeropos
+			# home -> move to homepos
+			# else -> move to coordinate
+
+---
+
+bool success  # Did it achieve it?
+
+
+
+
+
+
+

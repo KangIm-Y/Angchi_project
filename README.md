@@ -1,17 +1,13 @@
 # Angchi git project
 
+프로젝트에 깃 저장소를 연동할 때 아래와 같은 방법을 따라한다.
 
----
-memo.
-token 사용법
-https://xiingyu:<토큰>@github.com
-https://github.com password=<토큰>
-
-일케해서 .git-credentials 로 저장
+1. cd ~/robot_ws
+2. git clone https://github.com/KangIm-Y/Angchi_project.git
+3. mv Angchi_project src
 
 
-git config --global credential.helper store
-
-To input Token only once, u must input this command
-
-setuptools ver 58.2.0
+원격 브랜치 데이터를 가져오고 싶다면 아래 방법을 사용한다.
+1. git fetch -p
+2. git branch -r
+3. git switch your_branch_name

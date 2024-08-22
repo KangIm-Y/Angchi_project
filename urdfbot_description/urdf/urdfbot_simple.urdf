@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<robot name="urdfbot">
+
+    <link name="mani_link1">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_1.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/collision/mani_1.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+
+    <link name="mani_link2">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_2.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/collision/mani_2.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mani_joint1" type="revolute">
+        <origin rpy="0 0 0" xyz="0 0 0.103" />
+        <parent link="mani_link1" />
+        <child link="mani_link2" />
+        <axis xyz="0 0 1" />
+        <limit effort="87" lower="-2.9671" upper="2.9671" velocity="2.3925" />
+    </joint>
+
+    <link name="mani_link3">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_3.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/collision/mani_3.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mani_joint2" type="revolute">
+        <origin rpy="0 -1.57075 0" xyz="0.02285 0 0.051" />
+        <parent link="mani_link2" />
+        <child link="mani_link3" />
+        <axis xyz="0 0 1" />
+        <limit effort="87" lower="-1.57075" upper="1.57075" velocity="2.3925" />
+    </joint>
+
+    <link name="mani_link4">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_4.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/collision/mani_4.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mani_joint3" type="revolute">
+        <origin rpy="0 0 0" xyz="0.3195 0 0.0455" />
+        <parent link="mani_link3" />
+        <child link="mani_link4" />
+        <axis xyz="0 0 1" />
+        <limit effort="87" lower="-1.57075" upper="1.57075" velocity="2.3925" />
+    </joint>
+
+    <link name="mani_link5">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_5.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/collision/mani_5.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mani_joint4" type="revolute">
+        <origin rpy="0 -1.57075 1.57075" xyz="0.066 -0.064 -0.022" />
+        <parent link="mani_link4" />
+        <child link="mani_link5" />
+        <axis xyz="0 0 1" />
+        <limit effort="87" lower="-2.9671" upper="2.9671" velocity="2.3925" />
+    </joint>
+
+    <link name="mani_link6">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_6.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/collision/mani_6.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mani_joint5" type="revolute">
+        <origin rpy="0 0 0" xyz="0 0 0.24875" />
+        <parent link="mani_link5" />
+        <child link="mani_link6" />
+        <axis xyz="1 0 0" />
+        <limit effort="87" lower="-1.57075" upper="1.57075" velocity="2.3925" />
+    </joint>
+
+    <link name="mani_link7">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_7.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/collision/mani_7.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mani_joint6" type="revolute">
+        <origin rpy="0 0 0" xyz="0 0 0.0565" />
+        <parent link="mani_link6" />
+        <child link="mani_link7" />
+        <axis xyz="0 0 1" />
+        <limit effort="87" lower="-2.9671" upper="2.9671" velocity="2.3925" />
+    </joint>
+    
+    <link name="mani_link8">
+    	<visual>
+            <geometry>
+                <sphere radius="0.001" />
+            </geometry>
+        </visual>
+    </link>
+    
+    <joint name="mani_joint7" type="revolute">
+        <origin rpy="0 0 0" xyz="0 0 0.110" />
+        <parent link="mani_link7" />
+        <child link="mani_link8" />
+        <axis xyz="1 0 0" />
+        <limit effort="87" lower="-3.1415" upper="3.1415" velocity="2.3925" />
+    </joint>
+    
+     <!-- CAMERA -->
+    <joint name="camera_joint" type="fixed">
+        <parent link="mani_link1"/>
+        <child link="camera_link"/>
+        <origin xyz="-0.123 -0.13 0.7" rpy="0 1.0996 -1.57075"/>
+    </joint>
+
+    <link name="camera_link">
+        <visual>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_camera.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://urdfbot_description/meshes/visual/mani_camera.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="camera_optical_joint" type="fixed">
+        <parent link="camera_link"/>
+        <child link="camera_link_optical"/>
+        <origin xyz="0 0 0" rpy="-1.57075 0 -1.57075"/>
+    </joint>
+
+    <link name="camera_link_optical">
+    </link>
+
+
+</robot>
