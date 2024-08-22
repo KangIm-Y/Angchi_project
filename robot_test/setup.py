@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'odrive=robot_test.odrive:main',
+            'joy_cam_test=robot_test.joy_cam_test:main',
         ],
     },
 )

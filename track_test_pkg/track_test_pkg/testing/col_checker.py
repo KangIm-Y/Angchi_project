@@ -180,7 +180,7 @@ class BlueRatioCirculator(Node):
         
         l_sum, midpoint, r_sum = self.yuv_detection(self.color_ROI)
         self.L_sum = l_sum
-        self.R_sum = r_sum
+        self.R_sum = r_sum 
         
         
         
@@ -195,19 +195,19 @@ class BlueRatioCirculator(Node):
         cv2.waitKey(1)
         
         
-    def image_spliter(self, got_img) :
-        y, x = got_img.shape
+    # def image_spliter(self, got_img) :
+    #     y, x = got_img.shape
         
-        l = got_img[:,:int(x/2)]
-        r = got_img[:,int(x/2):]
-        # print(l.shape)
-        # print(r.shape)
+    #     l = got_img[:,:int(x/2)]
+    #     r = got_img[:,int(x/2):]
+    #     # print(l.shape)
+    #     # print(r.shape)
         
         
-        l_sum = np.sum(l) / 255
-        r_sum = (np.sum(r) / 255 ) - y
+    #     l_sum = np.sum(l) / 255
+    #     r_sum = (np.sum(r) / 255 ) - y
         
-        return l_sum, r_sum
+    #     return l_sum, r_sum
             
     def track_tracking(self) :
         msg = Float32MultiArray()
@@ -281,9 +281,6 @@ class BlueRatioCirculator(Node):
         
         msg.data = [self.odrive_mode, self.L_joy, self.R_joy]
         
-        
-            
-            
             
             
     def imu_msg_sampling(self, msg) :
