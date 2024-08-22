@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
-from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import Float32MultiArray
 from odrive.enums import InputMode, CONTROL_MODE_VELOCITY_CONTROL, INPUT_MODE_VEL_RAMP
 
 import odrive
@@ -15,7 +15,7 @@ class Testcar_sub(Node):
         self.calibration()
         qos_profile = QoSProfile(depth=10)
         self.subscription = self.create_subscription(
-            Int32MultiArray,
+            Float32MultiArray,
             'Odrive_control',
             self.subscribe_topic_message,
             qos_profile)
@@ -53,8 +53,8 @@ class Testcar_sub(Node):
             ########################## Ramped Velocity Control #############################
             msg.data[2] = -msg.data[2]
             
-            self.my_drive.axis0.controller.input_vel = - msg.data[2]
-            self.my_drive.axis1.controller.input_vel = - msg.data[1]
+            self.my_drive.axis0.controller.input_vel = msg.data[2]
+            self.my_drive.axis1.controller.input_vel = msg.data[1]
             self.get_logger().info('Velocity control set: axis0 = {}, axis1 = {}'.format(msg.data[1], msg.data[2]))
             
         elif msg.data[0] == 2: #상대 위치제어 모드 : Trajectory

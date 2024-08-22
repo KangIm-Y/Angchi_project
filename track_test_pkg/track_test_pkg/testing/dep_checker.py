@@ -254,6 +254,7 @@ class BlueRatioCirculator(Node):
         
         msg.data = [self.odrive_mode, self.L_joy, self.R_joy]
         
+        self.control_publisher.publish(msg)
         
             
             
