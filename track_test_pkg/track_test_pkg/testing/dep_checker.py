@@ -95,8 +95,8 @@ class BlueRatioCirculator(Node):
         
         
         
-        self.ROI_y_l = 0.9
-        self.ROI_y_h = 0.7
+        self.ROI_y_l = 0.85
+        self.ROI_y_h = 0.75
         self.ROI_x_l = 0.05
         self.ROI_x_h = 0.95
         self.ROI_y = self.ROI_y_l - self.ROI_y_h
@@ -106,7 +106,7 @@ class BlueRatioCirculator(Node):
         self.ROI_half_size = int(self.ROI_size / 2)
         self.get_logger().info(f'{self.ROI_size}')
         
-        self.max_dis = 1.0 / self.depth_scale
+        self.max_dis = 0.93 / self.depth_scale
         self.min_dis = 0.75 / self.depth_scale
         
         self.cvbrid = CvBridge()
@@ -142,29 +142,40 @@ class BlueRatioCirculator(Node):
         contours, _ = cv2.findContours(depth, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         max_area = 0
         max_contour = None
+        l_sum = 0
+        r_sum = 0
+
         for contour in contours:
             area = cv2.contourArea(contour)
             if area > max_area:
                 max_area = area
                 max_contour = contour
-                
-            if max_contour is not None:
-                max_contour_mask = np.zeros_like(depth)
-                l_sum, r_sum = self.image_spliter(depth)
-                self.L_sum = l_sum
-                self.R_sum = r_sum
-            else :
-                pass
+
+        # 최대 컨투어가 존재할 경우 처리
+        if max_contour is not None:
+            # 여기서 max_contour를 사용하여 원하는 작업을 수행하세요.
+            max_contour_mask = np.zeros_like(depth)
+            cv2.drawContours(max_contour_mask, [max_contour], -1, (255, 255, 255), thickness=cv2.FILLED)
+            l_sum, r_sum = self.image_spliter(max_contour_mask)  # 여기에 max_contour_mask를 사용
+            self.L_sum = l_sum
+            self.R_sum = r_sum
+        else:
+            # 최대 컨투어가 없는 경우 처리
+            pass
         
         
         
         # cv2.line(self.color_img, (self.cen_x, self.roi_start_row), (int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
         cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
-        cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ (l_sum + r_sum)})   R : {r_sum:.2f} ({r_sum / (l_sum + r_sum)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
         print(l_sum + r_sum)
         
         cv2.imshow("color", self.color_img)
         cv2.imshow("mask", depth_mask)
+        if max_contour is not None :
+            cv2.imshow("mask", max_contour_mask)
+        else :
+            cv2.imshow("mask", depth_mask)
         cv2.waitKey(1)
         
         
@@ -184,11 +195,21 @@ class BlueRatioCirculator(Node):
             
     def track_tracking(self) :
         msg = Float32MultiArray()
+        ROI_sum = np.sum(self.depth_ROI )
+        print(ROI_sum)
         if self.joy_status == True :
             self.L_joy = (self.joy_stick_data[0] * self.max_speed)
             self.R_joy = (self.joy_stick_data[1] * self.max_speed)
+
+        elif  ROI_sum < (self.ROI_size * 0.3) :
+            print('gogogo')
+            self.L_joy = self.max_speed * 0.3
+            
+            self.R_joy = self.max_speed * 0.3 
         else :
             if self.robot_roll == 0 :
+
+                self.max_dis = 0.93 / self.depth_scale
                 detect_sum = self.L_sum + self.R_sum
                 
                 if (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
@@ -219,21 +240,28 @@ class BlueRatioCirculator(Node):
                 #     self.R_joy = self.before_R_joy
                 
                     
-            elif self.robot_roll == -1 :
-                if ((self.R_sum < (self.ROI_half_size * 0.25)) & (self.R_sum > (self.ROI_half_size * 0.22))) :
+
+            ### 0.3 to 0.35 is  clip state
+            elif self.robot_roll == 1 :
+
+                self.max_dis = 0.9 / self.depth_scale
+                if ((self.R_sum < (self.ROI_half_size * 0.45)) & (self.R_sum > (self.ROI_half_size * 0.4))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
-                elif self.R_sum >= (self.ROI_half_size * 0.25) :
-                    self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                    self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                elif self.R_sum <= self.ROI_half_size * 0.22 :
+                elif self.R_sum >= (self.ROI_half_size * 0.45) :
+                    # self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
+                    # self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
+                    self.soft_turn_right()
+                elif self.R_sum <= (self.ROI_half_size * 0.4) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
                 else :
-                    self.L_joy = self.before_L_joy
-                    self.R_joy = self.before_R_joy
+                    self.L_joy = (self.max_speed / 2) - 0.5
+                    self.R_joy = (self.max_speed / 2) + 0.5
             
-            elif self.robot_roll == 1 :
+            elif self.robot_roll == -1 :
+
+                self.max_dis = 0.9 / self.depth_scale
                 if ((self.L_sum < (self.ROI_half_size * 0.25)) & (self.L_sum > (self.ROI_half_size * 0.22))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
@@ -263,7 +291,7 @@ class BlueRatioCirculator(Node):
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
         
-        if imu_data[0] <= 75 :
+        if imu_data[0] <= 77.5 :
             self.robot_roll = -1
         elif imu_data[0] >= 105 :
             self.robot_roll = 1
@@ -318,7 +346,14 @@ class BlueRatioCirculator(Node):
         self.L_joy = 0.
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
-        
+    
+    def soft_turn_right(self) :
+        msg = Float32MultiArray()
+        self.R_joy = 4.
+        self.L_joy = 6.
+        msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
+        self.control_publisher.publish(msg)
+
             
             
             

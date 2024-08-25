@@ -63,7 +63,7 @@ class JoyCamTest(Node) :
         
         #########################
     
-        self.timer1 = self.create_timer(1/30, self.joy_msg_sampling)
+        # self.timer1 = self.create_timer(1/30, self.joy_msg_sampling) 
         self.timer2 = self.create_timer(1/24, self.camera_capture)
         
         
