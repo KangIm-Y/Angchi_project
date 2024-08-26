@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+        'army_detection=gukbang.spring.army_detection:main',
         ],
     },
 )
