@@ -165,7 +165,7 @@ class BlueRatioCirculator(Node):
         
         
         
-        # cv2.line(self.color_img, (self.cen_x, self.roi_start_row), (int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
+        cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
         cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
         cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
         print(l_sum + r_sum)
@@ -207,23 +207,25 @@ class BlueRatioCirculator(Node):
             
             self.R_joy = self.max_speed * 0.3 
         else :
-            if self.robot_roll == 0 :
-
-                self.max_dis = 0.93 / self.depth_scale
-                detect_sum = self.L_sum + self.R_sum
-                
-                if (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
-                elif ((self.L_sum < self.R_sum*0.25) | (self.R_sum < self.L_sum*0.25)) :
-                    self.L_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum > self.R_sum else 1.)
-                    self.R_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum < self.R_sum else 1.)
-                elif ((self.L_sum > self.R_sum) | (self.R_sum > self.L_sum)) :
-                    self.L_joy = (self.max_speed * (self.R_sum/(self.R_sum+self.L_sum)))
-                    self.R_joy = (self.max_speed * (self.L_sum/(self.R_sum+self.L_sum)))
-                else :
-                    self.L_joy = self.before_L_joy
-                    self.R_joy = self.before_R_joy
+            detect_sum = self.L_sum + self.R_sum
+            self.max_dis = 0.93 / self.depth_scale
+            if (detect_sum < (self.ROI_size * 0.3) ) :
+                self.L_joy = (self.max_speed / 4)
+                self.R_joy = (self.max_speed / 4)
+            
+            
+            elif (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
+                self.L_joy = (self.max_speed / 2)
+                self.R_joy = (self.max_speed / 2)
+            elif ((self.L_sum < self.R_sum*0.25) | (self.R_sum < self.L_sum*0.25)) :
+                self.L_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum > self.R_sum else 1.)
+                self.R_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum < self.R_sum else 1.)
+            elif ((self.L_sum > self.R_sum) | (self.R_sum > self.L_sum)) :
+                self.L_joy = (self.max_speed * (self.R_sum/(self.R_sum+self.L_sum)))
+                self.R_joy = (self.max_speed * (self.L_sum/(self.R_sum+self.L_sum)))
+            else :
+                self.L_joy = self.before_L_joy
+                self.R_joy = self.before_R_joy
                 
                 # second idea 
                 # if (self.L_sum > (detect_sum*0.45)) & (self.R_sum > (detect_sum*0.45)): 
@@ -242,38 +244,38 @@ class BlueRatioCirculator(Node):
                     
 
             ### 0.3 to 0.35 is  clip state
-            elif self.robot_roll == 1 :
+            # elif self.robot_roll == 1 :
 
-                self.max_dis = 0.9 / self.depth_scale
-                if ((self.R_sum < (self.ROI_half_size * 0.45)) & (self.R_sum > (self.ROI_half_size * 0.4))) :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
-                elif self.R_sum >= (self.ROI_half_size * 0.45) :
-                    # self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                    # self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                    self.soft_turn_right()
-                elif self.R_sum <= (self.ROI_half_size * 0.4) :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
-                else :
-                    self.L_joy = (self.max_speed / 2) - 0.5
-                    self.R_joy = (self.max_speed / 2) + 0.5
+            #     self.max_dis = 0.9 / self.depth_scale
+            #     if ((self.R_sum < (self.ROI_half_size * 0.45)) & (self.R_sum > (self.ROI_half_size * 0.4))) :
+            #         self.L_joy = (self.max_speed / 2)
+            #         self.R_joy = (self.max_speed / 2)
+            #     elif self.R_sum >= (self.ROI_half_size * 0.45) :
+            #         # self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
+            #         # self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
+            #         self.soft_turn_right()
+            #     elif self.R_sum <= (self.ROI_half_size * 0.4) :
+            #         self.L_joy = (self.max_speed / 2)
+            #         self.R_joy = (self.max_speed / 2)
+            #     else :
+            #         self.L_joy = (self.max_speed / 2) - 0.5
+            #         self.R_joy = (self.max_speed / 2) + 0.5
             
-            elif self.robot_roll == -1 :
+            # elif self.robot_roll == -1 :
 
-                self.max_dis = 0.9 / self.depth_scale
-                if ((self.L_sum < (self.ROI_half_size * 0.25)) & (self.L_sum > (self.ROI_half_size * 0.22))) :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
-                elif self.L_sum >= (self.ROI_half_size * 0.25) :
-                    self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                    self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                elif self.L_sum <= self.ROI_half_size * 0.22 :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
-                else :
-                    self.L_joy = self.before_L_joy
-                    self.R_joy = self.before_R_joy
+            #     self.max_dis = 0.9 / self.depth_scale
+            #     if ((self.L_sum < (self.ROI_half_size * 0.25)) & (self.L_sum > (self.ROI_half_size * 0.22))) :
+            #         self.L_joy = (self.max_speed / 2)
+            #         self.R_joy = (self.max_speed / 2)
+            #     elif self.L_sum >= (self.ROI_half_size * 0.25) :
+            #         self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
+            #         self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
+            #     elif self.L_sum <= self.ROI_half_size * 0.22 :
+            #         self.L_joy = (self.max_speed / 2)
+            #         self.R_joy = (self.max_speed / 2)
+            #     else :
+            #         self.L_joy = self.before_L_joy
+            #         self.R_joy = self.before_R_joy
             
         self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
         
