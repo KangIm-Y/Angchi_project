@@ -43,22 +43,16 @@ class BlueRatioCirculator(Node):
         
         
         ### parameters ###
-        # cam_num = 4
         self.U_detection_threshold = 130 ## 0~255
         self.img_size_x = 848
         self.img_size_y = 480
         self.depth_size_x = 848
         self.depth_size_y = 480
+        
         self.ROI_ratio = 0.3
         self.mission_ROI_ratio = 0.3
         self.max_speed = 10
         
-        self.robot_roll = 0  ## -1 left, 1 right
-        self.odrive_mode = 1.
-        self.joy_status = False
-        self.joy_stick_data = [0, 0]
-        self.before_L_joy = 0.
-        self.before_R_joy = 0.
         
         
         ### realsense setting ###
@@ -89,8 +83,18 @@ class BlueRatioCirculator(Node):
         self.L_sum = 0
         self.R_sum = 0
         
+        self.robot_roll = 0  ## -1 left, 1 right
+        self.odrive_mode = 1.
+        self.joy_status = False
+        self.joy_stick_data = [0, 0]
+        self.before_L_joy = 0.
+        self.before_R_joy = 0.
+        
         #############################################
         
+        
+        self.slant_drive_min = 0.4
+        self.slant_drive_max = 0.45
         
         
         self.ROI_y_l = 0.9
@@ -163,7 +167,6 @@ class BlueRatioCirculator(Node):
                 midpoint = int(self.img_size_x / 2)
                 L_histo = histogram[:midpoint]
                 R_histo = histogram[midpoint:]
-                # L_sum, R_sum = end_point_finder(max_contour_mask,histogram)
                 
                 L_sum = int(np.sum(L_histo) / 255)
                 R_sum = int(np.sum(R_histo) / 255) - y
@@ -172,6 +175,12 @@ class BlueRatioCirculator(Node):
                 
                 return L_sum, midpoint, R_sum
         return 1,1,1
+    
+    ### hoxy molla.. hsv code     
+    def hsv_detection(self, img) :
+        
+        return 0 
+
     
     
         
@@ -188,26 +197,12 @@ class BlueRatioCirculator(Node):
         
         cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
         cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
-        cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
-        print(l_sum + r_sum)
+        cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        # print(l_sum + r_sum)
         
         cv2.imshow("color", self.color_img)
         cv2.waitKey(1)
         
-        
-    # def image_spliter(self, got_img) :
-    #     y, x = got_img.shape
-        
-    #     l = got_img[:,:int(x/2)]
-    #     r = got_img[:,int(x/2):]
-    #     # print(l.shape)
-    #     # print(r.shape)
-        
-        
-    #     l_sum = np.sum(l) / 255
-    #     r_sum = (np.sum(r) / 255 ) - y
-        
-    #     return l_sum, r_sum
             
     def track_tracking(self) :
         msg = Float32MultiArray()
@@ -215,8 +210,12 @@ class BlueRatioCirculator(Node):
             self.L_joy = (self.joy_stick_data[0] * self.max_speed)
             self.R_joy = (self.joy_stick_data[1] * self.max_speed)
         else :
-            if self.robot_roll == 0 :
-                detect_sum = self.L_sum + self.R_sum
+            detect_sum = self.L_sum + self.R_sum
+            if (detect_sum < (self.ROI_size * 0.3) ) :
+                self.L_joy = (self.max_speed / 4)
+                self.R_joy = (self.max_speed / 4)
+                
+            elif self.robot_roll == 0 :
                 
                 if (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
                     self.L_joy = (self.max_speed / 2)
@@ -245,29 +244,29 @@ class BlueRatioCirculator(Node):
                 #     self.L_joy = self.before_L_joy
                 #     self.R_joy = self.before_R_joy
                 
-                    
-            elif self.robot_roll == -1 :
-                if ((self.R_sum < (self.ROI_half_size * 0.25)) & (self.R_sum > (self.ROI_half_size * 0.22))) :
+            # turn right        
+            elif self.robot_roll == 1 :
+                if ((self.R_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.R_sum > (self.ROI_half_size * self.slant_drive_min))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
-                elif self.R_sum >= (self.ROI_half_size * 0.25) :
+                elif self.R_sum >= (self.ROI_half_size * self.slant_drive_max) :
                     self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
                     self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                elif self.R_sum <= self.ROI_half_size * 0.22 :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
+                elif self.R_sum <= self.ROI_half_size * self.slant_drive_min :
+                    self.L_joy = (self.max_speed / 2) - 0.5
+                    self.R_joy = (self.max_speed / 2) + 0.5
                 else :
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
             
-            elif self.robot_roll == 1 :
-                if ((self.L_sum < (self.ROI_half_size * 0.25)) & (self.L_sum > (self.ROI_half_size * 0.22))) :
+            elif self.robot_roll == -1 :
+                if ((self.L_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.L_sum > (self.ROI_half_size * self.slant_drive_min))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
-                elif self.L_sum >= (self.ROI_half_size * 0.25) :
-                    self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                    self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                elif self.L_sum <= self.ROI_half_size * 0.22 :
+                elif self.L_sum >= (self.ROI_half_size * self.slant_drive_max) :
+                    self.L_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
+                    self.R_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
+                elif self.L_sum <= self.ROI_half_size * self.slant_drive_min :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
                 else :
