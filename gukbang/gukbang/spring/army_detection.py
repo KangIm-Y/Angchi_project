@@ -72,10 +72,14 @@ class ArmyDetectionNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    object_detection_node = ArmyDetectionNode()
-    rclpy.spin(object_detection_node)
-    object_detection_node.destroy_node()
-    rclpy.shutdown()
+    node = ArmyDetectionNode()
+    try :
+        rclpy.spin(node)
+    except KeyboardInterrupt :
+        node.get_logger().info('Keyboard Interrupt (SIGINT)')
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
