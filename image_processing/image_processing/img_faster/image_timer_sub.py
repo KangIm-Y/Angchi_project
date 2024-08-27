@@ -25,9 +25,9 @@ class ImageIndicater(Node):
         start = time.time()
 
         current_img = self.cvbrid.imgmsg_to_cv2(msg)
-        resized = cv2.resize(current_img, (720,405), interpolation=cv2.INTER_CUBIC)
+        resized = cv2.resize(current_img, (848,480), interpolation=cv2.INTER_CUBIC)
 
-        cv2.imshow("title", resized)
+        cv2.imshow("title", current_img)
         cv2.waitKey(1)
         end = time.time()
         self.get_logger().info(f'{(end-start)} subscribe and resize time')

@@ -61,8 +61,8 @@ class BlueRatioCirculator(Node):
         self.pipeline = rs.pipeline()
         self.config = rs.config()
 
-        self.config.enable_stream(rs.stream.color, self.img_size_x,     self.img_size_y,    rs.format.bgr8, 30)
-        self.config.enable_stream(rs.stream.depth, self.depth_size_x,   self.depth_size_y,  rs.format.z16, 30)
+        self.config.enable_stream(rs.stream.color, self.img_size_x,     self.img_size_y,    rs.format.bgr8, 15)
+        self.config.enable_stream(rs.stream.depth, self.depth_size_x,   self.depth_size_y,  rs.format.z16, 15)
         depth_profile = self.pipeline.start(self.config)
         
         depth_sensor = depth_profile.get_device().first_depth_sensor()
@@ -140,6 +140,9 @@ class BlueRatioCirculator(Node):
         
         # rescale = np.clip(U_img - V_img, 0, 255).astype(np.uint8)
         ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
+        
+        resized = cv2.resize(U_img_treated, (424,240),interpolation=cv2.INTER_AREA)
+        self.image_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
         if ret :
             # filterd = cv2.bitwise_and(img, img, mask=U_img_treated)
             # cv2.imshow("UUUU", filterd)
