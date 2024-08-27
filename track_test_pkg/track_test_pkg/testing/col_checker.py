@@ -142,7 +142,7 @@ class BlueRatioCirculator(Node):
         ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
         
         resized = cv2.resize(U_img_treated, (424,240),interpolation=cv2.INTER_AREA)
-        self.image_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
+        self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
         if ret :
             # filterd = cv2.bitwise_and(img, img, mask=U_img_treated)
             # cv2.imshow("UUUU", filterd)
