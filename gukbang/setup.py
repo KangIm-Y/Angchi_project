@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
         'army_detection=gukbang.spring.army_detection:main',
+        'aruco_detection=gukbang.autumn.aruco_detection:main',
         ],
     },
 )
