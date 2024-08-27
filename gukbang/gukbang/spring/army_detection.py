@@ -11,22 +11,24 @@ class ArmyDetectionNode(Node):
     def __init__(self):
         super().__init__('army_detection_node')
         self.bridge = CvBridge()
-        self.model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/army.pt')  # 모델 파일 위치 .pt
+        # self.model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/army.pt')  # 모델 파일 위치 .pt
+        self.model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/army.pt')  # 모델 파일 위치 .pt
+        # /home/lattepanda/robot_ws/src/gukbang/gukbang/common
         
         qos_profile = QoSProfile(depth=10)
         self.publisher = self.create_publisher(Image,'side_camera',qos_profile)
         
         ### parameter setting ###
-        self.img_size_x = 1280
-        self.img_size_y = 720
+        self.img_size_x = 648
+        self.img_size_y = 480
         
         
         
         #########################
         
         
-        self.cap0 = cv2.VideoCapture(0)  #cam0
-        self.cap1 = cv2.VideoCapture(2)  #cam1
+        self.cap0 = cv2.VideoCapture('cam0')  #cam0
+        self.cap1 = cv2.VideoCapture('cam1')  #cam1
         self.cvbrid = CvBridge()
         
         self.cap0.set(cv2.CAP_PROP_FRAME_WIDTH, self.img_size_x)
@@ -47,7 +49,7 @@ class ArmyDetectionNode(Node):
             if not ret1 :
                 print(f'cam1 is cannot connetion')
         else :
-            frame = np.hstack((img0, img0))
+            frame = np.hstack((img0, img1))
             
             result = self.model.predict(frame, conf = 0.4, verbose=False)
             
