@@ -5,7 +5,7 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 from ultralytics import YOLO
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 class ArmyDetectionNode(Node):
     def __init__(self):
@@ -14,8 +14,11 @@ class ArmyDetectionNode(Node):
         # self.model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/army.pt') # main laptop
         self.model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/army.pt')  #lattepanda
         # /home/lattepanda/robot_ws/src/gukbang/gukbang/common
-        
-        qos_profile = QoSProfile(depth=5)
+        qos_profile = QoSProfile(
+        reliability=ReliabilityPolicy.RELIABLE,
+        history=HistoryPolicy.KEEP_LAST,
+        depth=10  # depth 설정은 필요에 따라 조정
+        )
         self.publisher = self.create_publisher(Image,'side_camera',qos_profile)
         
         ### parameter setting ###
