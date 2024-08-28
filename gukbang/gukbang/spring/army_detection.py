@@ -20,7 +20,7 @@ class ArmyDetectionNode(Node):
         
         ### parameter setting ###
         self.img_size_x = 640
-        self.img_size_y = 360
+        self.img_size_y = 480
 
         self.frame_rate = 10
         
