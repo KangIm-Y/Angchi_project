@@ -11,7 +11,7 @@ class ArmyDetectionIndi(Node):
 
     def __init__(self):
         super().__init__('army_detection_indi')
-        qos_profile = QoSProfile(depth=1)
+        qos_profile = QoSProfile(depth=10)
         self.image_subscribtion = self.create_subscription(
             Image,
             'side_camera',
@@ -22,7 +22,7 @@ class ArmyDetectionIndi(Node):
     def sub_callback(self, msg):
         current_img = self.cvbrid.imgmsg_to_cv2(msg)
         y,x,c = current_img.shape
-        # resized = cv2.resize(current_img, (int(x*2),480), interpolation=cv2.INTER_CUBIC)
+        resized = cv2.resize(current_img, (int(x*1.5),int(y*1.5)), interpolation=cv2.INTER_CUBIC)
 
         cv2.imshow("side_camera", current_img)
         cv2.waitKey(1)

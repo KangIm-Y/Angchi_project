@@ -15,14 +15,14 @@ class ArmyDetectionNode(Node):
         self.model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/army.pt')  #lattepanda
         # /home/lattepanda/robot_ws/src/gukbang/gukbang/common
         
-        qos_profile = QoSProfile(depth=10)
+        qos_profile = QoSProfile(depth=5)
         self.publisher = self.create_publisher(Image,'side_camera',qos_profile)
         
         ### parameter setting ###
-        self.img_size_x = 1280
-        self.img_size_y = 720
+        self.img_size_x = 640
+        self.img_size_y = 360
 
-        self.frame_rate = 15
+        self.frame_rate = 10
         
         
         
