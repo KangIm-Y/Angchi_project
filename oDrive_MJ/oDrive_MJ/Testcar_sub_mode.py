@@ -51,11 +51,12 @@ class Testcar_sub(Node):
 
             #msg : 초 당 회전수
             ########################## Ramped Velocity Control #############################
-            msg.data[2] = -msg.data[2]
+            msg.data[1] = -msg.data[1]
             
-            self.my_drive.axis0.controller.input_vel = msg.data[2]
-            self.my_drive.axis1.controller.input_vel = msg.data[1]
+            self.my_drive.axis0.controller.input_vel = msg.data[1]
+            self.my_drive.axis1.controller.input_vel = msg.data[2]
             self.get_logger().info('Velocity control set: axis0 = {}, axis1 = {}'.format(msg.data[1], msg.data[2]))
+            self.get_logger().info('Moving...by Ramped Velocity')
             
         elif msg.data[0] == 2: #상대 위치제어 모드 : Trajectory
 
@@ -84,12 +85,14 @@ class Testcar_sub(Node):
             self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(pos_axis0, pos_axis1))
             
             ##########################Trajecotory Mode Control #############################
+            msg.data[1] = -msg.data[1]
 
-            msg.data[2] = -msg.data[2]
             #msg,data에 얼마나 움직이고 싶은지 작성(엔코더 분해능 값이 들어감). 상대위치 제어
-            self.my_drive.axis0.controller.move_incremental(msg.data[1], False)
-            self.my_drive.axis1.controller.move_incremental(msg.data[2], False)
+            self.my_drive.axis0.controller.move_incremental(msg.data[1], True)
+            self.my_drive.axis1.controller.move_incremental(msg.data[2], True)
+            self.get_logger().info('FINISH POSITION MODE')
             self.get_logger().info('Position control set: axis0 = {}, axis1 = {}'.format(msg.data[1], msg.data[2]))
+
         else:
             self.get_logger().info('Invalid control mode received: {}'.format(msg.data[0]))
 
