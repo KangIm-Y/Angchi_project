@@ -32,8 +32,8 @@ class ArmyDetectionNode(Node):
         #########################
         
         
-        self.cap0 = cv2.VideoCapture('cam0')  #cam0
-        self.cap1 = cv2.VideoCapture('cam1')  #cam1
+        self.cap0 = cv2.VideoCapture('/dev/cam0')  #cam0
+        self.cap1 = cv2.VideoCapture('/dev/cam1')  #cam1
         self.cvbrid = CvBridge()
         
         self.cap0.set(cv2.CAP_PROP_FRAME_WIDTH, self.img_size_x)
