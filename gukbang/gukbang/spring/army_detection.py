@@ -15,9 +15,9 @@ class ArmyDetectionNode(Node):
         self.model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/army.pt')  #lattepanda
         # /home/lattepanda/robot_ws/src/gukbang/gukbang/common
         qos_profile = QoSProfile(
-        reliability=ReliabilityPolicy.RELIABLE,
+        reliability=ReliabilityPolicy.BEST_EFFORT,
         history=HistoryPolicy.KEEP_LAST,
-        depth=10  # depth 설정은 필요에 따라 조정
+        depth=10  
         )
         self.publisher = self.create_publisher(Image,'side_camera',qos_profile)
         

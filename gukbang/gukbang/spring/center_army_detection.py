@@ -12,7 +12,7 @@ class ArmyDetectionIndi(Node):
     def __init__(self):
         super().__init__('army_detection_indi')
         qos_profile = QoSProfile(
-        reliability=ReliabilityPolicy.RELIABLE,
+        reliability=ReliabilityPolicy.BEST_EFFORT,
         history=HistoryPolicy.KEEP_LAST,
         depth=10  # depth 설정은 필요에 따라 조정
         )
