@@ -30,6 +30,7 @@ setup(
         
         ########## autumn #############
         'aruco_detection=gukbang.autumn.aruco_detection:main',
+        'center_aruco_detection=gukbang.autumn.center_aruco_detection:main',
         
         
         
