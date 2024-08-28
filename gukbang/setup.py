@@ -20,8 +20,20 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+        ########### spring ##########
         'army_detection=gukbang.spring.army_detection:main',
+        'center_army_detection=gukbang.spring.center_army_detection:main',
+        
+        
+        
+        
+        
+        ########## autumn #############
         'aruco_detection=gukbang.autumn.aruco_detection:main',
+        
+        
+        
+        
         ],
     },
 )
