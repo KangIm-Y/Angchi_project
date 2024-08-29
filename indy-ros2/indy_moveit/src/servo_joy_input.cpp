@@ -1,42 +1,3 @@
-/*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2020, PickNik Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of PickNik Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
-
-/*      Title     : joystick_servo_example.cpp
- *      Project   : moveit_servo
- *      Created   : 08/07/2020
- *      Author    : Adam Pettinger
- */
 
 #include <sensor_msgs/msg/joy.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
@@ -53,6 +14,7 @@
 #include <rclcpp/time.hpp>
 #include <rclcpp/utilities.hpp>
 #include <thread>
+#include <custom_interfaces/srv/position_service.hpp>
 
 // We'll just set up parameters here
 const std::string JOY_TOPIC = "/joy";
@@ -62,7 +24,7 @@ const std::string EEF_FRAME_ID = "tcp";
 const std::string BASE_FRAME_ID = "link0";
 
 // Enums for button names -> axis/button array index
-// For XBOX 1 controller
+
 enum Axis
 {
   LEFT_STICK_X = 0,
@@ -175,6 +137,10 @@ public:
     servo_start_client_ = this->create_client<std_srvs::srv::Trigger>("/servo_node/start_servo");
     servo_start_client_->wait_for_service(std::chrono::seconds(1));
     servo_start_client_->async_send_request(std::make_shared<std_srvs::srv::Trigger::Request>());
+
+    pose_start_client_ = this->create_client<custom_interfaces::srv::PositionService>("pos_srv");
+    pose_start_client_->wait_for_service(std::chrono::seconds(1));
+    
   }
 
   void joyCB(const sensor_msgs::msg::Joy::ConstSharedPtr& msg)
@@ -201,6 +167,20 @@ public:
       joint_msg->header.frame_id = "link0";
       joint_pub_->publish(std::move(joint_msg));
     }
+
+    if (msg->buttons[LEFT_STICK_CLICK])
+    {
+      auto request = std::make_shared<custom_interfaces::srv::PositionService::Request>();
+      request->pose = "zeropos";
+      pose_start_client_->async_send_request(request);
+    }
+
+    if (msg->buttons[HOME])
+    {
+      auto request = std::make_shared<custom_interfaces::srv::PositionService::Request>();
+      request->pose = "homepos";
+      pose_start_client_->async_send_request(request);
+    }
   }
 
 private:
@@ -208,6 +188,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr servo_start_client_;
+  rclcpp::Client<custom_interfaces::srv::PositionService>::SharedPtr pose_start_client_;
 
   std::string frame_to_publish_;
 };  // class JoyToServoPub

@@ -76,4 +76,15 @@ mesh_files:
         package: indy_description
         path: meshes/mani/collision/mani_7.stl
         scale: 0.001 0.001 0.001
+  camera_link:
+    visual:
+      mesh:
+        package: indy_description
+        path: meshes/mani/visual/mani_camera.stl
+        scale: 1 1 1
+    collision:
+      mesh:
+        package: indy_description
+        path: meshes/mani/collision/mani_camera.stl
+        scale: 1 1 1
 
