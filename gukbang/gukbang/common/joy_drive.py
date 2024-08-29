@@ -70,29 +70,29 @@ class SpringColorChecker(Node):
     ########################################
     def turn_left(self) :
         msg = Float32MultiArray()
-        self.R_joy = self.max_speed * 0.05
-        self.L_joy = - self.max_speed * 0.05
+        self.R_joy = self.max_speed * 0.5
+        self.L_joy = - self.max_speed * 0.5
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
     
     def turn_right(self) :
         msg = Float32MultiArray()
-        self.R_joy = - self.max_speed * 0.05
-        self.L_joy = self.max_speed * 0.05
+        self.R_joy = - self.max_speed * 0.5
+        self.L_joy = self.max_speed * 0.5
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
     
-    def go(self, speed_ratio) :
+    def go(self) :
         msg = Float32MultiArray()
-        self.R_joy = self.max_speed * speed_ratio
-        self.L_joy = self.max_speed * speed_ratio
+        self.R_joy = self.max_speed * 0.5
+        self.L_joy = self.max_speed * 0.5
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
     
     def back(self) :
         msg = Float32MultiArray()
-        self.R_joy = - self.max_speed * 0.1
-        self.L_joy = - self.max_speed * 0.1
+        self.R_joy = - self.max_speed * 0.5
+        self.L_joy = - self.max_speed * 0.5
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
         
