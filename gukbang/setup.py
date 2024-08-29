@@ -25,6 +25,7 @@ setup(
         'center_army_detection=gukbang.spring.center_army_detection:main',
         
         
+        ########## summer #############
         
         
         
@@ -33,7 +34,13 @@ setup(
         'center_aruco_detection=gukbang.autumn.center_aruco_detection:main',
         
         
+        ########## winter #############
         
+        
+        
+        ########## common #############
+        'imu_node=gukbang.common.imu_node:main',
+        'joy_drive=gukbang.common.joy_drive:main',
         
         ],
     },
