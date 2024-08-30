@@ -41,6 +41,9 @@ setup(
         ########## common #############
         'imu_node=gukbang.common.imu_node:main',
         'joy_drive=gukbang.common.joy_drive:main',
+        'joy_drive_sub_cam=gukbang.common.joy_drive_sub_cam:main',
+        'center_joy_drive=gukbang.common.center_joy_drive:main',
+        'center_joy_drive_sub_cam=gukbang.common.center_joy_drive_sub_cam:main',
         
         ],
     },

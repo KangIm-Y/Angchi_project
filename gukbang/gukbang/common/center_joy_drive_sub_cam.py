@@ -6,10 +6,10 @@ from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge
 
-class ArmyDetectionIndi(Node):
+class CenterJoyDriveSubCam(Node):
 
     def __init__(self):
-        super().__init__('army_detection_indi')
+        super().__init__('center_joy_drive_sub_cam')
         qos_profile = QoSProfile(
         reliability=ReliabilityPolicy.BEST_EFFORT,
         history=HistoryPolicy.KEEP_LAST,
@@ -34,7 +34,7 @@ class ArmyDetectionIndi(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ArmyDetectionIndi()
+    node = CenterJoyDriveSubCam()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
