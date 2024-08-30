@@ -46,7 +46,7 @@ enum Button
   RIGHT_BUMPER = 5,
   CHANGE_VIEW = 15,
   MENU = 16,
-  HOME = 17,
+  HOME = 8,
   LEFT_STICK_CLICK = 11,
   RIGHT_STICK_CLICK = 12
 };
@@ -55,6 +55,7 @@ enum Button
 // This will map the default values for the axes
 std::map<Axis, double> AXIS_DEFAULTS = { { LEFT_TRIGGER, 1.0 }, { RIGHT_TRIGGER, 1.0 } };
 std::map<Button, double> BUTTON_DEFAULTS;
+std::array<int, 2> button_state_previous_ = {0,0};
 
 // To change controls or setup a new controller, all you should to do is change the above enums and the follow 2
 // functions
@@ -88,11 +89,11 @@ bool convertJoyToCmd(const std::vector<float>& axes, const std::vector<int>& but
   }
 
   // The bread and butter: map buttons to twist commands
-  twist->twist.linear.x = -1 * axes[RIGHT_STICK_X];
-  twist->twist.linear.y = -1 * axes[RIGHT_STICK_Y];
+  twist->twist.linear.x = -0.1 * axes[RIGHT_STICK_X];
+  twist->twist.linear.y = -0.1 * axes[RIGHT_STICK_Y];
 
-  double lin_z_right = -1 * (axes[RIGHT_TRIGGER] - AXIS_DEFAULTS.at(RIGHT_TRIGGER));
-  double lin_z_left = 1 * (axes[LEFT_TRIGGER] - AXIS_DEFAULTS.at(LEFT_TRIGGER));
+  double lin_z_right = -0.1 * (axes[RIGHT_TRIGGER] - AXIS_DEFAULTS.at(RIGHT_TRIGGER));
+  double lin_z_left = 0.1 * (axes[LEFT_TRIGGER] - AXIS_DEFAULTS.at(LEFT_TRIGGER));
   twist->twist.linear.z = lin_z_right + lin_z_left;
 
   twist->twist.angular.y = axes[LEFT_STICK_X];
@@ -125,6 +126,8 @@ public:
   JoyToServoPub(const rclcpp::NodeOptions& options)
     : Node("joy_to_twist_publisher", options), frame_to_publish_(BASE_FRAME_ID)
   {
+
+    
     // Setup pub/sub
     joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
         JOY_TOPIC, rclcpp::SystemDefaultsQoS(),
@@ -148,6 +151,11 @@ public:
     // Create the messages we might publish
     auto twist_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
     auto joint_msg = std::make_unique<control_msgs::msg::JointJog>();
+    auto request = std::make_shared<custom_interfaces::srv::PositionService::Request>();
+
+    rclcpp::Logger logger = rclcpp::get_logger("moveit_servo");
+
+    
 
     // This call updates the frame for twist commands
     updateCmdFrame(frame_to_publish_, msg->buttons);
@@ -168,19 +176,21 @@ public:
       joint_pub_->publish(std::move(joint_msg));
     }
 
-    if (msg->buttons[LEFT_STICK_CLICK])
+    if (msg->buttons[11] == 1 && button_state_previous_[0] != 1)
     {
-      auto request = std::make_shared<custom_interfaces::srv::PositionService::Request>();
-      request->pose = "zeropos";
+      RCLCPP_INFO(logger, "zero");
+      request->pose = "zero";
       pose_start_client_->async_send_request(request);
     }
 
-    if (msg->buttons[HOME])
+    if (msg->buttons[8] == 1 && button_state_previous_[1] != 1)
     {
-      auto request = std::make_shared<custom_interfaces::srv::PositionService::Request>();
-      request->pose = "homepos";
+      RCLCPP_INFO(logger, "home");
+      request->pose = "home";
       pose_start_client_->async_send_request(request);
     }
+
+    button_state_previous_ = {msg->buttons[11], msg->buttons[8]};
   }
 
 private:
