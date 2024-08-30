@@ -106,6 +106,7 @@ class BlueRatioCirculator(Node):
         self.ROI_half_size = int(self.ROI_size / 2)
         self.get_logger().info(f'{self.ROI_size}')
         
+        self.overmax_dis = 1.3 / self.depth_scale
         self.max_dis = 0.93 / self.depth_scale
         self.min_dis = 0.75 / self.depth_scale
         
@@ -131,28 +132,51 @@ class BlueRatioCirculator(Node):
         self.depth_img = np.asanyarray(self.filled_depth_frame.get_data())
         self.color_img = np.asanyarray(color_frame.get_data())
 
-    def max_min_finder(self, got_ROI) :
-        y, x = got_ROI.shape
-        dis_array = got_ROI[:, int(x/2)]
-        array_min = np.min(dis_array) * self.depth_scale
-        array_max = np.max(dis_array) * self.depth_scale
+    def overmax_mask(self, depth_3d, U_img_mask_3d) :
+        overmax_depth_mask = np.where((depth_3d > self.overmax_dis) | (depth_3d <= self.max_dis), 0, (255,255,255)).astype(np.uint8)
 
-        self.max_dis = (array_max + 0.05) / self.depth_scale
-        self.min_dis = (array_max - 0.05) / self.depth_scale
-
-        print(array_min, array_max)
+        and_mask = cv2.bitwise_and(overmax_depth_mask, U_img_mask_3d)
 
 
+        return and_mask
 
+
+    def yuv_masker(self) :
+        gaussian = cv2.GaussianBlur(self.color_ROI, (3, 3), 1)
+        ROI_YUV = cv2.cvtColor(gaussian, cv2.COLOR_BGR2YUV)
+        y, x, c = ROI_YUV.shape
         
+        Y_img, U_img, V_img = cv2.split(ROI_YUV)
+        
+        ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
+
+        if ret :
+
+            U_img_mask_3d = np.dstack((U_img_treated, U_img_treated, U_img_treated))
+
+            return U_img_mask_3d
+        else :
+            return np.zeros((int(self.ROI_y * self.img_size_y), int(self.ROI_x * self.img_size_x), 3), dtype=np.uint8)
+
+
+
+
+
+
     def image_processing(self) :
         self.depth_ROI = self.depth_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
 
-        self.max_min_finder(self.depth_ROI)
         
         depth_3d = np.dstack((self.depth_ROI, self.depth_ROI, self.depth_ROI))
         depth_mask = np.where((depth_3d > self.max_dis) | (depth_3d < self.min_dis) | (depth_3d <= 0), 0, (255,255,255)).astype(np.uint8)
+
+        cv2.imshow("depth_3d", depth_3d)
+        U_img_mask_3d = self.yuv_masker()
+        and_mask = self.overmax_mask(depth_3d, U_img_mask_3d)
+
+        depth_mask = cv2.bitwise_or(and_mask, depth_mask)
+
         
         depth, _, _ =cv2.split(depth_mask) 
         contours, _ = cv2.findContours(depth, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -182,7 +206,6 @@ class BlueRatioCirculator(Node):
 
 
         else:
-            # 최대 컨투어가 없는 경우 처리
             pass
         
         
