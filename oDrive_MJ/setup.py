@@ -47,6 +47,8 @@ setup(
             ######################## KOKOMK4 OPEN #################
             'car_kokomk4 = oDrive_MJ.car_kokomk4:main',
             'encoder_feedback = oDrive_MJ.encoder_feedback:main',
+            'odrive_car = oDrive_MJ.odrive_car:main',
+
 
         ],
     },

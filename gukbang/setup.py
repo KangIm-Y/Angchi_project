@@ -26,6 +26,7 @@ setup(
         
         
         ########## summer #############
+        'summer_track_checker=gukbang.summer.summer_track_checker:main',
         
         
         
