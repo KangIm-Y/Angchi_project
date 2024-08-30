@@ -35,7 +35,8 @@ DXL1_ID                     = 4
 DXL2_ID                     = 5
 DXL3_ID                     = 6  
 
-DEVICENAME1                 = '/dev/ttyUSB0'   
+DEVICENAME1                 = '/dev/ttyRS485'  
+ 
 TORQUE_ENABLE               = 1                 
 TORQUE_DISABLE              = 0                 
 DXL_MOVING_STATUS_THRESHOLD = 20                

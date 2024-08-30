@@ -33,7 +33,7 @@ DXL2_ID                     = 5                 # Dynamixel#2 ID : 2
 DXL3_ID                     = 6  
 
  
-DEVICENAME1                 = '/dev/ttyUSB0'   
+DEVICENAME1                 = '/dev/ttyRS485'
 
 TORQUE_ENABLE               = 1                 # Value for enabling the torque
 TORQUE_DISABLE              = 0                 # Value for disabling the torque
@@ -132,8 +132,8 @@ class TripSub(Node):
     def callback(self, msg):
         #Write Goal Position
 
-        goal_position1 = int((msg.data[0]+350)/0.088)
-        goal_position2 = int((msg.data[1]+113)/0.088)
+        goal_position1 = int((msg.data[0]+340)/0.088)
+        goal_position2 = int((msg.data[1]+120)/0.088)
         goal_position3 = int((msg.data[2]) / 0.088)
 
 

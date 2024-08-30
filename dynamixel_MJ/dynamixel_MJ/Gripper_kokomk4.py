@@ -51,7 +51,7 @@ DXL1_ID                     = 4
 DXL2_ID                     = 5
 DXL3_ID                     = 6  
 
-DEVICENAME1                 = '/dev/ttyUSB0'   
+DEVICENAME1                 = '/dev/ttyRS485'   
 TORQUE_ENABLE               = 1                 
 TORQUE_DISABLE              = 0                 
 DXL_MOVING_STATUS_THRESHOLD = 20                
@@ -64,8 +64,8 @@ packetHandler = PacketHandler(PROTOCOL_VERSION)
 
 
 #4~5 joint
-OFFSET_4 = 350
-OFFSET_5 = 113
+OFFSET_4 = 340
+OFFSET_5 = 120
 
 
 datalen = 12
@@ -301,8 +301,8 @@ class TripSub(Node):
     def callback(self, msg):
 
         # Write Goal Position
-        #goal_position1 = int((msg.data[0] + 347.488) / 0.088)
-        #goal_position2 = int((msg.data[1] + 114) / 0.088)
+        #goal_position1 = int((msg.data[0] + 340) / 0.088)
+        #goal_position2 = int((msg.data[1] + 120) / 0.088)
         goal_position1 = int((msg.data[0] + OFFSET_4) / 0.088)
         goal_position2 = int((msg.data[1] + OFFSET_5) / 0.088)
         if (len(self.ser_comm_list)>0) :
