@@ -42,7 +42,7 @@ portHandler = PortHandler(DEVICENAME1)
 packetHandler = PacketHandler(PROTOCOL_VERSION)
 
 #4~5 joint
-OFFSET_4 = 340
+OFFSET_4 = 160
 OFFSET_5 = 120
 
 class TripSub(Node):
@@ -102,8 +102,8 @@ class TripSub(Node):
 
     def grip_callback(self, msg):
         angle_step = 40
-        self.initial_position = int(250 / 0.088)
-        final_position = int(-10 / 0.088)
+        self.initial_position = int(570 / 0.088)
+        final_position = int(350 / 0.088)
         
 
         if msg.data[2] == 1:

@@ -35,8 +35,8 @@ ADDR_PRESENT_POSITION       = 132
 ADDR_PRESENT_CURRENT = 126
 # Protocol version
 PROTOCOL_VERSION            = 2.0            
-#BAUDRATE                    = 57600
-BAUDRATE                    = 115200
+BAUDRATE                    = 57600
+#BAUDRATE                    = 115200
 
 
 # Default setting
@@ -64,7 +64,7 @@ packetHandler = PacketHandler(PROTOCOL_VERSION)
 
 
 #4~5 joint
-OFFSET_4 = 340
+OFFSET_4 = 160
 OFFSET_5 = 120
 
 
@@ -277,7 +277,7 @@ class TripSub(Node):
                         self.get_logger().info(f'{i} motor initialized!')
                         break
                     elif id == -1:
-                        if count == 3:
+                        if count == 10:
                             self.get_logger().error(f'{i} motor failed!!')
                             break
                         else:
@@ -301,9 +301,8 @@ class TripSub(Node):
     def callback(self, msg):
 
         # Write Goal Position
-        #goal_position1 = int((msg.data[0] + 340) / 0.088)
-        #goal_position2 = int((msg.data[1] + 120) / 0.088)
-        goal_position1 = int((msg.data[0] + OFFSET_4) / 0.088)
+
+        goal_position1 = int((-msg.data[0] + OFFSET_4) / 0.088)
         goal_position2 = int((msg.data[1] + OFFSET_5) / 0.088)
         if (len(self.ser_comm_list)>0) :
             for i in range(len(self.ser_comm_list)) : 
@@ -327,8 +326,8 @@ class TripSub(Node):
     def grip_callback(self, request, response):
         grip = request.data
         angle_step = 33
-        initial_position = int(250 / 0.088)
-        final_position = int(20/ 0.088)
+        initial_position = int(570 / 0.088)
+        final_position = int(350/ 0.088)
        
         # self.get_logger().info(f'Received grip command: {grip}')
         

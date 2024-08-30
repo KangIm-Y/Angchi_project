@@ -132,7 +132,7 @@ class TripSub(Node):
     def callback(self, msg):
         #Write Goal Position
 
-        goal_position1 = int((msg.data[0]+340)/0.088)
+        goal_position1 = int((-msg.data[0]+160)/0.088)
         goal_position2 = int((msg.data[1]+120)/0.088)
         goal_position3 = int((msg.data[2]) / 0.088)
 
