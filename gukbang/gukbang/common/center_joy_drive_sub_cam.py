@@ -1,42 +1,40 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy, QoSDurabilityPolicy
-from std_msgs.msg import String
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge
-import time
 
-
-class ImageIndicater(Node):
+class CenterJoyDriveSubCam(Node):
 
     def __init__(self):
-        super().__init__('Image_indicater')
-        qos_profile = QoSProfile(depth=1)
+        super().__init__('center_joy_drive_sub_cam')
+        qos_profile = QoSProfile(
+        reliability=ReliabilityPolicy.BEST_EFFORT,
+        history=HistoryPolicy.KEEP_LAST,
+        depth=10 
+        )
         self.image_subscribtion = self.create_subscription(
             Image,
-            'img_data',
+            'side_camera',
             self.sub_callback,
             qos_profile)
         self.cvbrid = CvBridge()
 
     def sub_callback(self, msg):
-        start = time.time()
-
         current_img = self.cvbrid.imgmsg_to_cv2(msg)
-        # resized = cv2.resize(current_img, (848,480), interpolation=cv2.INTER_CUBIC)
+        y,x,c = current_img.shape
+        resized = cv2.resize(current_img, (int(x*1.5),int(y*1.5)), interpolation=cv2.INTER_CUBIC)
 
-        cv2.imshow("title", current_img)
+        cv2.imshow("side_camera", resized)
         cv2.waitKey(1)
-        end = time.time()
-        self.get_logger().info(f'{(end-start)} subscribe and resize time')
 
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ImageIndicater()
+    node = CenterJoyDriveSubCam()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

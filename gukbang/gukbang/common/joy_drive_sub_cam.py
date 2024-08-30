@@ -4,16 +4,12 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
-from ultralytics import YOLO
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 class ArmyDetectionNode(Node):
     def __init__(self):
         super().__init__('army_detection_node')
         self.bridge = CvBridge()
-        # self.model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/army.pt') # main laptop
-        self.model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/army.pt')  #lattepanda
-        # /home/lattepanda/robot_ws/src/gukbang/gukbang/common
         qos_profile = QoSProfile(
         reliability=ReliabilityPolicy.BEST_EFFORT,
         history=HistoryPolicy.KEEP_LAST,
@@ -58,26 +54,9 @@ class ArmyDetectionNode(Node):
         else :
             frame = np.vstack((img0, img1))
             
-            result = self.model.predict(frame, conf = 0.4, verbose=False)
-            
-            if len(result[0].boxes.cls) :
-                for box in result[0].boxes :
-                    label = box.cls
-                    confidence = box.conf.item()
-                    object_xyxy = np.array(box.xyxy.detach().numpy().tolist()[0], dtype='int')
-                    color = [255,255,255]
-                    if label == 0 :
-                        color =[0,255,0]
-                        cv2.putText(frame, f'Korea ARMY  {(confidence*100):.2f}%', (object_xyxy[0], object_xyxy[1] - 20),cv2.FONT_ITALIC, 1, (0, 255, 0), 2)
-                    else :
-                        color = [0,0,255]
-                        cv2.putText(frame, f'ENEMY  {(confidence*100):.2f}%', (object_xyxy[0], object_xyxy[1] - 20), cv2.FONT_ITALIC, 1, (0, 0, 255), 2)
-                    cv2.rectangle(frame, (object_xyxy[0], object_xyxy[1]), (object_xyxy[2], object_xyxy[3]), color, 2)
-            
-            
             resized = cv2.resize(frame, (int(self.img_size_x/2),int(self.img_size_y)),interpolation=cv2.INTER_AREA)
             self.publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
-            cv2.imshow("Object Detection1", frame)
+            # cv2.imshow("Object Detection1", frame)
             cv2.waitKey(1)  # Adjust the waitKey value for the desired frame display time
 
 def main(args=None):

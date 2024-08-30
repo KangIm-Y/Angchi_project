@@ -20,8 +20,31 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+        ########### spring ##########
         'army_detection=gukbang.spring.army_detection:main',
+        'center_army_detection=gukbang.spring.center_army_detection:main',
+        
+        
+        ########## summer #############
+        
+        
+        
+        ########## autumn #############
         'aruco_detection=gukbang.autumn.aruco_detection:main',
+        'center_aruco_detection=gukbang.autumn.center_aruco_detection:main',
+        
+        
+        ########## winter #############
+        
+        
+        
+        ########## common #############
+        'imu_node=gukbang.common.imu_node:main',
+        'joy_drive=gukbang.common.joy_drive:main',
+        'joy_drive_sub_cam=gukbang.common.joy_drive_sub_cam:main',
+        'center_joy_drive=gukbang.common.center_joy_drive:main',
+        'center_joy_drive_sub_cam=gukbang.common.center_joy_drive_sub_cam:main',
+        
         ],
     },
 )

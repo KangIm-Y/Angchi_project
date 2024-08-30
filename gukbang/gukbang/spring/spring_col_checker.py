@@ -4,15 +4,16 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import Image, Joy
 
+from ultralytics import YOLO
 import pyrealsense2 as rs
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
 
 
-class BlueRatioCirculator(Node):
+class SpringColorChecker(Node):
     def __init__(self):
-        super().__init__('BlueRatio')
+        super().__init__('spring_color_checker')
         
         img_qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT,
                                     history=HistoryPolicy.KEEP_LAST,
@@ -41,9 +42,9 @@ class BlueRatioCirculator(Node):
             QoSProfile(depth= 2))
         
         
-        self.capture_timer = self.create_timer(1/24, self.image_capture)
-        self.process_timer = self.create_timer(1/24, self.image_processing)
-        self.pub_controll = self.create_timer(1/24, self.track_tracking)
+        self.capture_timer = self.create_timer(1/15, self.image_capture)
+        self.process_timer = self.create_timer(1/15, self.image_processing)
+        self.pub_controll = self.create_timer(1/15, self.track_tracking)
         
         
         ### parameters ###
@@ -53,8 +54,6 @@ class BlueRatioCirculator(Node):
         self.depth_size_x = 848
         self.depth_size_y = 480
         
-        self.ROI_ratio = 0.3
-        self.mission_ROI_ratio = 0.3
         self.max_speed = 10
         
         
@@ -83,7 +82,7 @@ class BlueRatioCirculator(Node):
         #########################
         
         
-        ### declare area... dont touch parameters ###
+        ### declare params... dont touch parameters ###
         self.L_sum = 0
         self.R_sum = 0
         
@@ -95,6 +94,8 @@ class BlueRatioCirculator(Node):
         self.before_R_joy = 0.
         
         #############################################
+        
+        self.chess_model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/chess.pt')
         
         
         self.slant_drive_min = 0.4
@@ -206,7 +207,6 @@ class BlueRatioCirculator(Node):
         cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
         cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
         cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
-        # print(l_sum + r_sum)
         
         cv2.imshow("color", self.color_img)
         cv2.waitKey(1)
@@ -238,19 +238,6 @@ class BlueRatioCirculator(Node):
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
                 
-                # second idea 
-                # if (self.L_sum > (detect_sum*0.45)) & (self.R_sum > (detect_sum*0.45)): 
-                #     self.L_joy = (self.max_speed / 2)
-                #     self.R_joy = (self.max_speed / 2)
-                # elif ((self.L_sum < self.R_sum*0.25) | (self.R_sum < self.L_sum*0.25)) :
-                #     self.L_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum > self.R_sum else 1.)
-                #     self.R_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum < self.R_sum else 1.)
-                # elif ((self.L_sum > self.R_sum) | (self.R_sum > self.L_sum)) :
-                #     self.L_joy = (self.max_speed * (self.R_sum/(detect_sum)))
-                #     self.R_joy = (self.max_speed * (self.L_sum/(detect_sum)))
-                # else :
-                #     self.L_joy = self.before_L_joy
-                #     self.R_joy = self.before_R_joy
                 
             # turn right        
             elif self.robot_roll == 1 :
@@ -275,8 +262,8 @@ class BlueRatioCirculator(Node):
                     self.L_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
                     self.R_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
                 elif self.L_sum <= self.ROI_half_size * self.slant_drive_min :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
+                    self.L_joy = (self.max_speed / 2) + 0.5 
+                    self.R_joy = (self.max_speed / 2) - 0.5
                 else :
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
@@ -290,6 +277,7 @@ class BlueRatioCirculator(Node):
 
         self.control_publisher.publish(msg)
         
+    ########################################
             
             
     def imu_msg_sampling(self, msg) :
@@ -314,8 +302,9 @@ class BlueRatioCirculator(Node):
             self.joy_stick_data = [axes[1], axes[4]]
         
         
-            
+    ########################################
     ############ control preset ############
+    ########################################
     def turn_left(self) :
         msg = Float32MultiArray()
         self.R_joy = self.max_speed * 0.05
@@ -358,7 +347,7 @@ class BlueRatioCirculator(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = BlueRatioCirculator()
+    node = SpringColorChecker()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

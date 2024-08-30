@@ -57,6 +57,12 @@ setup(
             'last_spring_track=track_test_pkg.last_year.last_spring_track:main',
             
             
+            #### depth_track ####
+            'imu_dep_checker=track_test_pkg.depth_track.imu_dep_checker:main',
+            'sampling_dep_checker=track_test_pkg.depth_track.sampling_dep_checker:main',
+            'dep_collabo_checker=track_test_pkg.depth_track.dep_collabo_checker:main',
+            
+            
         ],
     },
 )
