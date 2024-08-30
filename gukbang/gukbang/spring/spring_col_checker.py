@@ -98,8 +98,10 @@ class SpringColorChecker(Node):
         self.chess_model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/chess.pt')
         
         
+        ############################ ratio of ROI img #########################
         self.slant_drive_min = 0.4
         self.slant_drive_max = 0.45
+        ############################ ratio of ROI img #########################
         
         
         self.ROI_y_l = 0.9
@@ -220,8 +222,9 @@ class SpringColorChecker(Node):
         else :
             detect_sum = self.L_sum + self.R_sum
             if (detect_sum < (self.ROI_size * 0.3) ) :
-                self.L_joy = (self.max_speed / 4)
-                self.R_joy = (self.max_speed / 4)
+                self.stop()
+                # self.L_joy = (self.max_speed / 4)
+                # self.R_joy = (self.max_speed / 4)
                 
             elif self.robot_roll == 0 :
                 

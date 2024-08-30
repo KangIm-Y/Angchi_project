@@ -14,14 +14,13 @@ class Testcar_sub(Node):
         self.my_drive = odrive.find_any()
         self.calibration()
         qos_profile = QoSProfile(depth=10)
-        #차체에 명령 보내는 Subscriber
+
         self.subscription = self.create_subscription(
             Float32MultiArray,
             'Odrive_control',
             self.subscribe_topic_message,
             qos_profile)
 
-        #Encoder 분해능 값 받아오기 위한 Publisher
         self.publisher = self.create_publisher(
             Float32MultiArray,
             'Odrive_encoder', 
@@ -77,7 +76,7 @@ class Testcar_sub(Node):
             ############################ ENCODER Feedback ##################################
             pos_axis0 = self.my_drive.axis0.encoder.pos_estimate
             pos_axis1 = self.my_drive.axis1.encoder.pos_estimate
-            self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(pos_axis0, pos_axis1))
+            # self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(pos_axis0, pos_axis1))
             
             # INPUT POS에 현재 엔코더 값 넣기
             self.my_drive.axis0.controller.input_pos = pos_axis0 
@@ -91,7 +90,7 @@ class Testcar_sub(Node):
             ############################ ENCODER Feedback ##################################
             pos_axis0 = self.my_drive.axis0.encoder.pos_estimate
             pos_axis1 = self.my_drive.axis1.encoder.pos_estimate
-            self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(pos_axis0, pos_axis1))
+            # self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(pos_axis0, pos_axis1))
             
             ##########################Trajecotory Mode Control #############################
             msg.data[1] = -msg.data[1]
@@ -99,8 +98,8 @@ class Testcar_sub(Node):
             #msg,data에 얼마나 움직이고 싶은지 작성(엔코더 분해능 값이 들어감). 상대위치 제어
             self.my_drive.axis0.controller.move_incremental(msg.data[1], True)
             self.my_drive.axis1.controller.move_incremental(msg.data[2], True)
-            self.get_logger().info('FINISH POSITION MODE')
-            self.get_logger().info('Position control set: axis0 = {}, axis1 = {}'.format(msg.data[1], msg.data[2]))
+            # self.get_logger().info('FINISH POSITION MODE')
+            # self.get_logger().info('Position control set: axis0 = {}, axis1 = {}'.format(msg.data[1], msg.data[2]))
 
         else:
             self.get_logger().info('Invalid control mode received: {}'.format(msg.data[0]))
@@ -111,12 +110,12 @@ class Testcar_sub(Node):
         ############################ ENCODER Feedback ##################################
         pos_axis0 = self.my_drive.axis0.encoder.pos_estimate
         pos_axis1 = self.my_drive.axis1.encoder.pos_estimate
-        self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(pos_axis0, pos_axis1))
+        # self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(pos_axis0, pos_axis1))
 
         msg = Float32MultiArray()
         msg.data = [pos_axis0, pos_axis1]
         self.publisher.publish(msg)
-        self.get_logger().info('ENCODER Value: {0}'.format(msg.data))  
+        # self.get_logger().info('ENCODER Value: {0}'.format(msg.data))  
 
 def main(args=None):
     rclpy.init(args=args)

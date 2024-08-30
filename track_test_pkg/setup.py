@@ -63,6 +63,10 @@ setup(
             'dep_collabo_checker=track_test_pkg.depth_track.dep_collabo_checker:main',
             
             
+            #### oDrive_test ####
+            'encoder_test=track_test_pkg.oDrive_test.encoder_test:main',
+            
+            
         ],
     },
 )
