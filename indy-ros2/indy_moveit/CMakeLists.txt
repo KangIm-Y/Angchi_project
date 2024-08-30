@@ -27,6 +27,7 @@ find_package(control_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(custom_interfaces REQUIRED)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -38,7 +39,7 @@ install(DIRECTORY
 )
 
 add_library(${SERVO_CONTROLLER_INPUT} SHARED src/servo_joy_input.cpp)
-ament_target_dependencies(${SERVO_CONTROLLER_INPUT} rclcpp rclcpp_components geometry_msgs control_msgs sensor_msgs moveit_msgs std_srvs)
+ament_target_dependencies(${SERVO_CONTROLLER_INPUT} rclcpp rclcpp_components geometry_msgs control_msgs sensor_msgs moveit_msgs std_srvs custom_interfaces)
 rclcpp_components_register_nodes(${SERVO_CONTROLLER_INPUT} "moveit_servo::JoyToServoPub")
 
 # Install Libraries
@@ -62,6 +63,7 @@ ament_target_dependencies(servo_keyboard_input
   rclcpp
   geometry_msgs
   control_msgs
+  custom_interfaces
 )
 install(TARGETS
   servo_keyboard_input
