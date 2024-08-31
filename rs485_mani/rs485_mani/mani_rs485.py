@@ -35,6 +35,7 @@ class JointSubscriber(Node):
         self.req.sercommand.id2 = []
         self.req.sercommand.id3 = []
 
+        self.srv_flag = False
 
         self.storecount = 0
 
@@ -68,9 +69,12 @@ class JointSubscriber(Node):
         self.get_logger().debug(f'send data : {self.req.sercommand}')
         self.req.codecommand = codecommand
         # uses sys.argv to access command line input arguments for the request.
-        self.future = self.client.call_async(self.req)
-        self.srv_flag = True
+        if self.srv_flag == False:
+            self.get_logger().info("request.")
+            self.future = self.client.call_async(self.req)
+            self.srv_flag = True
         self.check_srv_res()
+
         
         
         
