@@ -30,7 +30,7 @@ DXL1_ID = 4
 DXL2_ID = 5
 DXL3_ID = 6  
 
-DEVICENAME1 = '/dev/ttyUSB0'   
+DEVICENAME1 = '/dev/ttyRS485'
 TORQUE_ENABLE = 1                 
 TORQUE_DISABLE = 0                 
 DXL_MOVING_STATUS_THRESHOLD = 20                
@@ -42,8 +42,8 @@ portHandler = PortHandler(DEVICENAME1)
 packetHandler = PacketHandler(PROTOCOL_VERSION)
 
 #4~5 joint
-OFFSET_4 = 347.488
-OFFSET_5 = 114
+OFFSET_4 = 160
+OFFSET_5 = 120
 
 class TripSub(Node):
     def __init__(self):
@@ -102,8 +102,8 @@ class TripSub(Node):
 
     def grip_callback(self, msg):
         angle_step = 40
-        self.initial_position = int(250 / 0.088)
-        final_position = int(-10 / 0.088)
+        self.initial_position = int(570 / 0.088)
+        final_position = int(350 / 0.088)
         
 
         if msg.data[2] == 1:
@@ -115,25 +115,25 @@ class TripSub(Node):
                 self.torque()  # Update self.current
                 time.sleep(0.01)
                 
-                if self.current <= -110: #성공
-                    self.get_logger().info('success')
-                    self.get_logger().info(f'Present current: {self.current}')
+            if self.current <= -110: #성공
+                self.get_logger().info('success')
+                self.get_logger().info(f'Present current: {self.current}')
                 
-                    break
+            #break
                 
-                elif self.girpper(self.dxl_present_current) < goal_position:# 타켓 도달 안 한 경우
-                    self.get_logger().info('success')
+            elif self.girpper(self.dxl_present_current) < goal_position:# 타켓 도달 안 한 경우
+                self.get_logger().info('success')
 
                     #겟로거로 계속 진행시켜
                     
-                    pass
+            #pass
 
-                else: #타겟 도달 하고 물체도 못찾음
+            else: #타겟 도달 하고 물체도 못찾음
 
-                    self.get_logger().info('FAIL')
-                    self.get_logger().info(f'Present current: {self.current}')
-                    self.gripper(self.initial_position)
-                    break
+                self.get_logger().info('FAIL')
+                self.get_logger().info(f'Present current: {self.current}')
+                self.gripper(self.initial_position)
+            #break
 
 
 

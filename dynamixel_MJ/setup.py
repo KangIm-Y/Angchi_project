@@ -27,7 +27,7 @@ setup(
              ##########################POSITION#############################
             'rw_pub = dynamixel_MJ.rw_pub:main',
             'rw_pub_user = dynamixel_MJ.rw_pub_user:main',
-            'rw_sub = dynamixel_MJ.rw_sub :main',
+            'rw_sub = dynamixel_MJ.rw_sub:main',
             ######################EXTEND POSITION###########################
             'pub_extend= dynamixel_MJ.pub_extend :main',
             'sub_extend = dynamixel_MJ.sub_extend :main',

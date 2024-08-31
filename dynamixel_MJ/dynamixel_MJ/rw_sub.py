@@ -1,7 +1,11 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32
-from dynamixel_sdk import *  # Make sure this library is correctly installed
+#from dynamixel_sdk import *  # Make sure this library is correctly installed
+from .robotis_def import *
+from .protocol2_packet_handler import * 
+from .packet_handler import * 
+from .port_handler import * 
 import time
 
 ADDR_TORQUE_ENABLE = 64
@@ -12,8 +16,8 @@ DXL_MAXIMUM_POSITION_VALUE = 4095
 BAUDRATE = 115200
 ADDR_PRESENT_CURRENT = 126
 PROTOCOL_VERSION = 2.0
-DXL_ID = 6
-DEVICENAME = '/dev/ttyUSB0'
+DXL_ID = 4
+DEVICENAME = '/dev/ttyRS485'
 
 TORQUE_ENABLE = 1    
 
