@@ -95,7 +95,7 @@ class SpringColorChecker(Node):
         
         #############################################
         
-        self.chess_model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
         
         
         ############################ ratio of ROI img #########################

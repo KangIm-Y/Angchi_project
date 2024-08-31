@@ -23,6 +23,7 @@ setup(
         ########### spring ##########
         'army_detection=gukbang.spring.army_detection:main',
         'center_army_detection=gukbang.spring.center_army_detection:main',
+        'spring_col_checker=gukbang.spring.spring_col_checker:main',
         
         
         ########## summer #############
