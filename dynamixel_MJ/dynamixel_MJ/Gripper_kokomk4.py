@@ -326,8 +326,8 @@ class TripSub(Node):
     def grip_callback(self, request, response):
         grip = request.data
         angle_step = 33
-        initial_position = int(570 / 0.088)
-        final_position = int(350/ 0.088)
+        initial_position = int(380 / 0.088)
+        final_position = int(250/ 0.088)
        
         # self.get_logger().info(f'Received grip command: {grip}')
         
