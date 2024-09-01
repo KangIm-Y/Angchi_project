@@ -14,8 +14,8 @@ def generate_launch_description():
             output='screen'  
         ),
         Node(
-            package='oDrive_MJ',  
-            executable='car_kokomk4',  
+            package='gukbang',  
+            executable='odrive',  
             output='screen'  
         )
     ])

@@ -96,8 +96,8 @@ class Testcar_sub(Node):
             msg.data[1] = -msg.data[1]
 
             #msg,data에 얼마나 움직이고 싶은지 작성(엔코더 분해능 값이 들어감). 상대위치 제어
-            self.my_drive.axis0.controller.move_incremental(msg.data[1], True)
-            self.my_drive.axis1.controller.move_incremental(msg.data[2], True)
+            self.my_drive.axis0.controller.move_incremental(msg.data[2], True)
+            self.my_drive.axis1.controller.move_incremental(msg.data[1], True)
             # self.get_logger().info('FINISH POSITION MODE')
             # self.get_logger().info('Position control set: axis0 = {}, axis1 = {}'.format(msg.data[1], msg.data[2]))
 

@@ -56,7 +56,7 @@ class ArmyDetectionNode(Node):
             
             resized = cv2.resize(frame, (int(self.img_size_x/2),int(self.img_size_y)),interpolation=cv2.INTER_AREA)
             self.publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
-            cv2.imshow("Object Detection1", frame)
+            # cv2.imshow("Object Detection1", frame)
             cv2.waitKey(1)  # Adjust the waitKey value for the desired frame display time
 
 def main(args=None):

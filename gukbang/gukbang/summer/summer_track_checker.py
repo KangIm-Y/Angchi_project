@@ -49,7 +49,7 @@ class BlueRatioCirculator(Node):
         
         self.encoder_subscriber = self.create_subscription(
             Float32MultiArray,
-            'encoder',
+            'Odrive_encoder',
             self.encoder_clear, 
             qos_profile
         )
@@ -121,6 +121,7 @@ class BlueRatioCirculator(Node):
         
         
         self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        self.post_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/dropbox.pt')
         self.finish_ROI = [[int(self.img_size_x * 0.45), int(self.img_size_y * 0.6)],[int(self.img_size_x * 0.55), int(self.img_size_y * 0.7)]]## xy xy
         self.chess_detection_flag = False
         self.finish_flag = False
@@ -142,7 +143,14 @@ class BlueRatioCirculator(Node):
         self.grip_flag = 0 ## 0 is idle, 1 is true, -1 is false
         self.mission_decision_flag = False
         
-        ###################################
+        ################# for encoder #################
+        self.encoder = [0.,0.]
+
+        self.first_encoder = [0.,0.]
+        self.second_encoder = [0.,0.]
+        self.zeropoint_flag = False
+
+        ################# for encoder #################
         
         
         
@@ -167,7 +175,8 @@ class BlueRatioCirculator(Node):
         self.get_logger().info("ininininininit")
         
     def encoder_clear(self,msg) :
-        return
+        self.encoder = msg.data
+        
     
     def image_capture(self):
         
@@ -270,7 +279,7 @@ class BlueRatioCirculator(Node):
         ROI_sum = np.sum(self.depth_ROI )
         # print(ROI_sum)
         
-        result = self.model_post.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
+        result = self.post_model.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
         
         
         
@@ -281,6 +290,14 @@ class BlueRatioCirculator(Node):
         
         
         elif len(result[0].boxes.cls) :
+            if self.zeropoint_flag == False :
+                command = Float32MultiArray()
+                command.data = [2., 0., 0.,]
+                self.control_publisher.publish(command)
+                self.first_encoder = self.encoder
+                self.zeropoint_flag = True
+
+
             if self.state != 'Spost' :
                 # self.state = 'Spost'
                 if self.postbox_position_set == False :
@@ -316,6 +333,10 @@ class BlueRatioCirculator(Node):
                     # self.state = 'Sarm'
                     self.stop()
                     self.get_logger().info(f'stop')
+                    self.second_encoder = self.encoder
+
+
+
                     time.sleep(2)
                     self.state = 'Spost'
                 else : 
@@ -401,7 +422,10 @@ class BlueRatioCirculator(Node):
         
         msg.data = [self.odrive_mode, self.L_joy, self.R_joy]
         
-        self.control_publisher.publish(msg)
+        if self.zeropoint_flag == True :
+            pass
+        else :
+            self.control_publisher.publish(msg)
 
 ##########################################################################################
 ##########################################################################################
@@ -551,7 +575,7 @@ class BlueRatioCirculator(Node):
             
         
             ## yolo algorithom
-            result = self.model_post.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
+            result = self.post_model.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
             
             if self.state == 'Spost' :
                 # print(result[0].boxes.cls)
@@ -588,6 +612,15 @@ class BlueRatioCirculator(Node):
                     if self.grip_state == 1 :
                         self.third_call_service()
                         time.sleep(2)
+                        command = Float32MultiArray()
+                        
+                        command.data = [2., -(self.second_encoder[0] - self.first_encoder[0]), -(self.second_encoder[1] - self.first_encoder[1])]
+                        self.control_publisher.publish(command)
+                        self.first_encoder = self.encoder
+                        self.zeropoint_flag = False
+
+
+
                         self.mission_decision_flag = False
                     elif self.grip_state == -1 :
                         self.third_call_service()
