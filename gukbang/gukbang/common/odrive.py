@@ -28,6 +28,8 @@ class Testcar_sub(Node):
         self.timer = self.create_timer(0.1, self.encoder_callback) 
         self.mode = 'pos'
         self.cur_mode = 'pos'
+        self.pos_axis0 = 0.0
+        self.pos_axis1 = 0.0
 
     def calibration(self):
         self.get_logger().info('Calibration START')
