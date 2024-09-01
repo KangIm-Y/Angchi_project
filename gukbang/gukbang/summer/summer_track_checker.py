@@ -203,7 +203,7 @@ class BlueRatioCirculator(Node):
         self.max_dis = (array_max + 0.05) / self.depth_scale
         self.min_dis = (array_max - 0.07) / self.depth_scale
 
-        print(array_min, array_max)
+        # print(array_min, array_max)
 
 
     def image_processing(self) :
@@ -279,7 +279,7 @@ class BlueRatioCirculator(Node):
         ROI_sum = np.sum(self.depth_ROI )
         # print(ROI_sum)
         
-        result = self.post_model.predict(self.color_img, conf = 0.5, verbose=False, max_det = 1)
+        self.post_result = self.post_model.predict(self.color_img, conf = 0.5, verbose=False, max_det = 1)
         
         
         
@@ -287,9 +287,10 @@ class BlueRatioCirculator(Node):
         if self.joy_status == True :
             self.L_joy = (self.joy_stick_data[0] * self.max_speed)
             self.R_joy = (self.joy_stick_data[1] * self.max_speed)
+            self.control_publisher.publish(msg)
         
         
-        elif len(result[0].boxes.cls) :
+        elif len(self.post_result[0].boxes.cls) :
             if self.zeropoint_flag == False :
                 command = Float32MultiArray()
                 command.data = [2., 0., 0.,]
@@ -301,7 +302,7 @@ class BlueRatioCirculator(Node):
             if self.state != 'Spost' :
                 # self.state = 'Spost'
                 if self.postbox_position_set == False :
-                    object_xy = np.array(result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
+                    object_xy = np.array(self.post_result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
                     ## virtical
                     if (object_xy[0] > self.postbox_ROI[1][0]) :
                         self.turn_right()
@@ -318,7 +319,7 @@ class BlueRatioCirculator(Node):
                         self.back()
                         self.get_logger().info(f'back')
                     elif (object_xy[1] < self.postbox_ROI[0][1]) :
-                        self.go(5.0)
+                        self.go(0.3)
                         self.get_logger().info(f'go')
                     else : 
                         pass
@@ -372,7 +373,7 @@ class BlueRatioCirculator(Node):
                     self.back()
                     self.get_logger().info(f'back')
                 elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                    self.go(5.0)
+                    self.go(0.3)
                     self.get_logger().info(f'go')
                 else : 
                     pass
@@ -575,12 +576,12 @@ class BlueRatioCirculator(Node):
             
         
             ## yolo algorithom
-            result = self.post_model.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
+            # result = self.post_model.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
             
             if self.state == 'Spost' :
                 # print(result[0].boxes.cls)
-                annotated_img = result[0].plot()
-                object_xy = np.array(result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
+                annotated_img = self.post_result[0].plot()
+                object_xy = np.array(self.post_result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
                 
                 
                 distance = self.depth_img[object_xy[1]][object_xy[0]] * self.depth_scale
@@ -679,15 +680,15 @@ class BlueRatioCirculator(Node):
     ############ control preset ############
     def turn_left(self) :
         msg = Float32MultiArray()
-        self.R_joy = self.max_speed * 0.05
-        self.L_joy = - self.max_speed * 0.05
+        self.R_joy = self.max_speed * 0.1
+        self.L_joy = - self.max_speed * 0.1
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
     
     def turn_right(self) :
         msg = Float32MultiArray()
-        self.R_joy = - self.max_speed * 0.05
-        self.L_joy = self.max_speed * 0.05
+        self.R_joy = - self.max_speed * 0.1
+        self.L_joy = self.max_speed * 0.1
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
     
