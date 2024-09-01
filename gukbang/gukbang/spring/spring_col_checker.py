@@ -178,7 +178,7 @@ class SpringColorChecker(Node):
                 cv2.waitKey(1)
         
                 histogram = np.sum(max_contour_mask, axis=0)
-                midpoint = int(self.img_size_x / 2)
+                midpoint = int(x / 2)
                 L_histo = histogram[:midpoint]
                 R_histo = histogram[midpoint:]
                 

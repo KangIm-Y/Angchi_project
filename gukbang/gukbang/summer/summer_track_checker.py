@@ -150,6 +150,8 @@ class BlueRatioCirculator(Node):
         self.second_encoder = [0.,0.]
         self.zeropoint_flag = False
 
+        self.theta = 62.
+
         ################# for encoder #################
         
         
@@ -252,7 +254,7 @@ class BlueRatioCirculator(Node):
         cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
         cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
         cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
-        print(l_sum + r_sum)
+        # print(l_sum + r_sum)
         
         cv2.imshow("color", self.color_img)
         cv2.imshow("mask", depth_mask)
@@ -287,6 +289,7 @@ class BlueRatioCirculator(Node):
         if self.joy_status == True :
             self.L_joy = (self.joy_stick_data[0] * self.max_speed)
             self.R_joy = (self.joy_stick_data[1] * self.max_speed)
+            msg.data = [self.odrive_mode, self.L_joy, self.R_joy]   
             self.control_publisher.publish(msg)
         
         
@@ -325,11 +328,14 @@ class BlueRatioCirculator(Node):
                         pass
                       
                 else : 
+                    self.stop()
+                    print("stop")
                     pass
                 
             
-                if (((object_xy[0] < self.postbox_ROI[1][0])& (object_xy[0] > self.postbox_ROI[0][0])) & ((object_xy[1] < self.postbox_ROI[1][1])& (object_xy[1] > self.postbox_ROI[0][0]))) :
+                if (((object_xy[0] < self.postbox_ROI[1][0])& (object_xy[0] > self.postbox_ROI[0][0])) & ((object_xy[1] < self.postbox_ROI[1][1])& (object_xy[1] > self.postbox_ROI[0][1]))) :
                     self.postbox_position_set = True
+                    self.mission_decision_flag = True
                     self.get_logger().info(f'setting clear')
                     # self.state = 'Sarm'
                     self.stop()
@@ -663,6 +669,8 @@ class BlueRatioCirculator(Node):
             self.robot_roll = 1
         else :
             self.robot_roll = 0
+
+        self.theta = imu_data[1]
         
     
     def joy_msg_sampling(self, msg):
