@@ -5,7 +5,7 @@ from std_msgs.msg import Int32MultiArray
 import time as t
 from struct import pack
 from custom_interfaces.srv import Protocool
-import sys
+import sys, os
 
 #from nuri_protocool import *
 
@@ -41,9 +41,13 @@ class JointSubscriber(Node):
 
 
         self.send_request(codecommand="Init")
+        
+        t.sleep(2)
+
+        self.check_srv_res()
 
 
-        self.file_path = "degarr.txt"
+        self.file_path = os.path.expanduser('~/degarr.txt')
         self.posarray = [0,0,0,0]
         self.data_buf = [0,0,0,0]
         self.pos_pre_array = [0,0,0,0]
@@ -52,6 +56,8 @@ class JointSubscriber(Node):
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
         self.nuri_initpos()
+        t.sleep(1)
+        self.check_srv_res()
 
         self.joint_Subscriber = self.create_subscription(
             Int32MultiArray,
@@ -165,7 +171,7 @@ class JointSubscriber(Node):
                             #self.get_logger().info(f"data : {data} , type : {type(data)}")
                             read_deg = int(data)
                             if num == 1:
-                                deg[num] = int(read_deg / 4.8)
+                                deg[num] = int(read_deg * 4.8)
                             else:
                                 deg[num] = read_deg
                             self.get_logger().info(f"last {num} joint data is {read_deg}")
@@ -197,7 +203,7 @@ class JointSubscriber(Node):
                 try:
                     self.cur_posarr = []
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id0))
-                    self.cur_posarr.append((self.extract_deg_data(response.feedback.id1))*4.8)
+                    self.cur_posarr.append((self.extract_deg_data(response.feedback.id1))/4.8)
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id2))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id3))
                     #self.get_logger().info(f"success! response : {self.cur_posarr}")
