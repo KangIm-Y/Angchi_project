@@ -201,7 +201,7 @@ class BlueRatioCirculator(Node):
         array_max = np.max(dis_array) * self.depth_scale
 
         self.max_dis = (array_max + 0.05) / self.depth_scale
-        self.min_dis = (array_max - 0.05) / self.depth_scale
+        self.min_dis = (array_max - 0.07) / self.depth_scale
 
         print(array_min, array_max)
 
@@ -279,7 +279,7 @@ class BlueRatioCirculator(Node):
         ROI_sum = np.sum(self.depth_ROI )
         # print(ROI_sum)
         
-        result = self.post_model.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
+        result = self.post_model.predict(self.color_img, conf = 0.5, verbose=False, max_det = 1)
         
         
         
@@ -318,7 +318,7 @@ class BlueRatioCirculator(Node):
                         self.back()
                         self.get_logger().info(f'back')
                     elif (object_xy[1] < self.postbox_ROI[0][1]) :
-                        self.go()
+                        self.go(5.0)
                         self.get_logger().info(f'go')
                     else : 
                         pass
@@ -372,7 +372,7 @@ class BlueRatioCirculator(Node):
                     self.back()
                     self.get_logger().info(f'back')
                 elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                    self.go()
+                    self.go(5.0)
                     self.get_logger().info(f'go')
                 else : 
                     pass

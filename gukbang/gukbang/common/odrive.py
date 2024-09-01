@@ -104,11 +104,11 @@ class Testcar_sub(Node):
         if self.cur_mode == "pos":          #trajectory Control 
             self.my_drive.axis0.controller.input_pos = data[0] + self.pos_axis0_offset
             self.my_drive.axis1.controller.input_pos = data[1] + self.pos_axis1_offset
-            self.get_logger().info(f'Position control set : axis0 = {data[0]}, axis1 = {data[1]}')
+            # self.get_logger().info(f'Position control set : axis0 = {data[0]}, axis1 = {data[1]}')
         elif self.cur_mode == "vel":                            # Ramped Velocity Control 
             self.my_drive.axis0.controller.input_vel = data[0]
             self.my_drive.axis1.controller.input_vel = data[1]
-            self.get_logger().info(f'Velocity control set : axis0 = {data[0]}, axis1 = {data[1]}')
+            # self.get_logger().info(f'Velocity control set : axis0 = {data[0]}, axis1 = {data[1]}')
         else : 
             self.get_logger().fatal(f'Invalid mode!! reset to vel mode')
             self.mode = "vel"
@@ -118,14 +118,14 @@ class Testcar_sub(Node):
     def encoder_check(self):
         self.pos_axis0 = self.my_drive.axis0.encoder.pos_estimate
         self.pos_axis1 = self.my_drive.axis1.encoder.pos_estimate
-        self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(self.pos_axis0, self.pos_axis1))
+        # self.get_logger().info('Encoder positions: axis0 = {}, axis1 = {}'.format(self.pos_axis0, self.pos_axis1))
 
 #모터 엔코더 값 받아오는 콜백함수
     def encoder_callback(self):
         msg = Float32MultiArray()
         msg.data = [self.pos_axis0, self.pos_axis1]
         self.publisher.publish(msg)
-        self.get_logger().info(f'ENCODER Value: {self.pos_axis0} , {self.pos_axis1}')  
+        # self.get_logger().info(f'ENCODER Value: {self.pos_axis0} , {self.pos_axis1}')  
 
 def main(args=None):
     rclpy.init(args=args)
