@@ -17,7 +17,7 @@ class SpringColorChecker(Node):
         qos_profile = QoSProfile(depth=10)
         img_qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT,
                                     history=HistoryPolicy.KEEP_LAST,
-                                    depth=10)
+                                    depth=1)
         
         self.control_publisher = self.create_publisher(
             Float32MultiArray, 

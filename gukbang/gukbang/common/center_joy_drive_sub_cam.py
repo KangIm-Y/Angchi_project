@@ -13,7 +13,7 @@ class CenterJoyDriveSubCam(Node):
         qos_profile = QoSProfile(
         reliability=ReliabilityPolicy.BEST_EFFORT,
         history=HistoryPolicy.KEEP_LAST,
-        depth=10 
+        depth=1
         )
         self.image_subscribtion = self.create_subscription(
             Image,

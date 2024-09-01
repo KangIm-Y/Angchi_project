@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os
+from glob import glob
 
 package_name = 'gukbang'
 
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share',package_name), glob('launch/*.launch.py'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -23,6 +26,7 @@ setup(
         ########### spring ##########
         'army_detection=gukbang.spring.army_detection:main',
         'center_army_detection=gukbang.spring.center_army_detection:main',
+        'spring_col_checker=gukbang.spring.spring_col_checker:main',
         
         
         ########## summer #############
@@ -36,6 +40,7 @@ setup(
         
         
         ########## winter #############
+        'winter_coldep_checker=gukbang.winter.winter_coldep_checker:main',
         
         
         
@@ -45,6 +50,8 @@ setup(
         'joy_drive_sub_cam=gukbang.common.joy_drive_sub_cam:main',
         'center_joy_drive=gukbang.common.center_joy_drive:main',
         'center_joy_drive_sub_cam=gukbang.common.center_joy_drive_sub_cam:main',
+        
+        'odrive=gukbang.common.odrive:main',
         
         ],
     },

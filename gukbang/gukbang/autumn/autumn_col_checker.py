@@ -55,7 +55,7 @@ class SpringColorChecker(Node):
         self.depth_size_x = 848
         self.depth_size_y = 480
         
-        self.max_speed = 12
+        self.max_speed = 15
         
         
         
@@ -206,7 +206,7 @@ class SpringColorChecker(Node):
         self.L_sum = l_sum
         self.R_sum = r_sum 
         
-        self.result = self.chess_model.predict(self.color_ROI, conf = 0.65, verbose=False, max_det=1)
+        self.result = self.chess_model.predict(self.color_ROI, conf = 0.4, verbose=False, max_det=1)
         
         
         
@@ -231,7 +231,7 @@ class SpringColorChecker(Node):
                 self.stop()
                 
             elif self.chess_detection_flag == True :
-                self.go(10.0)
+                self.go(10)
                 time.sleep(3)
                 self.stop()
                 self.finish_flag = True
@@ -262,7 +262,7 @@ class SpringColorChecker(Node):
                         self.back()
                         self.get_logger().info(f'back')
                     elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                        self.go(5.0)
+                        self.go()
                         self.get_logger().info(f'go')
                     else : 
                         pass

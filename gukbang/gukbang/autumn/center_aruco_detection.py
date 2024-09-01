@@ -14,7 +14,7 @@ class ArucoDetectionIndi(Node):
         qos_profile = QoSProfile(
         reliability=ReliabilityPolicy.BEST_EFFORT,
         history=HistoryPolicy.KEEP_LAST,
-        depth=10  # depth 설정은 필요에 따라 조정
+        depth=1  # depth 설정은 필요에 따라 조정
         )
         
         self.image_subscribtion = self.create_subscription(

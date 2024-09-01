@@ -55,7 +55,7 @@ class SpringColorChecker(Node):
         self.depth_size_x = 848
         self.depth_size_y = 480
         
-        self.max_speed = 12
+        self.max_speed = 15
         
         
         
@@ -103,8 +103,8 @@ class SpringColorChecker(Node):
         
         
         ############################ ratio of ROI img #########################
-        self.slant_drive_min = 0.4
-        self.slant_drive_max = 0.45
+        self.slant_drive_min = 0.6
+        self.slant_drive_max = 0.7
         ############################ ratio of ROI img #########################
         
         
@@ -123,6 +123,17 @@ class SpringColorChecker(Node):
         
         self.color_ROI = np.zeros((int(self.ROI_y * self.img_size_y), int(self.ROI_x * self.img_size_x), 3), dtype=np.uint8)
         self.depth_ROI = np.zeros((int(self.ROI_y * self.depth_size_y), int(self.ROI_x * self.depth_size_x), 3), dtype=np.uint8)
+        
+        ############################ dep_checker params #########################
+        
+        self.max_dis = 0.93 / self.depth_scale
+        self.min_dis = 0.75 / self.depth_scale
+        
+        ############################ dep_checker params #########################
+        
+        
+        
+        
         self.get_logger().info("ininininininit")
         
     
@@ -191,24 +202,70 @@ class SpringColorChecker(Node):
                 return L_sum, midpoint, R_sum
         return 1,1,1
     
-    ### hoxy molla.. hsv code     
-    def hsv_detection(self, img) :
-        
-        return 0 
 
+    def max_min_finder(self, got_ROI) :
+        y, x = got_ROI.shape
+        dis_array = got_ROI[:, int(x/2)]
+        array_min = np.min(dis_array) * self.depth_scale
+        array_max = np.max(dis_array) * self.depth_scale
+
+        self.max_dis = (array_max + 0.05) / self.depth_scale
+        self.min_dis = (array_max - 0.05) / self.depth_scale
+
+        print(array_min, array_max)
     
     
         
     def image_processing(self) :
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         
-        l_sum, midpoint, r_sum = self.yuv_detection(self.color_ROI)
-        self.L_sum = l_sum
-        self.R_sum = r_sum 
         
-        self.result = self.chess_model.predict(self.color_ROI, conf = 0.65, verbose=False, max_det=1)
+        self.result = self.chess_model.predict(self.color_ROI, conf = 0.4, verbose=False, max_det=1)
         
+        if self.robot_roll == 1 :
+            self.max_min_finder(self.depth_ROI)
         
+            depth_3d = np.dstack((self.depth_ROI, self.depth_ROI, self.depth_ROI))
+            depth_mask = np.where((depth_3d > self.max_dis) | (depth_3d < self.min_dis) | (depth_3d <= 0), 0, (255,255,255)).astype(np.uint8)
+            
+            depth, _, _ =cv2.split(depth_mask) 
+            contours, _ = cv2.findContours(depth, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            max_area = 0
+            max_contour = None
+            l_sum = 0
+            r_sum = 0
+
+            for contour in contours:
+                area = cv2.contourArea(contour)
+                if area > max_area:
+                    max_area = area
+                    max_contour = contour
+
+            if max_contour is not None:
+                max_contour_mask = np.zeros_like(depth)
+                cv2.drawContours(max_contour_mask, [max_contour], -1, (255, 255, 255), thickness=cv2.FILLED)
+                l_sum, r_sum = self.image_spliter(max_contour_mask)  # 여기에 max_contour_mask를 사용
+                self.L_sum = l_sum
+                self.R_sum = r_sum
+
+                ### test!!! ###
+                max_mask_3d = np.dstack((max_contour_mask, max_contour_mask, max_contour_mask))
+                filter_color = cv2.bitwise_and(self.color_ROI, max_mask_3d)
+                cv2.imshow("filtered_color", filter_color)
+                cv2.waitKey(1)
+
+
+            else:
+                
+                # 최대 컨투어가 없는 경우 처리
+                pass
+            
+        
+        elif self.robot_roll == 0 :
+            
+            l_sum, midpoint, r_sum = self.yuv_detection(self.color_ROI)
+            self.L_sum = l_sum
+            self.R_sum = r_sum 
         
         cv2.imshow("ROI", self.color_ROI)
         
@@ -231,7 +288,7 @@ class SpringColorChecker(Node):
                 self.stop()
                 
             elif self.chess_detection_flag == True :
-                self.go(10.0)
+                self.go(10)
                 time.sleep(3)
                 self.stop()
                 self.finish_flag = True
@@ -262,7 +319,7 @@ class SpringColorChecker(Node):
                         self.back()
                         self.get_logger().info(f'back')
                     elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                        self.go(5.0)
+                        self.go()
                         self.get_logger().info(f'go')
                     else : 
                         pass
@@ -277,13 +334,9 @@ class SpringColorChecker(Node):
                     self.chess_detection_flag = True
                 else : 
                     pass
-            
-            elif (detect_sum < (self.ROI_size * 0.4) ) :
-                self.stop()
-                # self.L_joy = (self.max_speed / 4)
-                # self.R_joy = (self.max_speed / 4)
                 
             elif self.robot_roll == 0 :
+                ### depth 주행.
                 
                 if (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
                     self.L_joy = (self.max_speed / 2)
@@ -301,6 +354,7 @@ class SpringColorChecker(Node):
                 
             # turn right        
             elif self.robot_roll == 1 :
+                ### color 주행.
                 if ((self.R_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.R_sum > (self.ROI_half_size * self.slant_drive_min))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
@@ -314,19 +368,6 @@ class SpringColorChecker(Node):
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
             
-            elif self.robot_roll == -1 :
-                if ((self.L_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.L_sum > (self.ROI_half_size * self.slant_drive_min))) :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
-                elif self.L_sum >= (self.ROI_half_size * self.slant_drive_max) :
-                    self.L_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                    self.R_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                elif self.L_sum <= self.ROI_half_size * self.slant_drive_min :
-                    self.L_joy = (self.max_speed / 2) + 0.5 
-                    self.R_joy = (self.max_speed / 2) - 0.5
-                else :
-                    self.L_joy = self.before_L_joy
-                    self.R_joy = self.before_R_joy
             
         self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
         
@@ -343,9 +384,7 @@ class SpringColorChecker(Node):
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
         
-        if imu_data[0] <= 75 :
-            self.robot_roll = -1
-        elif imu_data[0] >= 105 :
+        if imu_data[0] >= 100 :
             self.robot_roll = 1
         else :
             self.robot_roll = 0

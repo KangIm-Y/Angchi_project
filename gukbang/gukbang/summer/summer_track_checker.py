@@ -47,6 +47,13 @@ class BlueRatioCirculator(Node):
             self.imu_msg_sampling,
             QoSProfile(depth= 2))
         
+        self.encoder_subscriber = self.create_subscription(
+            Float32MultiArray,
+            'Odrive_encoder',
+            self.encoder_clear, 
+            qos_profile
+        )
+        
         
         
         
@@ -112,8 +119,12 @@ class BlueRatioCirculator(Node):
         
         #############################################
         
-        ### 라떼판다에선 바꿔야됨.
-        self.model_post = YOLO('/home/skh/robot_ws/src/track_test_pkg/track_test_pkg/best_add_box.pt')
+        
+        self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        self.post_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/dropbox.pt')
+        self.finish_ROI = [[int(self.img_size_x * 0.45), int(self.img_size_y * 0.6)],[int(self.img_size_x * 0.55), int(self.img_size_y * 0.7)]]## xy xy
+        self.chess_detection_flag = False
+        self.finish_flag = False
         
         ###### gripper state setting ######
         
@@ -132,7 +143,14 @@ class BlueRatioCirculator(Node):
         self.grip_flag = 0 ## 0 is idle, 1 is true, -1 is false
         self.mission_decision_flag = False
         
-        ###################################
+        ################# for encoder #################
+        self.encoder = [0.,0.]
+
+        self.first_encoder = [0.,0.]
+        self.second_encoder = [0.,0.]
+        self.zeropoint_flag = False
+
+        ################# for encoder #################
         
         
         
@@ -147,7 +165,6 @@ class BlueRatioCirculator(Node):
         self.ROI_half_size = int(self.ROI_size / 2)
         self.get_logger().info(f'{self.ROI_size}')
         
-        self.overmax_dis = 1.3 / self.depth_scale
         self.max_dis = 0.93 / self.depth_scale
         self.min_dis = 0.75 / self.depth_scale
         
@@ -157,7 +174,9 @@ class BlueRatioCirculator(Node):
         self.depth_ROI = np.zeros((int(self.ROI_y * self.depth_size_y), int(self.ROI_x * self.depth_size_x), 3), dtype=np.uint8)
         self.get_logger().info("ininininininit")
         
-
+    def encoder_clear(self,msg) :
+        self.encoder = msg.data
+        
     
     def image_capture(self):
         
@@ -173,46 +192,30 @@ class BlueRatioCirculator(Node):
         self.depth_img = np.asanyarray(self.filled_depth_frame.get_data())
         self.color_img = np.asanyarray(color_frame.get_data())
 
-    def overmax_mask(self, depth_3d, U_img_mask_3d) :
-        overmax_depth_mask = np.where((depth_3d > self.overmax_dis) | (depth_3d <= self.max_dis), 0, (255,255,255)).astype(np.uint8)
-        and_mask = cv2.bitwise_and(overmax_depth_mask, U_img_mask_3d)
-
-        return and_mask
 
 
-    def yuv_masker(self) :
-        gaussian = cv2.GaussianBlur(self.color_ROI, (3, 3), 1)
-        ROI_YUV = cv2.cvtColor(gaussian, cv2.COLOR_BGR2YUV)
-        y, x, c = ROI_YUV.shape
-        
-        Y_img, U_img, V_img = cv2.split(ROI_YUV)
-        ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
+    def max_min_finder(self, got_ROI) :
+        y, x = got_ROI.shape
+        dis_array = got_ROI[:, int(x/2)]
+        array_min = np.min(dis_array) * self.depth_scale
+        array_max = np.max(dis_array) * self.depth_scale
 
-        if ret :
-            U_img_mask_3d = np.dstack((U_img_treated, U_img_treated, U_img_treated))
-            return U_img_mask_3d
-        else :
-            return np.zeros((int(self.ROI_y * self.img_size_y), int(self.ROI_x * self.img_size_x), 3), dtype=np.uint8)
+        self.max_dis = (array_max + 0.05) / self.depth_scale
+        self.min_dis = (array_max - 0.05) / self.depth_scale
 
-
-
-
+        print(array_min, array_max)
 
 
     def image_processing(self) :
         self.depth_ROI = self.depth_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
 
+        self.result = self.chess_model.predict(self.color_ROI, conf = 0.65, verbose=False, max_det=1)
+        
+        self.max_min_finder(self.depth_ROI)
         
         depth_3d = np.dstack((self.depth_ROI, self.depth_ROI, self.depth_ROI))
         depth_mask = np.where((depth_3d > self.max_dis) | (depth_3d < self.min_dis) | (depth_3d <= 0), 0, (255,255,255)).astype(np.uint8)
-
-        cv2.imshow("depth_3d", depth_3d)
-        U_img_mask_3d = self.yuv_masker()
-        and_mask = self.overmax_mask(depth_3d, U_img_mask_3d)
-
-        depth_mask = cv2.bitwise_or(and_mask, depth_mask)
-
         
         depth, _, _ =cv2.split(depth_mask) 
         contours, _ = cv2.findContours(depth, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -259,7 +262,6 @@ class BlueRatioCirculator(Node):
             cv2.imshow("mask", depth_mask)
         cv2.waitKey(1)
         
-        
     def image_spliter(self, got_img) :
         y, x = got_img.shape
         
@@ -277,7 +279,7 @@ class BlueRatioCirculator(Node):
         ROI_sum = np.sum(self.depth_ROI )
         # print(ROI_sum)
         
-        result = self.model_post.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
+        result = self.post_model.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
         
         
         
@@ -288,6 +290,14 @@ class BlueRatioCirculator(Node):
         
         
         elif len(result[0].boxes.cls) :
+            if self.zeropoint_flag == False :
+                command = Float32MultiArray()
+                command.data = [2., 0., 0.,]
+                self.control_publisher.publish(command)
+                self.first_encoder = self.encoder
+                self.zeropoint_flag = True
+
+
             if self.state != 'Spost' :
                 # self.state = 'Spost'
                 if self.postbox_position_set == False :
@@ -323,6 +333,10 @@ class BlueRatioCirculator(Node):
                     # self.state = 'Sarm'
                     self.stop()
                     self.get_logger().info(f'stop')
+                    self.second_encoder = self.encoder
+
+
+
                     time.sleep(2)
                     self.state = 'Spost'
                 else : 
@@ -333,6 +347,46 @@ class BlueRatioCirculator(Node):
         elif self.mission_decision_flag == True :
             self.stop()
             return
+        
+        
+        elif len(self.result[0].boxes.cls) :
+            for box in self.result[0].boxes :
+                label = box.cls
+                confidence = box.conf.item()
+                object_xywh = np.array(box.xywh.detach().numpy().tolist()[0], dtype='int')
+                self.color_img = self.result[0].plot()
+
+                ## virtical
+                if (object_xywh[0] > self.finish_ROI[1][0]) :
+                    self.turn_right()
+                    self.get_logger().info(f'right')
+                elif (object_xywh[0] < self.finish_ROI[0][0]) :
+                    self.turn_left()
+                    self.get_logger().info(f'left')
+                else : 
+                    pass
+                    
+                
+                ## horizonal
+                if (object_xywh[1] > self.finish_ROI[1][1]) :
+                    self.back()
+                    self.get_logger().info(f'back')
+                elif (object_xywh[1] < self.finish_ROI[0][1]) :
+                    self.go()
+                    self.get_logger().info(f'go')
+                else : 
+                    pass
+                    
+            else : 
+                pass
+            
+        
+            if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][0]))) :
+                
+                self.get_logger().info(f'find finish')
+                self.chess_detection_flag = True
+            else : 
+                pass
                 
 
         elif  ROI_sum < (self.ROI_size * 0.3) :
@@ -368,7 +422,10 @@ class BlueRatioCirculator(Node):
         
         msg.data = [self.odrive_mode, self.L_joy, self.R_joy]
         
-        self.control_publisher.publish(msg)
+        if self.zeropoint_flag == True :
+            pass
+        else :
+            self.control_publisher.publish(msg)
 
 ##########################################################################################
 ##########################################################################################
@@ -518,7 +575,7 @@ class BlueRatioCirculator(Node):
             
         
             ## yolo algorithom
-            result = self.model_post.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
+            result = self.post_model.predict(self.color_img, conf = 0.4, verbose=False, max_det = 1)
             
             if self.state == 'Spost' :
                 # print(result[0].boxes.cls)
@@ -550,8 +607,21 @@ class BlueRatioCirculator(Node):
                 elif self.mani_move == 1 :
                     time.sleep(3)
                     self.grip_call_service()
+                    
+                    ##success
                     if self.grip_state == 1 :
                         self.third_call_service()
+                        time.sleep(2)
+                        command = Float32MultiArray()
+                        self.first_encoder = self.encoder
+                        
+                        command.data = [2., -(self.second_encoder[0] - self.first_encoder[0]), -(self.second_encoder[1] - self.first_encoder[1])]
+                        self.control_publisher.publish(command)
+                        self.zeropoint_flag = False
+
+
+                        time.sleep(3)
+                        self.mission_decision_flag = False
                     elif self.grip_state == -1 :
                         self.third_call_service()
                         time.sleep(2)
