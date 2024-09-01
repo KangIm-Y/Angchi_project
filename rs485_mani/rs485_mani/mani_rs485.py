@@ -41,10 +41,10 @@ class JointSubscriber(Node):
 
 
         self.send_request(codecommand="Init")
-        
-        t.sleep(2)
+        self.wait_for_response()
 
-        self.check_srv_res()
+        
+
 
 
         self.file_path = os.path.expanduser('~/degarr.txt')
@@ -56,8 +56,7 @@ class JointSubscriber(Node):
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
         self.nuri_initpos()
-        t.sleep(1)
-        self.check_srv_res()
+        self.wait_for_response()
 
         self.joint_Subscriber = self.create_subscription(
             Int32MultiArray,
@@ -65,6 +64,13 @@ class JointSubscriber(Node):
             self.subscribe_topic_message,
             qos_profile,
             )
+        
+
+    def wait_for_response(self):
+        while self.srv_flag == True:
+            self.check_srv_res()
+            self.get_logger().info("wait for response")
+            t.sleep(0.2)
         
 
 
@@ -110,10 +116,11 @@ class JointSubscriber(Node):
             pos_inv.append(~i + 1)
         self.posarray = pos_inv
         self.set_nuri_zero()
-        t.sleep(1)
+        self.wait_for_response()
         self.pos_nuri()
         t.sleep(10)
         self.set_nuri_zero()
+        self.wait_for_response()
         self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
         print('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
 
