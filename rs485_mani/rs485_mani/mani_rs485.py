@@ -20,6 +20,7 @@ class JointSubscriber(Node):
     def __init__(self):
         super().__init__('joint_Subscriber')
         qos_profile = QoSProfile(depth=10)
+        self.init_flag = False
         
         self.term = 0.01
         self.client = self.create_client(Protocool, 'command')
@@ -28,24 +29,20 @@ class JointSubscriber(Node):
             # if it is not available, a message is displayed
             self.get_logger().info('service not available, waiting again...')
         
+        
         # create an Empty request
         self.req = Protocool.Request()
         self.req.sercommand.id0 = []
         self.req.sercommand.id1 = []
         self.req.sercommand.id2 = []
         self.req.sercommand.id3 = []
-
+        self.srv_flag = False
+        self.data_read = False
+        
+        self.send_request()
         self.srv_flag = False
 
         self.storecount = 0
-
-
-        self.send_request(codecommand="Init")
-        
-        t.sleep(2)
-
-        self.check_srv_res()
-
 
         self.file_path = os.path.expanduser('~/degarr.txt')
         self.posarray = [0,0,0,0]
@@ -55,9 +52,6 @@ class JointSubscriber(Node):
         self.cur_posarr = self.posarray
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
-        self.nuri_initpos()
-        t.sleep(1)
-        self.check_srv_res()
 
         self.joint_Subscriber = self.create_subscription(
             Int32MultiArray,
@@ -65,6 +59,28 @@ class JointSubscriber(Node):
             self.subscribe_topic_message,
             qos_profile,
             )
+
+        
+
+
+    def init(self):
+        if self.init_flag == True:
+            self.send_request(codecommand="Init")
+            self.wait_for_response()
+            self.read_pos()
+            self.nuri_initpos()
+            self.wait_for_response()
+        else:
+            pass
+            
+
+        
+
+    def wait_for_response(self):
+        while self.srv_flag == True:
+            self.check_srv_res()
+            self.get_logger().info("wait for response")
+            t.sleep(0.2)
         
 
 
@@ -87,19 +103,26 @@ class JointSubscriber(Node):
         
 
     def subscribe_topic_message(self, msg):
-        self.data_buf = self.inv_data(msg.data)
-        for i in range(4):
-            if self.data_buf[i] > self.pos_pre_array[i]:
-                self.posarray[i] = self.data_buf[i] + self.pos_incorrect[i]
-            elif self.data_buf[i] < self.pos_pre_array[i]:
-                self.posarray[i] = self.data_buf[i] - self.pos_incorrect[i]
-            else:
-                self.posarray[i] = self.data_buf[i]
 
-        self.get_logger().debug('Received message: {0}'.format(self.posarray))
-        #self.store_pos()
-        self.pos_nuri()
-        self.pos_pre_array = self.data_buf
+        if self.init_flag == False:
+            self.init()
+            self.init_flag = True
+        if self.data_read == False:
+            self.get_logger().warn("file data is not read.")
+        else:
+            self.data_buf = self.inv_data(msg.data)
+            for i in range(4):
+                if self.data_buf[i] > self.pos_pre_array[i]:
+                    self.posarray[i] = self.data_buf[i] + self.pos_incorrect[i]
+                elif self.data_buf[i] < self.pos_pre_array[i]:
+                    self.posarray[i] = self.data_buf[i] - self.pos_incorrect[i]
+                else:
+                    self.posarray[i] = self.data_buf[i]
+
+            self.get_logger().debug('Received message: {0}'.format(self.posarray))
+            #self.store_pos()
+            self.pos_nuri()
+            self.pos_pre_array = self.data_buf
 
 
 
@@ -110,10 +133,11 @@ class JointSubscriber(Node):
             pos_inv.append(~i + 1)
         self.posarray = pos_inv
         self.set_nuri_zero()
-        t.sleep(1)
+        self.wait_for_response()
         self.pos_nuri()
         t.sleep(10)
         self.set_nuri_zero()
+        self.wait_for_response()
         self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
         print('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
 
@@ -182,13 +206,17 @@ class JointSubscriber(Node):
             self.get_logger().warn("File not exist. All posdata will be zero and generate new file.")
             self.store_pos()
         self.posarray = deg
+        self.data_read = True
 
 
     def store_pos(self):
-        with open(self.file_path, 'w') as f:
-            for i in self.cur_posarr:
-                f.write(f"{i}\n")
-        self.get_logger().info('\033[92m' + f"deg array saved. saved data is {self.cur_posarr}" + '\033[0m')
+        if self.data_read == False:
+            self.get_logger().warn("last data is not read. current position data is not stored.")
+        else:
+            with open(self.file_path, 'w') as f:
+                for i in self.cur_posarr:
+                    f.write(f"{i}\n")
+            self.get_logger().info('\033[92m' + f"deg array saved. saved data is {self.cur_posarr}" + '\033[0m')
 
 
     def inv_data(self, data):
@@ -196,6 +224,7 @@ class JointSubscriber(Node):
         for i in range(len(data)):
             inv.append((~(data[i]) + 1))
         return inv
+    
     def check_srv_res(self):
         if self.future.done() and self.srv_flag:
             response = self.future.result()
@@ -212,10 +241,10 @@ class JointSubscriber(Node):
                         self.store_pos()
                         self.storecount = 0
                 except Exception as e:
-                    self.get_logger().warn(f"Can't convert posdata. previous data will be stored. {e}")
+                    self.get_logger().warn("Can't convert posdata. previous data will be stored.")
                     self.get_logger().debug(f"error : {e}")
             else:
-                self.get_logger().error("service call failed!")
+                self.get_logger().error("service failed!")
             self.srv_flag = False
         # to print in the console
 
