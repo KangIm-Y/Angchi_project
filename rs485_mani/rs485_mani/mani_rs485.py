@@ -203,6 +203,7 @@ class JointSubscriber(Node):
         for i in range(len(data)):
             inv.append((~(data[i]) + 1))
         return inv
+    
     def check_srv_res(self):
         if self.future.done() and self.srv_flag:
             response = self.future.result()
