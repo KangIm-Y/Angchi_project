@@ -210,7 +210,7 @@ class BlueRatioCirculator(Node):
         self.depth_ROI = self.depth_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
 
-        self.result = self.chess_model.predict(self.color_ROI, conf = 0.4, verbose=False, max_det=1)
+        self.result = self.chess_model.predict(self.color_ROI, conf = 0.65, verbose=False, max_det=1)
         
         self.max_min_finder(self.depth_ROI)
         
@@ -613,14 +613,14 @@ class BlueRatioCirculator(Node):
                         self.third_call_service()
                         time.sleep(2)
                         command = Float32MultiArray()
+                        self.first_encoder = self.encoder
                         
                         command.data = [2., -(self.second_encoder[0] - self.first_encoder[0]), -(self.second_encoder[1] - self.first_encoder[1])]
                         self.control_publisher.publish(command)
-                        self.first_encoder = self.encoder
                         self.zeropoint_flag = False
 
 
-
+                        time.sleep(3)
                         self.mission_decision_flag = False
                     elif self.grip_state == -1 :
                         self.third_call_service()
