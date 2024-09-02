@@ -46,7 +46,7 @@ class SpringColorChecker(Node):
         self.capture_timer = self.create_timer(1/15, self.image_capture)
         self.process_timer = self.create_timer(1/15, self.image_processing)
         self.pub_controll = self.create_timer(1/15, self.track_tracking)
-        
+        self.roll_timer = self.create_timer(1/15, self.roll_finder)
         
         ### parameters ###
         self.U_detection_threshold = 130 ## 0~255
@@ -55,7 +55,7 @@ class SpringColorChecker(Node):
         self.depth_size_x = 848
         self.depth_size_y = 480
         
-        self.max_speed = 15
+        self.max_speed = 10
         
         
         
@@ -103,8 +103,8 @@ class SpringColorChecker(Node):
         
         
         ############################ ratio of ROI img #########################
-        self.slant_drive_min = 0.6
-        self.slant_drive_max = 0.7
+        self.slant_drive_min = 0.4
+        self.slant_drive_max = 0.45
         ############################ ratio of ROI img #########################
         
         
@@ -128,6 +128,8 @@ class SpringColorChecker(Node):
         
         self.max_dis = 0.93 / self.depth_scale
         self.min_dis = 0.75 / self.depth_scale
+        self.ahead_roll = False
+        
         
         ############################ dep_checker params #########################
         
@@ -210,19 +212,32 @@ class SpringColorChecker(Node):
         array_max = np.max(dis_array) * self.depth_scale
 
         self.max_dis = (array_max + 0.05) / self.depth_scale
-        self.min_dis = (array_max - 0.05) / self.depth_scale
+        self.min_dis = (array_max - 0.07) / self.depth_scale
 
-        print(array_min, array_max)
+        # print(array_min, array_max)
     
     
+    def image_spliter(self, got_img) :
+        y, x = got_img.shape
+        
+        l = got_img[:,:int(x/2)]
+        r = got_img[:,int(x/2):]
+        
+        
+        l_sum = np.sum(l) / 255
+        r_sum = (np.sum(r) / 255 ) - y
+        
+        return l_sum, r_sum
         
     def image_processing(self) :
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         
+        self.depth_ROI = self.depth_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
+        
         
         self.result = self.chess_model.predict(self.color_ROI, conf = 0.4, verbose=False, max_det=1)
         
-        if self.robot_roll == 1 :
+        if self.robot_roll == 0 :
             self.max_min_finder(self.depth_ROI)
         
             depth_3d = np.dstack((self.depth_ROI, self.depth_ROI, self.depth_ROI))
@@ -261,7 +276,7 @@ class SpringColorChecker(Node):
                 pass
             
         
-        elif self.robot_roll == 0 :
+        elif self.robot_roll == 1 :
             
             l_sum, midpoint, r_sum = self.yuv_detection(self.color_ROI)
             self.L_sum = l_sum
@@ -319,7 +334,7 @@ class SpringColorChecker(Node):
                         self.back()
                         self.get_logger().info(f'back')
                     elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                        self.go()
+                        self.go(0.5)
                         self.get_logger().info(f'go')
                     else : 
                         pass
@@ -355,18 +370,46 @@ class SpringColorChecker(Node):
             # turn right        
             elif self.robot_roll == 1 :
                 ### color 주행.
+                # if ((self.R_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.R_sum > (self.ROI_half_size * self.slant_drive_min))) :
+                #     self.L_joy = (self.max_speed / 2)
+                #     self.R_joy = (self.max_speed / 2)
+                # elif self.R_sum >= (self.ROI_half_size * self.slant_drive_max) :
+                #     self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
+                #     self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
+                # elif self.R_sum <= self.ROI_half_size * self.slant_drive_min :
+                #     self.L_joy = (self.max_speed / 2) - 0.5
+                #     self.R_joy = (self.max_speed / 2) + 0.5
+                # else :
+                #     self.L_joy = self.before_L_joy
+                #     self.R_joy = self.before_R_joy
+
                 if ((self.R_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.R_sum > (self.ROI_half_size * self.slant_drive_min))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
+                    self.get_logger().info(f'too low')
                 elif self.R_sum >= (self.ROI_half_size * self.slant_drive_max) :
                     self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
                     self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
+                    self.get_logger().info(f'too close')
                 elif self.R_sum <= self.ROI_half_size * self.slant_drive_min :
                     self.L_joy = (self.max_speed / 2) - 0.5
                     self.R_joy = (self.max_speed / 2) + 0.5
                 else :
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
+
+                # if (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
+                #     self.L_joy = (self.max_speed / 2)
+                #     self.R_joy = (self.max_speed / 2)
+                # elif ((self.L_sum < self.R_sum*0.25) | (self.R_sum < self.L_sum*0.25)) :
+                #     self.L_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum > self.R_sum else 1.)
+                #     self.R_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum < self.R_sum else 1.)
+                # elif ((self.L_sum > self.R_sum) | (self.R_sum > self.L_sum)) :
+                #     self.L_joy = (self.max_speed * (self.R_sum/(self.R_sum+self.L_sum)))
+                #     self.R_joy = (self.max_speed * (self.L_sum/(self.R_sum+self.L_sum)))
+                # else :
+                #     self.L_joy = self.before_L_joy
+                #     self.R_joy = self.before_R_joy
             
             
         self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
@@ -379,23 +422,41 @@ class SpringColorChecker(Node):
         self.control_publisher.publish(msg)
         
     ########################################
-            
-            
+
+    def roll_finder(self) :
+        l_point_arr = self.depth_img[int(self.depth_size_y *0.08):int(self.depth_size_y*0.1),int(self.depth_size_x*0.34):int(self.depth_size_x*0.35)]
+        r_point_arr = self.depth_img[int(self.depth_size_y *0.08):int(self.depth_size_y*0.1),int(self.depth_size_x*0.65):int(self.depth_size_x*0.66)]
+
+        l_mean = np.mean(l_point_arr)
+        r_mean = np.mean(r_point_arr)
+
+        if l_mean*1.13 < r_mean : 
+            self.ahead_roll = True
+            self.get_logger().info(f"ahead_roll True {l_mean:.5f}   {r_mean:.5f}")
+        else :
+            self.ahead_roll = False
+            self.get_logger().info(f"ahead_roll False {l_mean:.5f}   {r_mean:.5f}")
+
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
         
-        if imu_data[0] >= 100 :
+        if (imu_data[0] >= 95) |(self.ahead_roll == True) :
             self.robot_roll = 1
+            self.get_logger().info("roll 1")
         else :
             self.robot_roll = 0
+
+        print(self.robot_roll)
         
+    
     
     def joy_msg_sampling(self, msg):
         axes = msg.axes
         # btn = msg.buttons
 
-        if axes[2] != -1 :
+        if axes[2] == 1 :
             self.joy_status = False
+        
         else :
             self.joy_status = True
             self.joy_stick_data = [axes[1], axes[4]]
