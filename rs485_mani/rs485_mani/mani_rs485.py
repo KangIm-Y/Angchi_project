@@ -66,10 +66,10 @@ class JointSubscriber(Node):
     def init(self):
         if self.init_flag == True:
             self.send_request(codecommand="Init")
-            self.wait_for_response()
+            # self.wait_for_response()
             self.read_pos()
             self.nuri_initpos()
-            self.wait_for_response()
+            # self.wait_for_response()
         else:
             pass
             

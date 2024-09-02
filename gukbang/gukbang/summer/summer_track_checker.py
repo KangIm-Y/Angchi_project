@@ -305,12 +305,12 @@ class BlueRatioCirculator(Node):
             if self.state != 'Spost' :
                 # self.state = 'Spost'
                 if self.postbox_position_set == False :
-                    object_xy = np.array(self.post_result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
+                    self.dropbox_xy = np.array(self.post_result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
                     ## virtical
-                    if (object_xy[0] > self.postbox_ROI[1][0]) :
+                    if (self.dropbox_xy[0] > self.postbox_ROI[1][0]) :
                         self.turn_right()
                         self.get_logger().info(f'right')
-                    elif (object_xy[0] < self.postbox_ROI[0][0]) :
+                    elif (self.dropbox_xy[0] < self.postbox_ROI[0][0]) :
                         self.turn_left()
                         self.get_logger().info(f'left')
                     else : 
@@ -318,10 +318,10 @@ class BlueRatioCirculator(Node):
                         
                     
                     ## horizonal
-                    if (object_xy[1] > self.postbox_ROI[1][1]) :
+                    if (self.dropbox_xy[1] > self.postbox_ROI[1][1]) :
                         self.back()
                         self.get_logger().info(f'back')
-                    elif (object_xy[1] < self.postbox_ROI[0][1]) :
+                    elif (self.dropbox_xy[1] < self.postbox_ROI[0][1]) :
                         self.go(0.3)
                         self.get_logger().info(f'go')
                     else : 
@@ -333,7 +333,7 @@ class BlueRatioCirculator(Node):
                     pass
                 
             
-                if (((object_xy[0] < self.postbox_ROI[1][0])& (object_xy[0] > self.postbox_ROI[0][0])) & ((object_xy[1] < self.postbox_ROI[1][1])& (object_xy[1] > self.postbox_ROI[0][1]))) :
+                if (((self.dropbox_xy[0] < self.postbox_ROI[1][0])& (self.dropbox_xy[0] > self.postbox_ROI[0][0])) & ((self.dropbox_xy[1] < self.postbox_ROI[1][1])& (self.dropbox_xy[1] > self.postbox_ROI[0][1]))) :
                     self.postbox_position_set = True
                     self.mission_decision_flag = True
                     self.get_logger().info(f'setting clear')
@@ -341,6 +341,8 @@ class BlueRatioCirculator(Node):
                     self.stop()
                     self.get_logger().info(f'stop')
                     self.second_encoder = self.encoder
+
+                    self.dropbox_xy = np.array(self.post_result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
 
 
 
@@ -442,8 +444,8 @@ class BlueRatioCirculator(Node):
     def call_service(self, x,y,z):
         if self.client.service_is_ready():
             request = PositionService.Request()
-            self.goal_x = -x -0.1
-            self.goal_y = -y -0.1
+            self.goal_x = -x 
+            self.goal_y = -y -0.10
             self.goal_z = z + 0.93
             
             request.coordinate.x = self.goal_x 
@@ -509,8 +511,8 @@ class BlueRatioCirculator(Node):
                 
     def grip_call_service(self) :
         if self.grip_client.service_is_ready():
-            request = SetBool()
-            request = True
+            request = SetBool.Request()
+            request.data = True
             self.get_logger().info(f'gripper start !')
             future = self.grip_client.call_async(request)
             
@@ -587,14 +589,13 @@ class BlueRatioCirculator(Node):
             if self.state == 'Spost' :
                 # print(result[0].boxes.cls)
                 annotated_img = self.post_result[0].plot()
-                object_xy = np.array(self.post_result[0].boxes.xywh.detach().numpy().tolist()[0], dtype='int')
                 
                 
-                distance = self.depth_img[object_xy[1]][object_xy[0]] * self.depth_scale
+                distance = self.depth_img[self.dropbox_xy[1]][self.dropbox_xy[0]] * self.depth_scale
                 
-                annotated_img = cv2.circle(annotated_img,((object_xy[0]),(object_xy[1])),10,(0,0,255), -1, cv2.LINE_AA)
-                depth = self.aligned_depth_frame.get_distance(object_xy[0], object_xy[1])
-                depth_point = rs.rs2_deproject_pixel_to_point(self.depth_intrinsics, [object_xy[0], object_xy[1]], depth)
+                annotated_img = cv2.circle(annotated_img,((self.dropbox_xy[0]),(self.dropbox_xy[1])),10,(0,0,255), -1, cv2.LINE_AA)
+                depth = self.aligned_depth_frame.get_distance(self.dropbox_xy[0], self.dropbox_xy[1])
+                depth_point = rs.rs2_deproject_pixel_to_point(self.depth_intrinsics, [self.dropbox_xy[0], self.dropbox_xy[1]], depth)
                 cv2.putText(annotated_img, f"{depth_point[0]:.2f}m,  {depth_point[1]:.2f}m,  {depth_point[2]:.2f}m,", (30,30), cv2.FONT_HERSHEY_DUPLEX, 1, (0,0,255),2)
                 x_c = depth_point[0]
                 y_c = depth_point[2]
@@ -650,7 +651,7 @@ class BlueRatioCirculator(Node):
                 cv2.waitKey(1)
                 
                 
-                # self.get_logger().info(f'object : {object_xy}    postbox : {self.postbox_ROI}')      
+                # self.get_logger().info(f'object : {self.dropbox_xy}    postbox : {self.postbox_ROI}')      
                 
             
             
