@@ -18,6 +18,10 @@ term = 0.01
 class JointSubscriber(Node):
 
     def __init__(self):
+
+        t.sleep(5)
+
+
         super().__init__('joint_Subscriber')
         qos_profile = QoSProfile(depth=10)
         self.init_flag = False
@@ -49,7 +53,7 @@ class JointSubscriber(Node):
         self.posarray = [0,0,0,0]
         self.data_buf = [0,0,0,0]
         self.pos_pre_array = [0,0,0,0]
-        self.pos_incorrect = [2,0,0,0]
+        self.pos_incorrect = [5,0,0,0]
         self.cur_posarr = self.posarray
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         self.read_pos()
