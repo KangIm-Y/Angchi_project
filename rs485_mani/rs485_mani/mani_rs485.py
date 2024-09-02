@@ -38,6 +38,7 @@ class JointSubscriber(Node):
         self.req.sercommand.id3 = []
         self.srv_flag = False
         self.data_read = False
+        self.init_start_flag = False
         
         self.send_request()
         self.srv_flag = False
@@ -64,12 +65,15 @@ class JointSubscriber(Node):
 
 
     def init(self):
-        if self.init_flag == True:
+        if self.init_start_flag == True:
+            self.get_logger().info('\033[96m' + "start initializing..." + '\033[0m')
             self.send_request(codecommand="Init")
             # self.wait_for_response()
             self.read_pos()
             self.nuri_initpos()
-            # self.wait_for_response()
+            self.wait_for_response()
+            self.get_logger().info('\033[96m' + "Initialized." + '\033[0m')
+            self.init_flag = True
         else:
             pass
             
@@ -79,7 +83,7 @@ class JointSubscriber(Node):
     def wait_for_response(self):
         while self.srv_flag == True:
             self.check_srv_res()
-            self.get_logger().info("wait for response")
+            self.get_logger().info("wait for response...")
             t.sleep(0.2)
         
 
@@ -104,10 +108,13 @@ class JointSubscriber(Node):
 
     def subscribe_topic_message(self, msg):
 
-        if self.init_flag == False:
+        if self.init_start_flag == False:
+            self.init_start_flag = True
             self.init()
-            self.init_flag = True
-        if self.data_read == False:
+            #self.init_flag = True
+        elif self.init_flag == False:
+            self.get_logger().warn("waiting for init...")
+        elif self.data_read == False:
             self.get_logger().warn("file data is not read.")
         else:
             self.data_buf = self.inv_data(msg.data)
