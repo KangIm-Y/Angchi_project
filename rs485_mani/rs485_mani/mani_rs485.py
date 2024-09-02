@@ -66,13 +66,13 @@ class JointSubscriber(Node):
 
     def init(self):
         if self.init_start_flag == True:
-            self.get_logger().info("start initializing...")
+            self.get_logger().info('\033[96m' + "start initializing..." + '\033[0m')
             self.send_request(codecommand="Init")
             self.wait_for_response()
             self.read_pos()
             self.nuri_initpos()
             self.wait_for_response()
-            self.get_logger().info("Initialized.")
+            self.get_logger().info('\033[96m' + "Initialized." + '\033[0m')
             self.init_flag = True
         else:
             pass
