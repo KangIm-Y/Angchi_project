@@ -16,7 +16,7 @@ ADDR_PRESENT_POSITION       = 132
 ADDR_PRESENT_CURRENT = 126 
 # Protocol version
 PROTOCOL_VERSION            = 2.0            
-BAUDRATE                    = 115200
+BAUDRATE                    = 57600
 
 # Default setting
          
@@ -33,7 +33,8 @@ DXL2_ID                     = 5                 # Dynamixel#2 ID : 2
 DXL3_ID                     = 6  
 
  
-DEVICENAME1                 = '/dev/ttyRS485'
+#DEVICENAME1                 = '/dev/ttyUSB3'
+DEVICENAME1 = '/dev/ttyRS485'   
 
 TORQUE_ENABLE               = 1                 # Value for enabling the torque
 TORQUE_DISABLE              = 0                 # Value for disabling the torque
@@ -132,7 +133,7 @@ class TripSub(Node):
     def callback(self, msg):
         #Write Goal Position
 
-        goal_position1 = int((-msg.data[0]+160)/0.088)
+        goal_position1 = int((msg.data[0]+160)/0.088)
         goal_position2 = int((msg.data[1]+120)/0.088)
         goal_position3 = int((msg.data[2]) / 0.088)
 
