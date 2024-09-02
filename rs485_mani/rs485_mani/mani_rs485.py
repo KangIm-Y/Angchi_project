@@ -69,9 +69,11 @@ class JointSubscriber(Node):
             self.get_logger().info('\033[96m' + "start initializing..." + '\033[0m')
             self.send_request(codecommand="Init")
             # self.wait_for_response()
+            t.sleep(1)
             self.read_pos()
             self.nuri_initpos()
-            self.wait_for_response()
+            #self.wait_for_response()
+            t.sleep(1)
             self.get_logger().info('\033[96m' + "Initialized." + '\033[0m')
             self.init_flag = True
         else:
@@ -140,11 +142,12 @@ class JointSubscriber(Node):
             pos_inv.append(~i + 1)
         self.posarray = pos_inv
         self.set_nuri_zero()
-        self.wait_for_response()
+        t.sleep(1)
         self.pos_nuri()
-        t.sleep(10)
+        t.sleep(5)
         self.set_nuri_zero()
-        self.wait_for_response()
+        #self.wait_for_response()
+        t.sleep(1)
         self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
         print('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
 
