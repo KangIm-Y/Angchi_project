@@ -1,23 +1,28 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32
-#from dynamixel_sdk import *  # Make sure this library is correctly installed
+
+#Protocol을 위해 Import 할 파일
 from .robotis_def import *
 from .protocol2_packet_handler import * 
 from .packet_handler import * 
 from .port_handler import * 
+
 import time
 
 ADDR_TORQUE_ENABLE = 64
 ADDR_GOAL_POSITION = 116
 ADDR_PRESENT_POSITION = 132
-DXL_MINIMUM_POSITION_VALUE = 0
-DXL_MAXIMUM_POSITION_VALUE = 4095
-BAUDRATE = 115200
+
+#DXL_MINIMUM_POSITION_VALUE = 0
+#DXL_MAXIMUM_POSITION_VALUE = 4095
+
+BAUDRATE = 57600
 ADDR_PRESENT_CURRENT = 126
 PROTOCOL_VERSION = 2.0
-DXL_ID = 4
-DEVICENAME = '/dev/ttyRS485'
+DXL_ID = 5
+#DEVICENAME = '/dev/ttyUSB3'
+DEVICENAME = '/dev/ttyRS485'   
 
 TORQUE_ENABLE = 1    
 
@@ -36,7 +41,7 @@ class DynamixelSubscriber(Node):
         self.portHandler = PortHandler(devicename)
         self.packetHandler = PacketHandler(PROTOCOL_VERSION)
         self.dxl_id = dxl_id
-        self.dxl_goal_position = DXL_MINIMUM_POSITION_VALUE  
+        #self.dxl_goal_position = DXL_MINIMUM_POSITION_VALUE  
 
         if self.portHandler.openPort():
             self.get_logger().info(f'Succeeded to open the port ({devicename})')
@@ -95,20 +100,23 @@ class DynamixelSubscriber(Node):
             self.get_logger().info(f'Present position: {dxl_present_position*0.088}')
         else:
             self.get_logger().error(f'Failed to read present position (Error: {dxl_error})')
-
+        #전류 확인
         dxl_present_current, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(
             self.portHandler, self.dxl_id, ADDR_PRESENT_CURRENT
         )
+
         if dxl_comm_result == COMM_SUCCESS:
+              self.current_init = (dxl_present_current & 0XFFFF)
           
-              if(dxl_present_current >= 65536/2):
-                  dxl_present_current = abs(65536 - dxl_present_current)
-                  print(f'Present current: {dxl_present_current}')
+              if(self.current_init >= 65536/2):
+                 self.current  = (65536 - self.current_init*(-1))
+                 self.get_logger().error(f'Present current: {self.current }')
               else:
-                  print(f'Present current: {dxl_present_current}')
+                  self.current = self.current_init
+                  self.get_logger().error(f'Present current: {self.current }')
 
         else:
-            print(f'Failed to read present current (Error: {dxl_error})')
+            self.get_logger().error(f'Failed to read present current (Error: {dxl_error})')
 
         #time.sleep(1)
 

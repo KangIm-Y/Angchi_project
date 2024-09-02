@@ -24,40 +24,30 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-             ##########################POSITION#############################
-            'rw_pub = dynamixel_MJ.rw_pub:main',
-            'rw_pub_user = dynamixel_MJ.rw_pub_user:main',
-            'rw_sub = dynamixel_MJ.rw_sub:main',
+
             ######################EXTEND POSITION###########################
-            'pub_extend= dynamixel_MJ.pub_extend :main',
-            'sub_extend = dynamixel_MJ.sub_extend :main',
-            ######################DOUBLE Control#############################
-            'sub_double = dynamixel_MJ.sub_double :main',
-            'pub_double = dynamixel_MJ.pub_double :main',
-             #####################Tripple Control#############################
-            'sub_trip = dynamixel_MJ.sub_trip :main',
-            'pub_trip = dynamixel_MJ.pub_trip :main',
-            'Sub_Trip_Oneport = dynamixel_MJ.Sub_Trip_Oneport :main',
-            'Gripper = dynamixel_MJ.Gripper :main',
-            #####################GRIPPER TORQUE TEST###########################
-            'Grip_torque_test = dynamixel_MJ.Grip_torque_test :main',
-            'Grip_torque_test_pub = dynamixel_MJ.Grip_torque_test_pub :main',
-            ####################RS 485 Without SDK Library####################
-            'test_0722 = dynamixel_MJ.test_0722 :main',
-            ###########################test #################################
+            'pub_extend= dynamixel_MJ.pub_extend:main',
+            'sub_extend = dynamixel_MJ.sub_extend:main',
+            
+             #####################Tripple Control############################
+            'sub_trip = dynamixel_MJ.sub_trip:main',
+            'pub_trip = dynamixel_MJ.pub_trip:main',
+            'Sub_Trip_Oneport = dynamixel_MJ.Sub_Trip_Oneport:main',#4~6 Joint test
+
+            #########################test #################################
             'serial_comm= dynamixel_MJ.serial_comm:main', #NURI Serial TEST
-            ####################Gripper final###############################
+
+            ######################TEST CODE_BY INDIVIDUALLY################
+            'test_pub = dynamixel_MJ.test_pub:main',
+            'test_id4_sub = dynamixel_MJ.test_id4_sub :main', #ID4
+            'test_id5_sub = dynamixel_MJ.test_id5_sub:main', #ID5
+            'test_id6_sub = dynamixel_MJ.test_id6_sub:main', #ID6
+                                    
+            ####################Gripper TEST###############################
             'Gripper_kokomk4 = dynamixel_MJ.Gripper_kokomk4:main',
-            'Gripper_test = dynamixel_MJ.Gripper_test:main',
+            'gripper_testcode = dynamixel_MJ.gripper_testcode:main',
             'Gripper_test2 = dynamixel_MJ.Gripper_test2:main',
-            #'example = dynamixel_MJ.example:main'
-            
-            
-             
-
-            
-                                 
-
+                           
         ],
     },
 )

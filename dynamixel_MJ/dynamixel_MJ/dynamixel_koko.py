@@ -6,7 +6,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32MultiArray
 
-#DYNAMIXEL Protocol-> Import 할 파일
+#Protocol을 위해 Import 할 파일
 from .robotis_def import *
 from .protocol2_packet_handler import * 
 from .packet_handler import * 
@@ -22,6 +22,7 @@ import time as t
 from struct import pack
 
 
+
 # Control table address
 ADDR_OPERATING_MODE         = 11              
 ADDR_TORQUE_ENABLE          = 64               
@@ -31,6 +32,7 @@ ADDR_PRESENT_CURRENT = 126
 # Protocol version
 PROTOCOL_VERSION            = 2.0            
 BAUDRATE                    = 57600
+#BAUDRATE                    = 115200
 
 
 # Default setting
@@ -45,8 +47,7 @@ DXL1_ID                     = 4
 DXL2_ID                     = 5
 DXL3_ID                     = 6  
 
-DEVICENAME                 = '/dev/ttyRS485'  
-#DEVICENAME = '/dev/ttyUSB3' 
+DEVICENAME                 = '/dev/ttyRS485'   
 TORQUE_ENABLE               = 1                 
 TORQUE_DISABLE              = 0                 
 DXL_MOVING_STATUS_THRESHOLD = 20                
@@ -68,24 +69,22 @@ datalen = 12
 class TripSub(Node):
     def __init__(self):
         super().__init__('service_moving')
-
-        #Subscriber
         self.create_subscription(Int32MultiArray, 'joint_dy', self.callback, 10)
-
-        #Service
         self.srv = self.create_service(SetBool, 'ActiveGripper', self.grip_callback)
         self.srv_yp = self.create_service(Protocool, 'command', self.custom_service_callback)
 
-        #Gripper Current
         self.current = 0
 
-        ### protocol write buffer ###
+        ### init ###
+
         self.ser_comm_list = []
         self.ser_comm_byte = []
 
 
+        self.initialize_port()
         
-        
+    #Dynamixel Initializing    
+    def initialize_port(self):
         # OPEN PORT
         if portHandler.openPort():
             self.get_logger().info('Succeeded to open the port')
@@ -103,7 +102,6 @@ class TripSub(Node):
         # Enable Torque
         for dxl_id in [DXL1_ID, DXL2_ID, DXL3_ID]:
             dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, dxl_id, ADDR_OPERATING_MODE, EXT_POSITION_CONTROL_MODE)
-            print("COUNT1")
             if dxl_comm_result != COMM_SUCCESS:
                 self.get_logger().error(f'ID={dxl_id} Failed to change operating mode: {packetHandler.getTxRxResult(dxl_comm_result)}')
                 raise Exception(f'ID={dxl_id} Failed to change operating mode')
@@ -111,13 +109,11 @@ class TripSub(Node):
                 self.get_logger().info(f'ID={dxl_id} Operating mode changed to extended position control mode.')
 
             dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, dxl_id, ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
-            print("COUNT2")
             if dxl_comm_result != COMM_SUCCESS:
                 self.get_logger().error(f'ID={dxl_id} Failed to enable torque: {packetHandler.getTxRxResult(dxl_comm_result)}')
                 raise Exception(f'ID={dxl_id} Failed to enable torque')
             else:
                 self.get_logger().info(f'ID={dxl_id} Dynamixel has been successfully connected')
-
 
         # Read present positions
         for dxl_id, offset in zip([DXL1_ID, DXL2_ID], [OFFSET_4, OFFSET_5]):
@@ -127,7 +123,20 @@ class TripSub(Node):
             else:
                 self.get_logger().error(f'Failed to read present position ID{dxl_id}: {packetHandler.getTxRxResult(dxl_comm_result)}')
 
+#DYNAMIXEL Serial CHECK
+    def check_port_status(self):
+        """Check if the port is open and functional."""
+        if not portHandler.ser.is_open:
+            self.get_logger().error('Serial port is not open.')
+            return False
+        try:
+            portHandler.ser.write(b'')  # Try sending a test command
+            return True
+        except Exception as e:
+            self.get_logger().error(f'Failed to write to port: {e}')
+            return False
 
+#NURI ROBOT CALLBACK
 
     def custom_service_callback(self, request, response):
         self.get_logger().info(f'received : {request.sercommand} , {request.codecommand}')
@@ -344,7 +353,7 @@ class TripSub(Node):
             self.get_logger().info('-------------------------Fnish GRIP-------------------------')
 
 
-            if self.current <= -120:  #전류값 임계치 이상인지 확인
+            if self.current <= -130:  #전류값 임계치 이상인지 확인
                 response.success = True
                 response.message = 'Grip success'
                 self.get_logger().info(f'Present current: {self.current}')
@@ -401,21 +410,26 @@ class TripSub(Node):
 
 
 def main(args=None):
-    rclpy.init(args=args)
-    dynamixel_subscriber = TripSub() # 4~6 joint
+    while True:
+        rclpy.init(args=args)
+        dynamixel_subscriber = TripSub()
 
-    try:
+        try:
+            while rclpy.ok():
+                if not dynamixel_subscriber.check_port_status():
+                    dynamixel_subscriber.get_logger().error('Serial port disconnected. Restarting node...')
+                    dynamixel_subscriber.destroy_node()
+                    rclpy.shutdown()
+                    t.sleep(0.05)  #재시작까지 대기시간
+                    break  
 
-        while(1):
-            rclpy.spin_once(dynamixel_subscriber)
-            
-            
+                rclpy.spin_once(dynamixel_subscriber)
 
-    except KeyboardInterrupt:
-        dynamixel_subscriber.get_logger().info('Keyboard Interrupt (SIGINT)')
-    finally:
-        dynamixel_subscriber.destroy_node()
-        rclpy.shutdown()
+        except KeyboardInterrupt:
+            dynamixel_subscriber.get_logger().info('Keyboard Interrupt (SIGINT)')
+        finally:
+            dynamixel_subscriber.destroy_node()
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
