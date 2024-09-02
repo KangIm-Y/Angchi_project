@@ -24,7 +24,7 @@ class JointSubscriber(Node):
 
         super().__init__('joint_Subscriber')
         qos_profile = QoSProfile(depth=10)
-        self.init_flag = False
+        #self.init_flag = False
         
         self.term = 0.01
         self.client = self.create_client(Protocool, 'command')
@@ -42,10 +42,12 @@ class JointSubscriber(Node):
         self.req.sercommand.id3 = []
         self.srv_flag = False
         self.data_read = False
-        self.init_start_flag = False
+        self.init_fin_flag = False
+
+        self.state = 0
         
         self.send_request()
-        self.srv_flag = False
+        self.init_flag = 0
 
         self.storecount = 0
 
@@ -56,7 +58,7 @@ class JointSubscriber(Node):
         self.pos_incorrect = [5,0,0,0]
         self.cur_posarr = self.posarray
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
-        self.read_pos()
+        #self.read_pos()
 
         self.joint_Subscriber = self.create_subscription(
             Int32MultiArray,
@@ -64,34 +66,6 @@ class JointSubscriber(Node):
             self.subscribe_topic_message,
             qos_profile,
             )
-
-        
-
-
-    def init(self):
-        if self.init_start_flag == True:
-            self.get_logger().info('\033[96m' + "start initializing..." + '\033[0m')
-            self.send_request(codecommand="Init")
-            # self.wait_for_response()
-            t.sleep(1)
-            self.read_pos()
-            self.nuri_initpos()
-            #self.wait_for_response()
-            t.sleep(1)
-            self.get_logger().info('\033[96m' + "Initialized." + '\033[0m')
-            self.init_flag = True
-        else:
-            pass
-            
-
-        
-
-    def wait_for_response(self):
-        while self.srv_flag == True:
-            self.check_srv_res()
-            self.get_logger().info("wait for response...")
-            t.sleep(0.2)
-        
 
 
 
@@ -105,24 +79,45 @@ class JointSubscriber(Node):
             self.get_logger().info("request.")
             self.future = self.client.call_async(self.req)
             self.srv_flag = True
-        self.check_srv_res()
+        #t.sleep(0.2)
+        #self.check_srv_res()
 
-        
-        
         
         
 
     def subscribe_topic_message(self, msg):
 
-        if self.init_start_flag == False:
-            self.init_start_flag = True
-            self.init()
-            #self.init_flag = True
-        elif self.init_flag == False:
-            self.get_logger().warn("waiting for init...")
-        elif self.data_read == False:
-            self.get_logger().warn("file data is not read.")
-        else:
+        if self.state == 0 :
+            if self.init_flag == 0 and self.srv_flag == False:
+                self.get_logger().info('\033[96m' + "start initializing..." + '\033[0m')
+                self.init_flag += 1
+                self.send_request(codecommand="Init")
+                t.sleep(1)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state == 1:
+            if self.init_flag == 1 and self.srv_flag == False:
+                self.init_flag += 1
+                self.set_nuri_zero()
+                t.sleep(1)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state == 2:
+            if self.init_flag == 2 and self.srv_flag == False:
+                self.init_flag += 1
+                self.read_pos()
+                self.nuri_initpos()
+                t.sleep(1)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state == 3:
+            if self.init_flag == 3 and self.srv_flag == False:
+                self.init_flag += 1
+                self.set_nuri_zero()
+                t.sleep(1)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state == 4:
+            self.state += 1
+            self.init_fin_flag = True
+            self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
+        elif self.state >= 5 and self.srv_flag == False:
             self.data_buf = self.inv_data(msg.data)
             for i in range(4):
                 if self.data_buf[i] > self.pos_pre_array[i]:
@@ -137,6 +132,32 @@ class JointSubscriber(Node):
             self.pos_nuri()
             self.pos_pre_array = self.data_buf
 
+        else:
+            pass
+
+
+                
+        
+
+    def state_plus(self, future):
+        if future.done():
+            if self.init_fin_flag == False:
+                self.state += 1
+            else:
+                pass
+
+
+        # if self.init_start_flag == False:
+        #     self.init_start_flag = True
+        #     self.init()
+        #     #self.init_flag = True
+        # elif self.init_flag == False:
+        #     self.get_logger().warn("waiting for init...")
+        # elif self.data_read == False:
+        #     self.get_logger().warn("file data is not read.")
+        # else:
+            
+
 
 
     def nuri_initpos(self):
@@ -145,15 +166,9 @@ class JointSubscriber(Node):
         for i in self.posarray:
             pos_inv.append(~i + 1)
         self.posarray = pos_inv
-        self.set_nuri_zero()
-        t.sleep(1)
         self.pos_nuri()
-        t.sleep(5)
-        self.set_nuri_zero()
-        #self.wait_for_response()
-        t.sleep(1)
-        self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
-        print('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
+        
+        
 
 
                     
@@ -182,6 +197,7 @@ class JointSubscriber(Node):
         self.req.sercommand.id2 = init_pos(2)
         self.req.sercommand.id3 = init_pos(3)
         self.send_request("Move")
+        self.get_logger().info('\033[96m' + 'current position is zero.' + '\033[0m')
         
 
     
