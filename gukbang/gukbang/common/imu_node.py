@@ -58,7 +58,7 @@ class CameraPoseCirculate(Node):
             # angle, x, y, z 
             msg.data = [accel_data[0],accel_data[1],accel_data[2]]
             # self.get_logger().info(f'{math.atan2(-msg.data[1], -msg.data[2]) / math.pi *180}')
-            self.get_logger().info(f'{accel_data[0]:.2f}  {accel_data[1]:.2f}  {accel_data[2]:.2f} ')
+            # self.get_logger().info(f'{accel_data[0]:.2f}  {accel_data[1]:.2f}  {accel_data[2]:.2f} ')
             
             self.camera_pose.publish(msg)
             

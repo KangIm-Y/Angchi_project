@@ -55,7 +55,7 @@ class SpringColorChecker(Node):
         self.depth_size_x = 848
         self.depth_size_y = 480
         
-        self.max_speed = 10
+        self.max_speed = 12
         
         
         
@@ -386,14 +386,15 @@ class SpringColorChecker(Node):
                 if ((self.R_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.R_sum > (self.ROI_half_size * self.slant_drive_min))) :
                     self.L_joy = (self.max_speed / 2)
                     self.R_joy = (self.max_speed / 2)
-                    self.get_logger().info(f'too low')
+                    self.get_logger().info(f'normal')
                 elif self.R_sum >= (self.ROI_half_size * self.slant_drive_max) :
                     self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
                     self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                    self.get_logger().info(f'too close')
+                    self.get_logger().info(f'right')
                 elif self.R_sum <= self.ROI_half_size * self.slant_drive_min :
-                    self.L_joy = (self.max_speed / 2) - 0.5
-                    self.R_joy = (self.max_speed / 2) + 0.5
+                    self.L_joy = (self.max_speed / 2) - 6
+                    self.R_joy = (self.max_speed / 2) - 2
+                    self.get_logger().info(f'left')
                 else :
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
@@ -412,7 +413,7 @@ class SpringColorChecker(Node):
                 #     self.R_joy = self.before_R_joy
             
             
-        self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
+        # self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
         
         self.before_R_joy = self.R_joy
         self.before_L_joy = self.L_joy
@@ -430,19 +431,19 @@ class SpringColorChecker(Node):
         l_mean = np.mean(l_point_arr)
         r_mean = np.mean(r_point_arr)
 
-        if l_mean*1.13 < r_mean : 
+        if l_mean*1.15 < r_mean : 
             self.ahead_roll = True
-            self.get_logger().info(f"ahead_roll True {l_mean:.5f}   {r_mean:.5f}")
+            # self.get_logger().info(f"ahead_roll True {l_mean:.5f}   {r_mean:.5f}")
         else :
             self.ahead_roll = False
-            self.get_logger().info(f"ahead_roll False {l_mean:.5f}   {r_mean:.5f}")
+            # self.get_logger().info(f"ahead_roll False {l_mean:.5f}   {r_mean:.5f}")
 
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
         
         if (imu_data[0] >= 95) |(self.ahead_roll == True) :
             self.robot_roll = 1
-            self.get_logger().info("roll 1")
+            # self.get_logger().info("roll 1")
         else :
             self.robot_roll = 0
 
