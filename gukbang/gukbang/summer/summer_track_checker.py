@@ -24,7 +24,7 @@ class BlueRatioCirculator(Node):
         
         img_qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT,
                                     history=HistoryPolicy.KEEP_LAST,
-                                    depth=10)
+                                    depth=1)
         
         self.control_publisher = self.create_publisher(
             Float32MultiArray, 
@@ -129,7 +129,7 @@ class BlueRatioCirculator(Node):
         ###### gripper state setting ######
         
         self.state = 'S'
-        self.postbox_ROI = [[int(self.img_size_x * 0.3), int(self.img_size_y * 0.45)],[int(self.img_size_x * 0.4), int(self.img_size_y * 0.55)]]## xy xy
+        self.postbox_ROI = [[int(self.img_size_x * 0.3), int(self.img_size_y * 0.65)],[int(self.img_size_x * 0.4), int(self.img_size_y * 0.75)]]## xy xy
         self.postbox_position_set = False
         self.mani_move = 0          # gripper success or falil
         self.grip_state = 0         # 0 is idle,,,   -1 dls false,,,   1 is True
@@ -448,8 +448,8 @@ class BlueRatioCirculator(Node):
         if self.client.service_is_ready():
             request = PositionService.Request()
             self.goal_x = -x -0.1
-            self.goal_y = -y -0.10
-            self.goal_z = z + 0.93
+            self.goal_y = -y -0.10 -0.03
+            self.goal_z = z + 0.93 + 0.2 + 0.06
             
             request.coordinate.x = self.goal_x 
             request.coordinate.y = self.goal_y 
@@ -542,13 +542,15 @@ class BlueRatioCirculator(Node):
     def third_call_service(self):
         if self.client.service_is_ready():
             request = PositionService.Request()
-            if self.mani_state == 'far from home' :
-                request.pose = 'zero'
-            elif self.mani_state == 'zero' :
-                request.pose = 'home'
-            else :
-                return 0
+            # if self.mani_state == 'far from home' :
+            #     request.pose = 'zero'
+            # elif self.mani_state == 'zero' :
+            #     request.pose = 'home'
+            # else :
+            #     return 0
+            self.state ='home'
             time.sleep(2)
+            request.pose = 'home'
             future = self.client.call_async(request)
             
             future.add_done_callback(self.third_callback_function)
@@ -564,7 +566,7 @@ class BlueRatioCirculator(Node):
                 
                 if response.success == True :
                     if self.mani_state == 'zero' or self.mani_state == 'far from home' :
-                        self.third_call_service()
+                        # self.third_call_service()
                         self.get_logger().info("third ###############################################")
 
                     else :
@@ -652,6 +654,8 @@ class BlueRatioCirculator(Node):
                             self.grip_state = 0
                             self.dropbox_mission_flag = True
                             self.grip_call_service_flag = False 
+
+                            self.state = 'S'
                         else : pass
                         
                     else : 
@@ -692,12 +696,12 @@ class BlueRatioCirculator(Node):
         axes = msg.axes
         # btn = msg.buttons
 
-        if axes[2] != -1 :
+        if axes[2] == 1 :
             self.joy_status = False
+        
         else :
             self.joy_status = True
             self.joy_stick_data = [axes[1], axes[4]]
-        
         
             
     ############ control preset ############

@@ -16,10 +16,16 @@ int r = 0;
 float x = 0.0;
 float y = 0.0;
 float z = 0.0;
-double ori_w = 0.0;
+/*double ori_w = 0.7071068;
 double ori_x = 0.0;
 double ori_y = 0.7071231592334566;
 double ori_z = -0.7070904020014414;
+*/
+
+double ori_w = 0.0;
+double ori_x = 0.0;
+double ori_y = 1.0;
+double ori_z = 0.0;
 
 float x_offset = 0.0;
 float y_offset = 0.0;
