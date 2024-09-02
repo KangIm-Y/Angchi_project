@@ -142,6 +142,9 @@ class BlueRatioCirculator(Node):
         self.second_call_flag = False
         self.grip_flag = 0 ## 0 is idle, 1 is true, -1 is false
         self.mission_decision_flag = False
+        self.grip_call_service_flag = False
+
+        self.track_tracking_flag =False
         
         ################# for encoder #################
         self.encoder = [0.,0.]
@@ -293,7 +296,7 @@ class BlueRatioCirculator(Node):
             self.control_publisher.publish(msg)
         
         
-        elif len(self.post_result[0].boxes.cls) :
+        elif (len(self.post_result[0].boxes.cls)>0) & (self.track_tracking_flag==False):
             if self.zeropoint_flag == False :
                 command = Float32MultiArray()
                 command.data = [2., 0., 0.,]
@@ -444,7 +447,7 @@ class BlueRatioCirculator(Node):
     def call_service(self, x,y,z):
         if self.client.service_is_ready():
             request = PositionService.Request()
-            self.goal_x = -x 
+            self.goal_x = -x -0.1
             self.goal_y = -y -0.10
             self.goal_z = z + 0.93
             
@@ -548,7 +551,7 @@ class BlueRatioCirculator(Node):
             time.sleep(2)
             future = self.client.call_async(request)
             
-            future.add_done_callback(self.second_callback_function)
+            future.add_done_callback(self.third_callback_function)
             
         else:
             self.get_logger().warn('Service not available')
@@ -562,8 +565,12 @@ class BlueRatioCirculator(Node):
                 if response.success == True :
                     if self.mani_state == 'zero' or self.mani_state == 'far from home' :
                         self.third_call_service()
+                        self.get_logger().info("third ###############################################")
+
                     else :
                         pass
+                else :
+                    self.get_logger().info(f"response fail.. ")
                         
                 
                 
@@ -614,7 +621,11 @@ class BlueRatioCirculator(Node):
                     self.mani_move = 0
                 elif self.mani_move == 1 :
                     time.sleep(3)
-                    self.grip_call_service()
+                    if self.grip_call_service_flag == False :
+                        self.grip_call_service()
+                        self.grip_call_service_flag = True 
+                    else :
+                        pass 
                     
                     ##success
                     if self.grip_state == 1 :
@@ -627,6 +638,8 @@ class BlueRatioCirculator(Node):
                         self.control_publisher.publish(command)
                         self.zeropoint_flag = False
 
+                        self.track_tracking_flag = True
+
 
                         time.sleep(3)
                         self.mission_decision_flag = False
@@ -638,6 +651,7 @@ class BlueRatioCirculator(Node):
                             self.mani_move = 0
                             self.grip_state = 0
                             self.dropbox_mission_flag = True
+                            self.grip_call_service_flag = False 
                         else : pass
                         
                     else : 

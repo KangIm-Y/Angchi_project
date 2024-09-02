@@ -133,7 +133,7 @@ class TripSub(Node):
                 self.get_logger().error('Port reinitialization failed. Skipping callback processing.')
                 return
         
-        goal_position1 = int((msg.data[0] + OFFSET_4) / 0.088)
+        goal_position1 = int((-msg.data[0] + OFFSET_4) / 0.088)
         goal_position2 = int((msg.data[1] + OFFSET_5) / 0.088)
 
         for dxl_id, goal_position in zip([DXL1_ID, DXL2_ID], [goal_position1, goal_position2]):
@@ -149,8 +149,8 @@ class TripSub(Node):
 
     def perform_grip_action(self):
         angle_step = 33
-        initial_position = int(160 / 0.088)
-        final_position = int(20 / 0.088)
+        initial_position = int(200 / 0.088)
+        final_position = int(30 / 0.088)
         
         self.gripper(initial_position)
         for goal_position in range(int(initial_position), int(final_position), -angle_step):

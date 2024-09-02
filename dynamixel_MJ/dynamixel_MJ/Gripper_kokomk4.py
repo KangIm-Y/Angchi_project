@@ -300,7 +300,7 @@ class TripSub(Node):
 
         # Write Goal Position
 
-        goal_position1 = int((msg.data[0] + OFFSET_4) / 0.088)
+        goal_position1 = int((-msg.data[0] + OFFSET_4) / 0.088)
         goal_position2 = int((msg.data[1] + OFFSET_5) / 0.088)
         if (len(self.ser_comm_list)>0) :
             for i in range(len(self.ser_comm_list)) : 
@@ -324,8 +324,8 @@ class TripSub(Node):
     def grip_callback(self, request, response):
         grip = request.data
         angle_step = 33
-        initial_position = int(160 / 0.088)
-        final_position = int(20/ 0.088)
+        initial_position = int(200 / 0.088)
+        final_position = int(30/ 0.088)
        
         # self.get_logger().info(f'Received grip command: {grip}')
         
