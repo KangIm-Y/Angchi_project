@@ -72,7 +72,7 @@ class JointSubscriber(Node):
     def send_request(self, codecommand = '-'):        #사용법 : rs485 커멘드 => send_request(명령어), 코드 자체에 보낼 커멘드 => send_request(codecommand = 명령어)
         
         # send the request
-        self.get_logger().debug(f'send data : {self.req.sercommand}')
+        #self.get_logger().info(f'send data : {self.req.sercommand}')
         self.req.codecommand = codecommand
         # uses sys.argv to access command line input arguments for the request.
         if self.srv_flag == False:
@@ -90,34 +90,75 @@ class JointSubscriber(Node):
         if self.state == 0 :
             if self.init_flag == 0 and self.srv_flag == False:
                 self.get_logger().info('\033[96m' + "start initializing..." + '\033[0m')
+                self.get_logger().info(f"{self.state} : motor check")
                 self.init_flag += 1
                 self.send_request(codecommand="Init")
-                t.sleep(1)
+                t.sleep(0.5)
                 self.future.add_done_callback(self.state_plus)
         elif self.state == 1:
             if self.init_flag == 1 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : set gear ratio")
                 self.init_flag += 1
-                self.set_nuri_zero()
-                t.sleep(1)
+                self.set_1_gear()
+                t.sleep(0.5)
                 self.future.add_done_callback(self.state_plus)
         elif self.state == 2:
             if self.init_flag == 2 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : set offset")
                 self.init_flag += 1
-                self.read_pos()
-                self.nuri_initpos()
-                t.sleep(1)
+                self.set_nuri_zero()
+                t.sleep(0.5)
                 self.future.add_done_callback(self.state_plus)
         elif self.state == 3:
             if self.init_flag == 3 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : control off")
+                self.init_flag += 1
+                self.control_off()
+                t.sleep(0.5)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state >= 4 and self.state < 10 :
+            if self.init_flag >= 4 and self.srv_flag < 10 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : control on")
+                self.init_flag += 1
+                self.control_on()
+                t.sleep(0.5)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state == 10:
+            if self.init_flag == 10 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : move to zeropos")
+                self.init_flag += 1
+                self.read_pos()
+                t.sleep(1)
+                self.nuri_initpos()
+                t.sleep(5)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state == 11:
+            if self.init_flag == 11 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : set offset")
                 self.init_flag += 1
                 self.set_nuri_zero()
-                t.sleep(1)
+                t.sleep(0.5)
                 self.future.add_done_callback(self.state_plus)
-        elif self.state == 4:
+        elif self.state == 12:
+            if self.init_flag == 12 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : control off")
+                self.init_flag += 1
+                self.control_off()
+                t.sleep(0.5)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state >= 13 and self.state < 19:
+            if self.init_flag >= 13  and self.srv_flag < 19 and self.srv_flag == False:
+                self.get_logger().info(f"{self.state} : control on")
+                self.init_flag += 1
+                self.control_on()
+                t.sleep(0.5)
+                self.future.add_done_callback(self.state_plus)
+        elif self.state == 19:
+            self.get_logger().info(f"{self.state} : finish init")
             self.state += 1
             self.init_fin_flag = True
             self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
-        elif self.state >= 5 and self.srv_flag == False:
+        elif self.state >= 20 and self.srv_flag == False:
             self.data_buf = self.inv_data(msg.data)
             for i in range(4):
                 if self.data_buf[i] > self.pos_pre_array[i]:
@@ -134,6 +175,31 @@ class JointSubscriber(Node):
 
         else:
             pass
+
+
+    def control_on(self):
+        self.req.sercommand.id0 = control_sw(0, 0)
+        self.req.sercommand.id1 = control_sw(1, 0)
+        self.req.sercommand.id2 = control_sw(2, 0)
+        self.req.sercommand.id3 = control_sw(3, 0)
+        self.send_request("Config")
+
+    def control_off(self):
+        self.req.sercommand.id0 = control_sw(0, 1)
+        self.req.sercommand.id1 = control_sw(1, 1)
+        self.req.sercommand.id2 = control_sw(2, 1)
+        self.req.sercommand.id3 = control_sw(3, 1)
+        self.send_request("Config")
+
+
+    def set_1_gear(self):
+        self.req.sercommand.id0 = set_gear_ratio(0, 0)
+        self.req.sercommand.id1 = set_gear_ratio(1, 4.8)
+        self.req.sercommand.id2 = set_gear_ratio(2, 0)
+        self.req.sercommand.id3 = set_gear_ratio(3, 0)
+        self.send_request("Config")
+
+
 
 
                 
@@ -188,7 +254,7 @@ class JointSubscriber(Node):
         self.req.sercommand.id1 = set_pos_con_mode(1, 0)
         self.req.sercommand.id2 = set_pos_con_mode(2, 0)
         self.req.sercommand.id3 = set_pos_con_mode(3, 0)
-        self.send_request("Move")
+        self.send_request("Config")
 
 
     def set_nuri_zero(self):
@@ -196,7 +262,7 @@ class JointSubscriber(Node):
         self.req.sercommand.id1 = init_pos(1)
         self.req.sercommand.id2 = init_pos(2)
         self.req.sercommand.id3 = init_pos(3)
-        self.send_request("Move")
+        self.send_request("Config")
         self.get_logger().info('\033[96m' + 'current position is zero.' + '\033[0m')
         
 
@@ -224,10 +290,11 @@ class JointSubscriber(Node):
                             data = float(line.strip())
                             #self.get_logger().info(f"data : {data} , type : {type(data)}")
                             read_deg = int(data)
-                            if num == 1:
-                                deg[num] = int(read_deg * 4.8)
-                            else:
-                                deg[num] = read_deg
+                            deg[num] = read_deg
+                            # if num == 1:
+                            #     deg[num] = int(read_deg * 4.8)
+                            # else:
+                            #     deg[num] = read_deg
                             self.get_logger().info(f"last {num} joint data is {read_deg}")
                         except Exception as e:
                             self.get_logger().warn(f"Can't read data for {num} joint. It will be zero. error : {e}")
@@ -262,7 +329,7 @@ class JointSubscriber(Node):
                 try:
                     self.cur_posarr = []
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id0))
-                    self.cur_posarr.append((self.extract_deg_data(response.feedback.id1))/4.8)
+                    self.cur_posarr.append(self.extract_deg_data(response.feedback.id1))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id2))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id3))
                     #self.get_logger().info(f"success! response : {self.cur_posarr}")
@@ -386,6 +453,21 @@ def call_feedback(Id, Mode):
     mode = format(Mode, '#04x')
     data_array = [motor_id, data_num, mode]
     return list(attach_checksum(data_array))
+
+def control_sw(Id, Mode):
+    motor_id = format(Id, '#04x')
+    data_num = '0x03'
+    mode = format(Mode, '#04x')
+    data_array = [motor_id, data_num, '0x0a', mode]
+    return list(attach_checksum(data_array))
+
+def set_gear_ratio(Id, ratio):
+    motor_id = format(Id, '#04x')
+    data_num = '0x04'
+    mode = format(int(ratio * 10), '#06x')
+    data_array = [motor_id, data_num, '0x09', mode]
+    return list(attach_checksum(data_array))
+
 
 
 

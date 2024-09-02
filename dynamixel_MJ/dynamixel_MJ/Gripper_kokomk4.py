@@ -253,6 +253,61 @@ class TripSub(Node):
                     response.feedback = list(portHandler.ser.readline())
                     break
 
+
+#----------------------------- motor config ------------------------ 
+
+        elif request.codecommand == "Config":
+            self.get_logger().info('setup motors!!')
+
+            try:
+
+        #-----------------------------send command motor 0------------------------        
+                data = bytes(request.sercommand.id0)
+                if data != b'':
+                    portHandler.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m0 : {data}')
+                    portHandler.ser.write(call_feedback(0, 0xA1))
+                    
+                    response.feedback.id0 = []
+                           
+        #-----------------------------send command motor 1------------------------  
+                data = bytes(request.sercommand.id1)
+                if data != b'':
+                    portHandler.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m1 : {data}')
+                    portHandler.ser.write(call_feedback(1, 0xA1))
+                    response.feedback.id1 = []
+                            
+
+        #-----------------------------send command motor 2------------------------  
+                data = bytes(request.sercommand.id2)
+                if data != b'':
+                    portHandler.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m2 : {data}')
+                    portHandler.ser.write(call_feedback(2, 0xA1))
+                    response.feedback.id2 = []
+
+
+        #-----------------------------send command motor 3------------------------  
+                data = bytes(request.sercommand.id3)
+                if data != b'':
+                    portHandler.ser.write(data)
+                    # print a pretty message
+                    self.get_logger().info(f'send m3 : {data}')
+                    portHandler.ser.write(call_feedback(3, 0xA1))
+                    response.feedback.id3 = []
+
+                # response state
+                response.success = True
+            except Exception as e:
+                self.get_logger().error(f'move failed!! error : {e}')
+                response.success = False
+            
+
+
         else:
             # response state
             response.success = False

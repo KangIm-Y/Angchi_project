@@ -41,7 +41,7 @@ class Tf_jointState(Node):
                 self.poseArr[3] = int(round((180 / PI) * self.poseArrRad[i]))
             elif i == 3 :
                 self.poseArr[1] = int(round((180 / PI) * self.poseArrRad[i]))
-                self.poseArr[1] = int(round(self.poseArr[1] * 4.8))
+                #self.poseArr[1] = int(round(self.poseArr[1] * 4.8))
             elif i == 4 :
                 self.poseArr[4] = int(round((180 / PI) * self.poseArrRad[i]))
 
