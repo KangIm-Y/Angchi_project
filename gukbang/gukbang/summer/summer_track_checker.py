@@ -388,7 +388,7 @@ class BlueRatioCirculator(Node):
                 pass
             
         
-            if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][0]))) :
+            if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][1]))) :
                 
                 self.get_logger().info(f'find finish')
                 self.chess_detection_flag = True
