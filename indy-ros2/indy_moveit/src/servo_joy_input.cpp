@@ -17,7 +17,7 @@
 #include <custom_interfaces/srv/position_service.hpp>
 
 // We'll just set up parameters here
-const std::string JOY_TOPIC = "/joy/indy_ros";
+const std::string JOY_TOPIC = "/joy";
 const std::string TWIST_TOPIC = "/servo_node/delta_twist_cmds";
 const std::string JOINT_TOPIC = "/servo_node/delta_joint_cmds";
 const std::string EEF_FRAME_ID = "tcp";
@@ -45,17 +45,18 @@ enum Button
   LEFT_BUMPER = 4,
   RIGHT_BUMPER = 5,
   CHANGE_VIEW = 15,
-  MENU = 16,
+  MENU = 9,
   HOME = 8,
   LEFT_STICK_CLICK = 11,
   RIGHT_STICK_CLICK = 12
 };
+auto mode = 0;
 
 // Some axes have offsets (e.g. the default trigger position is 1.0 not 0)
 // This will map the default values for the axes
 std::map<Axis, double> AXIS_DEFAULTS = { { LEFT_TRIGGER, 1.0 }, { RIGHT_TRIGGER, 1.0 } };
 std::map<Button, double> BUTTON_DEFAULTS;
-std::array<int, 2> button_state_previous_ = {0,0};
+std::array<int, 3> button_state_previous_ = {0,0,0};
 
 // To change controls or setup a new controller, all you should to do is change the above enums and the follow 2
 // functions
@@ -135,6 +136,7 @@ public:
 
     twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(TWIST_TOPIC, rclcpp::SystemDefaultsQoS());
     joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(JOINT_TOPIC, rclcpp::SystemDefaultsQoS());
+    joy_pub_ = this->create_publisher<sensor_msgs::msg::Joy>("/joy_drive", rclcpp::SystemDefaultsQoS());
 
     // Create a service client to start the ServoNode
     servo_start_client_ = this->create_client<std_srvs::srv::Trigger>("/servo_node/start_servo");
@@ -151,50 +153,78 @@ public:
     // Create the messages we might publish
     auto twist_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
     auto joint_msg = std::make_unique<control_msgs::msg::JointJog>();
+    auto joy_msg = std::make_unique<sensor_msgs::msg::Joy>();
     auto request = std::make_shared<custom_interfaces::srv::PositionService::Request>();
 
     rclcpp::Logger logger = rclcpp::get_logger("moveit_servo");
 
+
+    if (msg -> buttons[9] == 1 && button_state_previous_[2] != 1)
+    {
+      if (mode == 0){
+        RCLCPP_INFO(logger, "mode : manipulator");
+        mode = 1;
+      }
+      else if(mode == 1)
+      {
+        RCLCPP_INFO(logger, "mode : drive");
+        mode = 0;
+      }
+    }
+
+    if (mode == 0){
     
 
-    // This call updates the frame for twist commands
-    updateCmdFrame(frame_to_publish_, msg->buttons);
+      // This call updates the frame for twist commands
+      updateCmdFrame(frame_to_publish_, msg->buttons);
+      
 
-    // Convert the joystick message to Twist or JointJog and publish
-    if (convertJoyToCmd(msg->axes, msg->buttons, twist_msg, joint_msg))
-    {
-      // publish the TwistStamped
-      twist_msg->header.frame_id = frame_to_publish_;
-      twist_msg->header.stamp = this->now();
-      twist_pub_->publish(std::move(twist_msg));
-    }
-    else
-    {
-      // publish the JointJog
-      joint_msg->header.stamp = this->now();
-      joint_msg->header.frame_id = "link0";
-      joint_pub_->publish(std::move(joint_msg));
-    }
+      // Convert the joystick message to Twist or JointJog and publish
+      if (convertJoyToCmd(msg->axes, msg->buttons, twist_msg, joint_msg))
+      {
+        // publish the TwistStamped
+        twist_msg->header.frame_id = frame_to_publish_;
+        twist_msg->header.stamp = this->now();
+        twist_pub_->publish(std::move(twist_msg));
+      }
+      else
+      {
+        // publish the JointJog
+        joint_msg->header.stamp = this->now();
+        joint_msg->header.frame_id = "link0";
+        joint_pub_->publish(std::move(joint_msg));
+      }
 
-    if (msg->buttons[11] == 1 && button_state_previous_[0] != 1)
-    {
-      RCLCPP_INFO(logger, "zero");
-      request->pose = "zero";
-      pose_start_client_->async_send_request(request);
-    }
 
-    if (msg->buttons[8] == 1 && button_state_previous_[1] != 1)
-    {
-      RCLCPP_INFO(logger, "home");
-      request->pose = "home";
-      pose_start_client_->async_send_request(request);
-    }
+      if (msg->buttons[11] == 1 && button_state_previous_[0] != 1)
+      {
+        RCLCPP_INFO(logger, "zero");
+        request->pose = "zero";
+        pose_start_client_->async_send_request(request);
+      }
 
-    button_state_previous_ = {msg->buttons[11], msg->buttons[8]};
+      if (msg->buttons[8] == 1 && button_state_previous_[1] != 1)
+      {
+        RCLCPP_INFO(logger, "home");
+        request->pose = "home";
+        pose_start_client_->async_send_request(request);
+      }
+
+      
+    }
+    else if (mode == 1)
+    {
+      //RCLCPP_INFO(this->get_logger(), "Publishing message");
+      joy_msg -> axes = msg -> axes;
+      joy_msg -> buttons = msg -> buttons;
+      joy_pub_-> publish(*joy_msg);
+    }
+    button_state_previous_ = {msg->buttons[11], msg->buttons[8], msg->buttons[9]};
   }
 
 private:
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::Joy>::SharedPtr joy_pub_;
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr servo_start_client_;
