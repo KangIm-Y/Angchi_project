@@ -129,7 +129,7 @@ class BlueRatioCirculator(Node):
         ###### gripper state setting ######
         
         self.state = 'S'
-        self.postbox_ROI = [[int(self.img_size_x * 0.3), int(self.img_size_y * 0.65)],[int(self.img_size_x * 0.4), int(self.img_size_y * 0.75)]]## xy xy
+        self.postbox_ROI = [[int(self.img_size_x * 0.4), int(self.img_size_y * 0.65)],[int(self.img_size_x * 0.5), int(self.img_size_y * 0.75)]]## xy xy
         self.postbox_position_set = False
         self.mani_move = 0          # gripper success or falil
         self.grip_state = 0         # 0 is idle,,,   -1 dls false,,,   1 is True

@@ -149,7 +149,7 @@ class TripSub(Node):
 
     def perform_grip_action(self):
         angle_step = 33
-        initial_position = int(200 / 0.088)
+        initial_position = int(310 / 0.088)
         final_position = int(30 / 0.088)
         
         self.gripper(initial_position)

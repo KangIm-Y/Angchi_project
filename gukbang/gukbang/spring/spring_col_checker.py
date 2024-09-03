@@ -212,12 +212,12 @@ class SpringColorChecker(Node):
         
         cv2.imshow("ROI", self.color_ROI)
         
-        cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
-        cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
-        cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        # cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
+        # cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
+        # cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
         
-        cv2.imshow("color", self.color_img)
-        cv2.waitKey(1)
+        # cv2.imshow("color", self.color_img)
+        # cv2.waitKey(1)
         
             
     def track_tracking(self) :
@@ -231,7 +231,7 @@ class SpringColorChecker(Node):
                 self.stop()
                 
             elif self.chess_detection_flag == True :
-                self.go(10.0)
+                self.go(0.5)
                 time.sleep(3)
                 self.stop()
                 self.finish_flag = True
@@ -262,7 +262,7 @@ class SpringColorChecker(Node):
                         self.back()
                         self.get_logger().info(f'back')
                     elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                        self.go(5.0)
+                        self.go(0.25)
                         self.get_logger().info(f'go')
                     else : 
                         pass
@@ -328,7 +328,7 @@ class SpringColorChecker(Node):
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
             
-        self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
+        # self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
         
         self.before_R_joy = self.R_joy
         self.before_L_joy = self.L_joy
@@ -336,6 +336,13 @@ class SpringColorChecker(Node):
         msg.data = [self.odrive_mode, self.L_joy, self.R_joy]
 
         self.control_publisher.publish(msg)
+
+        cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
+        cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
+        cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        
+        cv2.imshow("color", self.color_img)
+        cv2.waitKey(1)
         
     ########################################
             

@@ -44,7 +44,7 @@ class Testcar_sub(Node):
         self.get_logger().info('Calibration COMPLETE.')
 
     def subscribe_topic_message(self, msg):
-        self.get_logger().info('Received data : {}'.format(msg.data))
+        # self.get_logger().info('Received data : {}'.format(msg.data))
         movedata = msg.data[1:]   
         movedata[0], movedata[1] = movedata[1], movedata[0]
         movedata[0] = -movedata[0] # axis1 방향 전환 -,+
