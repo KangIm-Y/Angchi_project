@@ -370,18 +370,6 @@ class SpringColorChecker(Node):
             # turn right        
             elif self.robot_roll == 1 :
                 ### color 주행.
-                # if ((self.R_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.R_sum > (self.ROI_half_size * self.slant_drive_min))) :
-                #     self.L_joy = (self.max_speed / 2)
-                #     self.R_joy = (self.max_speed / 2)
-                # elif self.R_sum >= (self.ROI_half_size * self.slant_drive_max) :
-                #     self.L_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                #     self.R_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.R_sum / self.ROI_half_size))
-                # elif self.R_sum <= self.ROI_half_size * self.slant_drive_min :
-                #     self.L_joy = (self.max_speed / 2) - 0.5
-                #     self.R_joy = (self.max_speed / 2) + 0.5
-                # else :
-                #     self.L_joy = self.before_L_joy
-                #     self.R_joy = self.before_R_joy
 
                 if ((self.R_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.R_sum > (self.ROI_half_size * self.slant_drive_min))) :
                     self.L_joy = (self.max_speed / 2)
@@ -399,20 +387,6 @@ class SpringColorChecker(Node):
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
 
-                # if (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
-                #     self.L_joy = (self.max_speed / 2)
-                #     self.R_joy = (self.max_speed / 2)
-                # elif ((self.L_sum < self.R_sum*0.25) | (self.R_sum < self.L_sum*0.25)) :
-                #     self.L_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum > self.R_sum else 1.)
-                #     self.R_joy = (self.max_speed / 1.25 ) * (0.25 if self.L_sum < self.R_sum else 1.)
-                # elif ((self.L_sum > self.R_sum) | (self.R_sum > self.L_sum)) :
-                #     self.L_joy = (self.max_speed * (self.R_sum/(self.R_sum+self.L_sum)))
-                #     self.R_joy = (self.max_speed * (self.L_sum/(self.R_sum+self.L_sum)))
-                # else :
-                #     self.L_joy = self.before_L_joy
-                #     self.R_joy = self.before_R_joy
-            
-            
         # self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
         
         self.before_R_joy = self.R_joy
