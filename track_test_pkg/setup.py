@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os
+from glob import glob
 
 package_name = 'track_test_pkg'
 
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share',package_name), glob('launch/*.launch.py'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,6 +29,8 @@ setup(
             
             'blue_ratio_imu=track_test_pkg.usable_code.blue_ratio_imu:main',
             'blue_ratio_imu_nonMulti=track_test_pkg.blue_ratio_imu_nonMulti:main',
+            
+            'joy_remapping=track_test_pkg.joy_remapping:main',
             
             
             
