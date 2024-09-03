@@ -52,6 +52,7 @@ setup(
         'center_joy_drive_sub_cam=gukbang.common.center_joy_drive_sub_cam:main',
         
         'odrive=gukbang.common.odrive:main',
+        'joy_remapper=gukbang.common.joy_remapper:main',
         
         ],
     },
