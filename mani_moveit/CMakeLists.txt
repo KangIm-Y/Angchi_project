@@ -12,12 +12,14 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(moveit_visual_tools REQUIRED)
 find_package(custom_interfaces REQUIRED)
+find_package(std_srvs REQUIRED)  # 추가: std_srvs 패키지 필요
 
+# 기존 mani_moveit 실행 파일 설정
 add_executable(mani_moveit src/mani_moveit.cpp)
 target_include_directories(mani_moveit PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_compile_features(mani_moveit PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(mani_moveit PUBLIC c_std_99 cxx_std_17)
 ament_target_dependencies(
   mani_moveit
   moveit_ros_planning_interface
@@ -28,7 +30,21 @@ ament_target_dependencies(
 
 install(TARGETS mani_moveit
   DESTINATION lib/${PROJECT_NAME})
-  
+
+# 추가: activegrippertest 실행 파일 설정
+add_executable(activegrippertest src/activegrippertest.cpp)
+target_include_directories(activegrippertest PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(activegrippertest PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(
+  activegrippertest
+  rclcpp
+  std_srvs
+)
+
+install(TARGETS activegrippertest
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

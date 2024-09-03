@@ -3,6 +3,7 @@
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
 #include <std_srvs/srv/trigger.hpp>
+#include <std_srvs/srv/set_bool.hpp>
 #include <moveit_msgs/msg/planning_scene.hpp>
 #include <rclcpp/client.hpp>
 #include <rclcpp/experimental/buffers/intra_process_buffer.hpp>
@@ -14,7 +15,6 @@
 #include <rclcpp/time.hpp>
 #include <rclcpp/utilities.hpp>
 #include <thread>
-#include <custom_interfaces/srv/position_service.hpp>
 
 // We'll just set up parameters here
 const std::string JOY_TOPIC = "/joy";
@@ -51,6 +51,7 @@ enum Button
   RIGHT_STICK_CLICK = 12
 };
 auto mode = 0;
+auto grip = false;
 
 // Some axes have offsets (e.g. the default trigger position is 1.0 not 0)
 // This will map the default values for the axes
@@ -143,8 +144,8 @@ public:
     servo_start_client_->wait_for_service(std::chrono::seconds(1));
     servo_start_client_->async_send_request(std::make_shared<std_srvs::srv::Trigger::Request>());
 
-    pose_start_client_ = this->create_client<custom_interfaces::srv::PositionService>("pos_srv");
-    pose_start_client_->wait_for_service(std::chrono::seconds(1));
+    grip_start_client_ = this->create_client<std_srvs::srv::SetBool>("ActiveGripper");
+    grip_start_client_->wait_for_service(std::chrono::seconds(1));
     
   }
 
@@ -154,7 +155,7 @@ public:
     auto twist_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
     auto joint_msg = std::make_unique<control_msgs::msg::JointJog>();
     auto joy_msg = std::make_unique<sensor_msgs::msg::Joy>();
-    auto request = std::make_shared<custom_interfaces::srv::PositionService::Request>();
+    auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
 
     rclcpp::Logger logger = rclcpp::get_logger("moveit_servo");
 
@@ -196,18 +197,29 @@ public:
       }
 
 
-      if (msg->buttons[11] == 1 && button_state_previous_[0] != 1)
-      {
-        RCLCPP_INFO(logger, "zero");
-        request->pose = "zero";
-        pose_start_client_->async_send_request(request);
-      }
+      // if (msg->buttons[11] == 1 && button_state_previous_[0] != 1)
+      // {
+      //   RCLCPP_INFO(logger, "zero");
+      //   request->pose = "zero";
+      //   pose_start_client_->async_send_request(request);
+      // }
 
       if (msg->buttons[8] == 1 && button_state_previous_[1] != 1)
       {
-        RCLCPP_INFO(logger, "home");
-        request->pose = "home";
-        pose_start_client_->async_send_request(request);
+        if (grip == false)
+        {
+          RCLCPP_INFO(logger, "grip on");
+          request->data = true;
+          grip_start_client_->async_send_request(request);
+          grip = true;
+        }
+        else if (grip == true)
+        {
+          RCLCPP_INFO(logger, "grip off");
+          request->data = false;
+          grip_start_client_->async_send_request(request);
+          grip = false;
+        }
       }
 
       
@@ -228,7 +240,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr servo_start_client_;
-  rclcpp::Client<custom_interfaces::srv::PositionService>::SharedPtr pose_start_client_;
+  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr grip_start_client_;
 
   std::string frame_to_publish_;
 };  // class JoyToServoPub
