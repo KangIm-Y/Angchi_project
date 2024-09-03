@@ -269,7 +269,7 @@ class JointSubscriber(Node):
     
     def pos_nuri(self):
         self.req.sercommand.id0 = set_degtime(0, self.posarray[0], 3)
-        self.req.sercommand.id1 = set_degtime(1, self.posarray[1], 2)
+        self.req.sercommand.id1 = set_degtime(1, self.posarray[1], 3)
         self.req.sercommand.id2 = set_degtime(2, self.posarray[2], 3)
         self.req.sercommand.id3 = set_degtime(3, self.posarray[3], 3)
         self.get_logger().debug(f'send {self.req.sercommand}')
