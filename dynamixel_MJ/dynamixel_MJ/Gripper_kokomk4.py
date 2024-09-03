@@ -28,6 +28,8 @@ ADDR_TORQUE_ENABLE          = 64
 ADDR_GOAL_POSITION          = 116
 ADDR_PRESENT_POSITION       = 132
 ADDR_PRESENT_CURRENT = 126
+ADDR_PROFILE_VELOCITY = 112
+
 # Protocol version
 PROTOCOL_VERSION            = 2.0            
 BAUDRATE                    = 57600
@@ -36,9 +38,12 @@ BAUDRATE                    = 57600
 # Default setting
 MAX_POSITION_VALUE          = 1048575             
 EXT_POSITION_CONTROL_MODE   = 4                 
+PROFILE_VELOCITY = 2000
 
 ESC_ASCII_VALUE             = 0x1b
 SPACE_ASCII_VALUE           = 0x20
+
+
 
 # Dynamixel ID
 DXL1_ID                     = 4
@@ -86,6 +91,8 @@ class TripSub(Node):
 
         
         
+        #Dynamixel Initializing
+
         # OPEN PORT
         if portHandler.openPort():
             self.get_logger().info('Succeeded to open the port')
@@ -99,24 +106,36 @@ class TripSub(Node):
         else:
             self.get_logger().error('Failed to change the baudrate')
             raise Exception('Failed to change the baudrate')
+        
 
-        # Enable Torque
         for dxl_id in [DXL1_ID, DXL2_ID, DXL3_ID]:
+
+            #Operating Mode
             dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, dxl_id, ADDR_OPERATING_MODE, EXT_POSITION_CONTROL_MODE)
-            print("COUNT1")
             if dxl_comm_result != COMM_SUCCESS:
                 self.get_logger().error(f'ID={dxl_id} Failed to change operating mode: {packetHandler.getTxRxResult(dxl_comm_result)}')
                 raise Exception(f'ID={dxl_id} Failed to change operating mode')
             else:
                 self.get_logger().info(f'ID={dxl_id} Operating mode changed to extended position control mode.')
 
+            #Profile Velocity
+            dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, dxl_id, ADDR_PROFILE_VELOCITY, PROFILE_VELOCITY )
+            if dxl_comm_result != COMM_SUCCESS:
+                self.get_logger().error(f'ID={dxl_id} Failed to Profile Velocity: {packetHandler.getTxRxResult(dxl_comm_result)}')
+                raise Exception(f'ID={dxl_id} Failed to change Profile Velocity')
+            else:
+                self.get_logger().info(f'ID={dxl_id} Profile Velocity mode changed')
+
+
+            #Torque Enable Mode
             dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, dxl_id, ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
-            print("COUNT2")
             if dxl_comm_result != COMM_SUCCESS:
                 self.get_logger().error(f'ID={dxl_id} Failed to enable torque: {packetHandler.getTxRxResult(dxl_comm_result)}')
                 raise Exception(f'ID={dxl_id} Failed to enable torque')
             else:
                 self.get_logger().info(f'ID={dxl_id} Dynamixel has been successfully connected')
+        
+
 
 
         # Read present positions
