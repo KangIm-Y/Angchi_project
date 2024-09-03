@@ -622,7 +622,7 @@ class BlueRatioCirculator(Node):
                     self.call_flag = False
                     self.mani_move = 0
                 elif self.mani_move == 1 :
-                    time.sleep(3)
+                    time.sleep(2)
                     if self.grip_call_service_flag == False :
                         self.grip_call_service()
                         self.grip_call_service_flag = True 
