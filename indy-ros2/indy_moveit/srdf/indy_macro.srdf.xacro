@@ -21,7 +21,7 @@
                 <joint name="${prefix}joint1" value="1.4312" />
                 <joint name="${prefix}joint2" value="-1.5359" />
                 <joint name="${prefix}joint3" value="0" />
-                <joint name="${prefix}joint4" value="0" />
+                <joint name="${prefix}joint4" value="1.57075" />
                 <joint name="${prefix}joint5" value="0" />
                 <joint name="${prefix}joint6" value="0" />
             </group_state>
@@ -54,7 +54,7 @@
                 <joint name="${prefix}joint1" value="1.4312" />
                 <joint name="${prefix}joint2" value="-1.5359" />
                 <joint name="${prefix}joint3" value="0" />
-                <joint name="${prefix}joint4" value="-0.1745" />
+                <joint name="${prefix}joint4" value="1.57075" />
                 <joint name="${prefix}joint5" value="0" />
             </group_state>
             <group_state name="${prefix}ZeroPos" group="${prefix}${name}_manipulator">
