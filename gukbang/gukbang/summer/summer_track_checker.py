@@ -61,6 +61,10 @@ class BlueRatioCirculator(Node):
         self.process_timer = self.create_timer(1/15, self.image_processing)
         self.pub_controll = self.create_timer(1/15, self.track_tracking)
         self.yolo_controll = self.create_timer(1/15, self.mission_decision)
+
+        #### LAST DANCE ADDED
+        self.chess_counter = self.create_timer(1/5, self.chess_timer_callback)
+        #### LAST DANCE ADDED
         
         
         self.client = self.create_client(PositionService, 'pos_srv')
@@ -87,6 +91,10 @@ class BlueRatioCirculator(Node):
         self.joy_stick_data = [0, 0]
         self.before_L_joy = 0.
         self.before_R_joy = 0.
+        ##################### shibal init
+        self.L_joy = 0.
+        self.R_joy = 0.
+        ##################### shibal init
         
         
         ### realsense setting ###
@@ -122,7 +130,7 @@ class BlueRatioCirculator(Node):
         
         self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
         self.post_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/dropbox.pt')
-        self.finish_ROI = [[int(self.img_size_x * 0.45), int(self.img_size_y * 0.6)],[int(self.img_size_x * 0.55), int(self.img_size_y * 0.7)]]## xy xy
+        self.finish_ROI = [[int(self.img_size_x * 0.4), int(self.img_size_y * 0.6)],[int(self.img_size_x * 0.6), int(self.img_size_y * 0.7)]]## xy xy
         self.chess_detection_flag = False
         self.finish_flag = False
         
@@ -145,6 +153,7 @@ class BlueRatioCirculator(Node):
         self.grip_call_service_flag = False
 
         self.track_tracking_flag =False
+        self.fail_cnt = 0
         
         ################# for encoder #################
         self.encoder = [0.,0.]
@@ -166,6 +175,7 @@ class BlueRatioCirculator(Node):
         self.ROI_y = self.ROI_y_l - self.ROI_y_h
         self.ROI_x = self.ROI_x_h - self.ROI_x_l
         
+
         self.ROI_size = int((self.depth_size_x * (self.ROI_x_h - self.ROI_x_l)) * (self.depth_size_x * (self.ROI_y_l - self.ROI_y_h)))
         self.ROI_half_size = int(self.ROI_size / 2)
         self.get_logger().info(f'{self.ROI_size}')
@@ -177,6 +187,11 @@ class BlueRatioCirculator(Node):
         
         self.color_ROI = np.zeros((int(self.ROI_y * self.img_size_y), int(self.ROI_x * self.img_size_x), 3), dtype=np.uint8)
         self.depth_ROI = np.zeros((int(self.ROI_y * self.depth_size_y), int(self.ROI_x * self.depth_size_x), 3), dtype=np.uint8)
+        
+        self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
+        self.chess_count = 0
+        
+        
         self.get_logger().info("ininininininit")
         
     def encoder_clear(self,msg) :
@@ -206,7 +221,7 @@ class BlueRatioCirculator(Node):
         array_max = np.max(dis_array) * self.depth_scale
 
         self.max_dis = (array_max + 0.05) / self.depth_scale
-        self.min_dis = (array_max - 0.07) / self.depth_scale
+        self.min_dis = (array_min - 0.05) / self.depth_scale
 
         # print(array_min, array_max)
 
@@ -214,8 +229,11 @@ class BlueRatioCirculator(Node):
     def image_processing(self) :
         self.depth_ROI = self.depth_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
-
-        self.result = self.chess_model.predict(self.color_ROI, conf = 0.65, verbose=False, max_det=1)
+        ####### last_dance added
+        self.chess_ROI = self.color_img[int(self.img_size_y * 0.6):int(self.img_size_y),:]
+        self.result = self.chess_model.predict(self.chess_ROI, conf = 0.65, verbose=False, max_det=1)
+        ####### last_dance added
+        
         
         self.max_min_finder(self.depth_ROI)
         
@@ -254,12 +272,12 @@ class BlueRatioCirculator(Node):
         
         
         
-        cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
-        cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
-        cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
-        # print(l_sum + r_sum)
+        # cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
+        # cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
+        # cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        # # print(l_sum + r_sum)
         
-        cv2.imshow("color", self.color_img)
+        # cv2.imshow("color", self.color_img)
         cv2.imshow("mask", depth_mask)
         if max_contour is not None :
             cv2.imshow("mask", max_contour_mask)
@@ -295,6 +313,18 @@ class BlueRatioCirculator(Node):
             msg.data = [self.odrive_mode, self.L_joy, self.R_joy]   
             self.control_publisher.publish(msg)
         
+        elif self.finish_flag == True :
+                self.stop()
+                
+        elif self.chess_detection_flag == True :
+            self.go(0.5)
+            time.sleep(3)
+            self.stop()
+            self.finish_flag = True
+            
+            
+            return
+        
         
         elif (len(self.post_result[0].boxes.cls)>0) & (self.track_tracking_flag==False):
             if self.zeropoint_flag == False :
@@ -313,7 +343,7 @@ class BlueRatioCirculator(Node):
                     if (self.dropbox_xy[0] > self.postbox_ROI[1][0]) :
                         self.turn_right()
                         self.get_logger().info(f'right')
-                    elif (self.dropbox_xy[0] < self.postbox_ROI[0][0]) :
+                    elif (self.dropbox_xy[0] <= self.postbox_ROI[0][0]) :
                         self.turn_left()
                         self.get_logger().info(f'left')
                     else : 
@@ -324,7 +354,7 @@ class BlueRatioCirculator(Node):
                     if (self.dropbox_xy[1] > self.postbox_ROI[1][1]) :
                         self.back()
                         self.get_logger().info(f'back')
-                    elif (self.dropbox_xy[1] < self.postbox_ROI[0][1]) :
+                    elif (self.dropbox_xy[1] <= self.postbox_ROI[0][1]) :
                         self.go(0.3)
                         self.get_logger().info(f'go')
                     else : 
@@ -362,39 +392,8 @@ class BlueRatioCirculator(Node):
         
         
         elif len(self.result[0].boxes.cls) :
-            for box in self.result[0].boxes :
-                label = box.cls
-                confidence = box.conf.item()
-                object_xywh = np.array(box.xywh.detach().numpy().tolist()[0], dtype='int')
-                self.color_img = self.result[0].plot()
-
-                ## virtical
-                if (object_xywh[0] > self.finish_ROI[1][0]) :
-                    self.turn_right()
-                    self.get_logger().info(f'right')
-                elif (object_xywh[0] < self.finish_ROI[0][0]) :
-                    self.turn_left()
-                    self.get_logger().info(f'left')
-                else : 
-                    pass
-                    
-                
-                ## horizonal
-                if (object_xywh[1] > self.finish_ROI[1][1]) :
-                    self.back()
-                    self.get_logger().info(f'back')
-                elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                    self.go(0.3)
-                    self.get_logger().info(f'go')
-                else : 
-                    pass
-                    
-            else : 
-                pass
             
-        
-            if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][1]))) :
-                
+            if self.chess_count >= 4 :
                 self.get_logger().info(f'find finish')
                 self.chess_detection_flag = True
             else : 
@@ -427,7 +426,7 @@ class BlueRatioCirculator(Node):
                 self.R_joy = self.before_R_joy
                 
             
-        self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
+        # self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
         
         self.before_R_joy = self.R_joy
         self.before_L_joy = self.L_joy
@@ -439,6 +438,25 @@ class BlueRatioCirculator(Node):
         else :
             self.control_publisher.publish(msg)
 
+
+        
+        cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
+        cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
+        # cv2.putText(self.color_img, f'L : {l_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})   R : {r_sum:.2f} ({l_sum/ ((l_sum + r_sum) if (l_sum + r_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        # print(l_sum + r_sum)
+        
+        cv2.imshow("color", self.color_img)
+
+
+    def chess_timer_callback(self) :
+        if (len(self.result[0].boxes.cls) > 0) :
+            self.chess_count += 1
+            self.get_logger().info(f'{self.chess_count}')
+        else :
+            self.chess_count = 0
+
+
+
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################  
@@ -449,7 +467,7 @@ class BlueRatioCirculator(Node):
             request = PositionService.Request()
             self.goal_x = -x -0.1
             self.goal_y = -y -0.10 -0.03
-            self.goal_z = z + 0.93 + 0.2 + 0.06
+            self.goal_z = z + 0.93 + 0.2 + 0.03     + 0.1
             
             request.coordinate.x = self.goal_x 
             request.coordinate.y = self.goal_y 
@@ -565,12 +583,9 @@ class BlueRatioCirculator(Node):
                 self.get_logger().info(f'Result: {response.success}')
                 
                 if response.success == True :
-                    if self.mani_state == 'zero' or self.mani_state == 'far from home' :
-                        # self.third_call_service()
-                        self.get_logger().info("third ###############################################")
+                    self.mani_state = 'home'
+                    self.get_logger().info("third ###############################################")
 
-                    else :
-                        pass
                 else :
                     self.get_logger().info(f"response fail.. ")
                         
@@ -613,7 +628,7 @@ class BlueRatioCirculator(Node):
                 x_w = x_c
                 y_w = y_c * math.cos(self.theta / 180 * math.pi) + z_c * math.sin(self.theta / 180 * math.pi)
                 z_w = (-y_c *math.sin(self.theta / 180 * math.pi)) + z_c * math.cos(self.theta / 180 * math.pi)
-                
+                self.get_logger().info(f'{self.call_flag}')
                 if ((self.call_flag == False)) :
                     self.call_service(x_w, y_w, z_w)
                     self.get_logger().info("call!")
@@ -627,11 +642,13 @@ class BlueRatioCirculator(Node):
                         self.grip_call_service()
                         self.grip_call_service_flag = True 
                     else :
-                        pass 
+                        self.get_logger().info(f'grip call service :{self.grip_call_service_flag}')
                     
                     ##success
-                    if self.grip_state == 1 :
-                        self.third_call_service()
+                    if (self.grip_state == 1)  or (self.fail_cnt >= 3):
+                        if self.third_call_flag == False :
+                            self.third_call_service()
+                            self.third_call_flag = True
                         time.sleep(2)
                         command = Float32MultiArray()
                         self.first_encoder = self.encoder
@@ -646,16 +663,23 @@ class BlueRatioCirculator(Node):
                         time.sleep(3)
                         self.mission_decision_flag = False
                     elif self.grip_state == -1 :
-                        self.third_call_service()
+                        if self.third_call_flag == False :
+                            self.third_call_service()
+                            self.third_call_flag = True
                         time.sleep(2)
                         if self.mani_state == 'home' :
+                            self.postbox_position_set = False
                             self.call_flag = False
                             self.mani_move = 0
                             self.grip_state = 0
                             self.dropbox_mission_flag = True
                             self.grip_call_service_flag = False 
+                            self.mission_decision_flag = False
+                            self.third_call_flag = False
 
                             self.state = 'S'
+                            self.fail_cnt += 0
+                            self.get_logger().info(f"mani_State reset clear!!")
                         else : pass
                         
                     else : 
