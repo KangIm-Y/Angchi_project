@@ -17,7 +17,7 @@
 #include <custom_interfaces/srv/position_service.hpp>
 
 // We'll just set up parameters here
-const std::string JOY_TOPIC = "/joy";
+const std::string JOY_TOPIC = "/joy/indy_ros";
 const std::string TWIST_TOPIC = "/servo_node/delta_twist_cmds";
 const std::string JOINT_TOPIC = "/servo_node/delta_joint_cmds";
 const std::string EEF_FRAME_ID = "tcp";
