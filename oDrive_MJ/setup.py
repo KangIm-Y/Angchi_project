@@ -48,6 +48,7 @@ setup(
             'car_kokomk4 = oDrive_MJ.car_kokomk4:main',
             'encoder_feedback = oDrive_MJ.encoder_feedback:main',
             'odrive_car = oDrive_MJ.odrive_car:main',
+            'odrive_finale = oDrive_MJ.odrive_finale:main',
 
 
         ],
