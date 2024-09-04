@@ -200,7 +200,6 @@ class SpringColorChecker(Node):
                 R_sum = int(np.sum(R_histo) / 255) - y
                 
                 # print(f'{L_sum}   {R_sum}')
-                self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(filterd))
                 
                 return L_sum, midpoint, R_sum
         return 1,1,1
@@ -287,10 +286,13 @@ class SpringColorChecker(Node):
         
         cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
         cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
-        cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        # cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
         
         cv2.imshow("color", self.color_img)
         cv2.waitKey(1)
+        
+        resized = cv2.resize(self.color_img, (int(self.img_size_x/2),int(self.img_size_y/2)),interpolation=cv2.INTER_AREA)
+        self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
         
             
     def track_tracking(self) :

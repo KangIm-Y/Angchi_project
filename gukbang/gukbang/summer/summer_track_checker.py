@@ -284,6 +284,8 @@ class BlueRatioCirculator(Node):
             cv2.imshow("mask", depth_mask)
         cv2.waitKey(1)
         
+        
+        
     def image_spliter(self, got_img) :
         y, x = got_img.shape
         
@@ -445,6 +447,11 @@ class BlueRatioCirculator(Node):
         # print(l_sum + r_sum)
         
         cv2.imshow("color", self.color_img)
+        cv2.waitKey(1)
+        
+        
+        resized = cv2.resize(self.color_img, (int(self.img_size_x/2),int(self.img_size_y/2)),interpolation=cv2.INTER_AREA)
+        self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
 
 
     def chess_timer_callback(self) :
