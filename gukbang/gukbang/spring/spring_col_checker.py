@@ -143,6 +143,7 @@ class SpringColorChecker(Node):
         
         self.depth_img = np.asanyarray(self.filled_depth_frame.get_data())
         self.color_img = np.asanyarray(color_frame.get_data())
+
         
 
 
@@ -215,7 +216,7 @@ class SpringColorChecker(Node):
         # cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
         
         # cv2.imshow("color", self.color_img)
-        # cv2.waitKey(1)
+        cv2.waitKey(1)
         
             
     def track_tracking(self) :
@@ -282,7 +283,7 @@ class SpringColorChecker(Node):
                 # else : 
                 #     pass
             
-            elif (detect_sum < (self.ROI_size * 0.4) ) :
+            elif (detect_sum < (self.ROI_size * 0.25) ) :
                 self.stop()
                 time.sleep(3)
                 # self.L_joy = (self.max_speed / 4)
