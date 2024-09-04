@@ -12,9 +12,9 @@ from cv_bridge import CvBridge
 import time
 
 
-class SpringColorChecker(Node):
+class AutumnColorChecker(Node):
     def __init__(self):
-        super().__init__('spring_color_checker')
+        super().__init__('autumn_color_checker')
         
         img_qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT,
                                     history=HistoryPolicy.KEEP_LAST,
@@ -56,7 +56,7 @@ class SpringColorChecker(Node):
         self.depth_size_x = 848
         self.depth_size_y = 480
         
-        self.max_speed = 15
+        self.max_speed = 12
         
         
         
@@ -87,6 +87,8 @@ class SpringColorChecker(Node):
         ### declare params... dont touch parameters ###
         self.L_sum = 0
         self.R_sum = 0
+        self.L_joy = 0.
+        self.R_joy = 0.
         
         self.robot_roll = 0  ## -1 left, 1 right
         self.odrive_mode = 1.
@@ -98,7 +100,6 @@ class SpringColorChecker(Node):
         #############################################
         
         self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
-        
         self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
         self.chess_count = 0
         self.chess_detection_flag = False
@@ -181,7 +182,7 @@ class SpringColorChecker(Node):
                 cv2.waitKey(1)
         
                 histogram = np.sum(max_contour_mask, axis=0)
-                midpoint = int(self.img_size_x / 2)
+                midpoint = int(x / 2)
                 L_histo = histogram[:midpoint]
                 R_histo = histogram[midpoint:]
                 
@@ -189,16 +190,10 @@ class SpringColorChecker(Node):
                 R_sum = int(np.sum(R_histo) / 255) - y
                 
                 # print(f'{L_sum}   {R_sum}')
-                self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(filterd))
+                # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(filterd))
                 
                 return L_sum, midpoint, R_sum
         return 1,1,1
-    
-    ### hoxy molla.. hsv code     
-    def hsv_detection(self, img) :
-        
-        return 0 
-
     
     
         
@@ -209,18 +204,18 @@ class SpringColorChecker(Node):
         self.L_sum = l_sum
         self.R_sum = r_sum 
         
-        self.result = self.chess_model.predict(self.color_ROI, conf = 0.4, verbose=False, max_det=1)
+        self.result = self.chess_model.predict(self.color_ROI, conf = 0.65, verbose=False, max_det=1)
         
         
         
         cv2.imshow("ROI", self.color_ROI)
         
-        cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
-        cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
-        cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        # cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
+        # cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
+        # cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
         
-        cv2.imshow("color", self.color_img)
-        cv2.waitKey(1)
+        # cv2.imshow("color", self.color_img)
+        # cv2.waitKey(1)
         
             
     def track_tracking(self) :
@@ -271,7 +266,7 @@ class SpringColorChecker(Node):
                 #         self.back()
                 #         self.get_logger().info(f'back')
                 #     elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                #         self.go(0.3)
+                #         self.go(0.25)
                 #         self.get_logger().info(f'go')
                 #     else : 
                 #         pass
@@ -280,17 +275,18 @@ class SpringColorChecker(Node):
                 #     pass
                 
             
-                # if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][0]))) :
+                # if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][1]))) :
                     
                 #     self.get_logger().info(f'find finish')
                 #     self.chess_detection_flag = True
                 # else : 
                 #     pass
             
-            ##blinded!!!
             elif (detect_sum < (self.ROI_size * 0.4) ) :
                 self.stop()
                 time.sleep(3)
+                # self.L_joy = (self.max_speed / 4)
+                # self.R_joy = (self.max_speed / 4)
                 
             elif self.robot_roll == 0 :
                 
@@ -323,20 +319,6 @@ class SpringColorChecker(Node):
                     self.L_joy = self.before_L_joy
                     self.R_joy = self.before_R_joy
             
-            elif self.robot_roll == -1 :
-                if ((self.L_sum < (self.ROI_half_size * self.slant_drive_max)) & (self.L_sum > (self.ROI_half_size * self.slant_drive_min))) :
-                    self.L_joy = (self.max_speed / 2)
-                    self.R_joy = (self.max_speed / 2)
-                elif self.L_sum >= (self.ROI_half_size * self.slant_drive_max) :
-                    self.L_joy = (self.max_speed / 2) - ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                    self.R_joy = (self.max_speed / 2) + ((self.max_speed / 4) * (self.L_sum / self.ROI_half_size))
-                elif self.L_sum <= self.ROI_half_size * self.slant_drive_min :
-                    self.L_joy = (self.max_speed / 2) + 0.5 
-                    self.R_joy = (self.max_speed / 2) - 0.5
-                else :
-                    self.L_joy = self.before_L_joy
-                    self.R_joy = self.before_R_joy
-            
         # self.get_logger().info(f'{self.L_joy}   {self.R_joy}')
         
         self.before_R_joy = self.R_joy
@@ -345,9 +327,18 @@ class SpringColorChecker(Node):
         msg.data = [self.odrive_mode, self.L_joy, self.R_joy]
 
         self.control_publisher.publish(msg)
+
+        cv2.line(self.color_img, (int(self.img_size_x/2), int(self.img_size_y * self.ROI_y_h)), (int(self.img_size_x / 2), int(self.img_size_y * self.ROI_y_l)), (0, 0, 255), 2)
+        cv2.rectangle(self.color_img, (int(self.img_size_x * self.ROI_x_l),int(self.img_size_y * self.ROI_y_h)), ((int(self.img_size_x * self.ROI_x_h), int(self.img_size_y * self.ROI_y_l))), (255,0,0),2)
+        # cv2.putText(self.color_img, f'L : {self.L_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})   R : {self.R_sum:.2f} ({self.L_sum/ ((self.L_sum + self.R_sum) if (self.L_sum + self.R_sum) != 0 else 1)})', (20,20), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255),2)
+        
+        cv2.imshow("color", self.color_img)
+        cv2.waitKey(1)
+        
+        resized = cv2.resize(self.color_img, (int(self.img_size_x/2),int(self.img_size_y/2)),interpolation=cv2.INTER_AREA)
+        self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
         
     ########################################
-            
     
     def chess_timer_callback(self) :
         if (len(self.result[0].boxes.cls) > 0) :
@@ -355,7 +346,7 @@ class SpringColorChecker(Node):
             self.get_logger().info(f'{self.chess_count}')
         else :
             self.chess_count = 0
-
+            
             
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
@@ -424,7 +415,7 @@ class SpringColorChecker(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = SpringColorChecker()
+    node = AutumnColorChecker()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
