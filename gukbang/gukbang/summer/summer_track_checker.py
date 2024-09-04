@@ -313,7 +313,7 @@ class BlueRatioCirculator(Node):
             self.control_publisher.publish(msg)
         
         elif self.finish_flag == True :
-                self.stop()
+            self.stop()
                 
         elif self.chess_detection_flag == True :
             self.go(0.5)
