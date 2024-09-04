@@ -10,7 +10,7 @@ def generate_launch_description():
         ),
         Node(
             package='gukbang',  
-            executable='center_display',  
+            executable='center_display_dep',  
             output='screen'  
         ),
         
