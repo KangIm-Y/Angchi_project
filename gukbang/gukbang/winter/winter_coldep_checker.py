@@ -97,7 +97,8 @@ class SpringColorChecker(Node):
         #############################################
         
         self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
-        self.finish_ROI = [[int(self.img_size_x * 0.45), int(self.img_size_y * 0.6)],[int(self.img_size_x * 0.55), int(self.img_size_y * 0.7)]]## xy xy
+        self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
+        self.chess_count = 0
         self.chess_detection_flag = False
         self.finish_flag = False
         
@@ -303,8 +304,8 @@ class SpringColorChecker(Node):
                 self.stop()
                 
             elif self.chess_detection_flag == True :
-                self.go(10)
-                time.sleep(3)
+                self.go(0.5)
+                time.sleep(5)
                 self.stop()
                 self.finish_flag = True
                 
@@ -312,43 +313,50 @@ class SpringColorChecker(Node):
                 return
             
             elif len(self.result[0].boxes.cls) :
-                for box in self.result[0].boxes :
-                    label = box.cls
-                    confidence = box.conf.item()
-                    object_xywh = np.array(box.xywh.detach().numpy().tolist()[0], dtype='int')
-                    self.color_img = self.result[0].plot()
-
-                    ## virtical
-                    if (object_xywh[0] > self.finish_ROI[1][0]) :
-                        self.turn_right()
-                        self.get_logger().info(f'right')
-                    elif (object_xywh[0] < self.finish_ROI[0][0]) :
-                        self.turn_left()
-                        self.get_logger().info(f'left')
-                    else : 
-                        pass
-                        
-                    
-                    ## horizonal
-                    if (object_xywh[1] > self.finish_ROI[1][1]) :
-                        self.back()
-                        self.get_logger().info(f'back')
-                    elif (object_xywh[1] < self.finish_ROI[0][1]) :
-                        self.go(0.5)
-                        self.get_logger().info(f'go')
-                    else : 
-                        pass
-                      
-                else : 
-                    pass
                 
             
-                if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][0]))) :
-                    
+                if self.chess_count >= 4 :
                     self.get_logger().info(f'find finish')
                     self.chess_detection_flag = True
                 else : 
                     pass
+                # for box in self.result[0].boxes :
+                #     label = box.cls
+                #     confidence = box.conf.item()
+                #     object_xywh = np.array(box.xywh.detach().numpy().tolist()[0], dtype='int')
+                #     self.color_img = self.result[0].plot()
+
+                #     ## virtical
+                #     if (object_xywh[0] > self.finish_ROI[1][0]) :
+                #         self.turn_right()
+                #         self.get_logger().info(f'right')
+                #     elif (object_xywh[0] < self.finish_ROI[0][0]) :
+                #         self.turn_left()
+                #         self.get_logger().info(f'left')
+                #     else : 
+                #         pass
+                        
+                    
+                #     ## horizonal
+                #     if (object_xywh[1] > self.finish_ROI[1][1]) :
+                #         self.back()
+                #         self.get_logger().info(f'back')
+                #     elif (object_xywh[1] < self.finish_ROI[0][1]) :
+                #         self.go(0.5)
+                #         self.get_logger().info(f'go')
+                #     else : 
+                #         pass
+                      
+                # else : 
+                #     pass
+                
+            
+                # if (((object_xywh[0] < self.finish_ROI[1][0])& (object_xywh[0] > self.finish_ROI[0][0])) & ((object_xywh[1] < self.finish_ROI[1][1])& (object_xywh[1] > self.finish_ROI[0][0]))) :
+                    
+                #     self.get_logger().info(f'find finish')
+                #     self.chess_detection_flag = True
+                # else : 
+                #     pass
                 
             elif self.robot_roll == 0 :
                 ### depth 주행.
@@ -397,6 +405,13 @@ class SpringColorChecker(Node):
         self.control_publisher.publish(msg)
         
     ########################################
+    
+    def chess_timer_callback(self) :
+        if (len(self.result[0].boxes.cls) > 0) :
+            self.chess_count += 1
+            self.get_logger().info(f'{self.chess_count}')
+        else :
+            self.chess_count = 0
 
     def roll_finder(self) :
         l_point_arr = self.depth_img[int(self.depth_size_y *0.08):int(self.depth_size_y*0.1),int(self.depth_size_x*0.34):int(self.depth_size_x*0.35)]

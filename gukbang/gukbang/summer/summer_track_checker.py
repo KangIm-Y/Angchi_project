@@ -130,7 +130,6 @@ class BlueRatioCirculator(Node):
         
         self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
         self.post_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/dropbox.pt')
-        self.finish_ROI = [[int(self.img_size_x * 0.4), int(self.img_size_y * 0.6)],[int(self.img_size_x * 0.6), int(self.img_size_y * 0.7)]]## xy xy
         self.chess_detection_flag = False
         self.finish_flag = False
         
@@ -318,7 +317,7 @@ class BlueRatioCirculator(Node):
                 
         elif self.chess_detection_flag == True :
             self.go(0.5)
-            time.sleep(3)
+            time.sleep(5)
             self.stop()
             self.finish_flag = True
             
