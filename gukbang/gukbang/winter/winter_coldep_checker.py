@@ -86,6 +86,8 @@ class SpringColorChecker(Node):
         ### declare params... dont touch parameters ###
         self.L_sum = 0
         self.R_sum = 0
+        self.L_joy = 0.
+        self.R_joy = 0.
         
         self.robot_roll = 0  ## -1 left, 1 right
         self.odrive_mode = 1.

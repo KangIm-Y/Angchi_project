@@ -83,7 +83,7 @@ class BlueRatioCirculator(Node):
         self.depth_size_y = 480
         self.ROI_ratio = 0.3
         self.mission_ROI_ratio = 0.3
-        self.max_speed = 10
+        self.max_speed = 12
         
         self.robot_roll = 0  ## -1 left, 1 right
         self.odrive_mode = 1.
@@ -91,10 +91,8 @@ class BlueRatioCirculator(Node):
         self.joy_stick_data = [0, 0]
         self.before_L_joy = 0.
         self.before_R_joy = 0.
-        ##################### shibal init
         self.L_joy = 0.
         self.R_joy = 0.
-        ##################### shibal init
         
         
         ### realsense setting ###

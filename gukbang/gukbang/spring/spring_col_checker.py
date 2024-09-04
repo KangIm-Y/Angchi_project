@@ -195,12 +195,6 @@ class SpringColorChecker(Node):
                 return L_sum, midpoint, R_sum
         return 1,1,1
     
-    ### hoxy molla.. hsv code     
-    def hsv_detection(self, img) :
-        
-        return 0 
-
-    
     
         
     def image_processing(self) :
