@@ -24,6 +24,7 @@ class CenterDisplay(Node):
             'img_data',
             self.img_indicater,
             img_qos_profile)
+        self.cvbrid = CvBridge()
         
         
     
