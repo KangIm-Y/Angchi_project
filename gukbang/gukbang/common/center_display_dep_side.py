@@ -21,14 +21,14 @@ class CenterDisplay(Node):
         
         self.img_subscriber = self.create_subscription(
             Image,
-            'col_img',
+            'img_data',
             self.img_indicater,
             img_qos_profile)
         self.image_subscribtion = self.create_subscription(
             Image,
             'side_camera',
             self.sub_callback,
-            qos_profile)
+            img_qos_profile)
         self.cvbrid = CvBridge()
         
     
@@ -37,7 +37,7 @@ class CenterDisplay(Node):
         y,x,c = current_img.shape
         resized = cv2.resize(current_img, (int(x*1.5),int(y*1.5)), interpolation=cv2.INTER_CUBIC)
 
-        cv2.imshow("col_img", resized)
+        cv2.imshow("img_data", resized)
         cv2.waitKey(1)
         
     def sub_callback(self, msg):

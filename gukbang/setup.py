@@ -55,6 +55,8 @@ setup(
         
         'odrive=gukbang.common.odrive:main',
         'joy_remapper=gukbang.common.joy_remapper:main',
+        'center_display_dep=gukbang.common.center_display_dep:main',
+        'center_display_dep_side=gukbang.common.center_display_dep_side:main',
         
         ],
     },
