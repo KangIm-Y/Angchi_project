@@ -15,6 +15,9 @@ install/
 log/
 build/
 
+###code###
+.vscode/
+
 # Ignore generated docs
 *.dox
 *.wikidoc
