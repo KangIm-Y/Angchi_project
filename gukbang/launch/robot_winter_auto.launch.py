@@ -21,9 +21,9 @@ def generate_launch_description():
         
         
         ## 대회때 제거
-        Node(
-            package='joy',  
-            executable='joy_node',  
-            output='screen'  
-        )
+        # Node(
+        #     package='joy',  
+        #     executable='joy_node',  
+        #     output='screen'  
+        # )
     ])
