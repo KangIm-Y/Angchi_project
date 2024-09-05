@@ -11,6 +11,8 @@ import cv2
 from cv_bridge import CvBridge
 import time
 
+import serial
+
 
 class SpringColorChecker(Node):
     def __init__(self):
@@ -42,6 +44,8 @@ class SpringColorChecker(Node):
             self.imu_msg_sampling,
             QoSProfile(depth= 2))
         
+        # self.ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=5)
+        # ser.write(b'a')
         
         self.capture_timer = self.create_timer(1/15, self.image_capture)
         self.process_timer = self.create_timer(1/15, self.image_processing)
@@ -101,8 +105,8 @@ class SpringColorChecker(Node):
         
         #############################################
         
-        # self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
-        self.chess_model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        # self.chess_model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/chess.pt')
         self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
         self.chess_count = 0
         self.chess_detection_flag = False
@@ -122,6 +126,14 @@ class SpringColorChecker(Node):
         self.ROI_y = self.ROI_y_l - self.ROI_y_h
         self.ROI_x = self.ROI_x_h - self.ROI_x_l
         
+        
+        self.chess_ROI_y_l = 0.9
+        self.chess_ROI_y_h = 0.6
+        self.chess_ROI_x_l = 0.35
+        self.chess_ROI_x_h = 0.65
+        self.chess_ROI_y = self.chess_ROI_y_l - self.chess_ROI_y_h
+        self.chess_ROI_x = self.chess_ROI_x_h - self.chess_ROI_x_l
+        
         self.ROI_size = int((self.depth_size_x * (self.ROI_x_h - self.ROI_x_l)) * (self.depth_size_x * (self.ROI_y_l - self.ROI_y_h)))
         self.ROI_half_size = int(self.ROI_size / 2)
         self.get_logger().info(f'{self.ROI_size}')
@@ -131,7 +143,7 @@ class SpringColorChecker(Node):
         self.color_ROI = np.zeros((int(self.ROI_y * self.img_size_y), int(self.ROI_x * self.img_size_x), 3), dtype=np.uint8)
         self.depth_ROI = np.zeros((int(self.ROI_y * self.depth_size_y), int(self.ROI_x * self.depth_size_x), 3), dtype=np.uint8)
         self.get_logger().info("ininininininit")
-        self.chess_ROI = np.zeros((int(self.ROI_y * self.img_size_y), int(self.ROI_x * self.img_size_x), 3), dtype=np.uint8)
+        self.chess_ROI = np.zeros((int(self.chess_ROI_y * self.img_size_y), int(self.chess_ROI_x * self.img_size_x), 3), dtype=np.uint8)
         
     
     def image_capture(self):
@@ -257,13 +269,14 @@ class SpringColorChecker(Node):
         
     def image_processing(self) :
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
+        self.chess_ROI = self.color_img[int(self.img_size_y * self.chess_ROI_y_h):int(self.img_size_y * self.chess_ROI_y_l),int(self.img_size_x * self.chess_ROI_x_l):int(self.img_size_x * self.chess_ROI_x_h)]
 
 
 
         l_sum, midpoint, r_sum = self.yuv_detection_test(self.color_ROI)
         self.L_sum = l_sum
         self.R_sum = r_sum 
-        self.result = self.chess_model.predict(self.color_ROI, conf = 0.8, verbose=False, max_det=1)
+        self.result = self.chess_model.predict(self.chess_ROI, conf = 0.8, verbose=False, max_det=1)
         
         
         
@@ -342,7 +355,7 @@ class SpringColorChecker(Node):
                 #     pass
             
             elif (detect_sum < (self.ROI_size * 0.25) ) :
-                self.stop()
+                self.go(0.1)
                 # time.sleep(3)
                 # self.L_joy = (self.max_speed / 4)
                 # self.R_joy = (self.max_speed / 4)
