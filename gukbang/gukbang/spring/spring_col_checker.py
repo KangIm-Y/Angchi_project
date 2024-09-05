@@ -50,7 +50,7 @@ class SpringColorChecker(Node):
         self.chess_counter = self.create_timer(1/7.5, self.chess_timer_callback)
         
         ### parameters ###
-        self.U_detection_threshold = 125 ## 0~2553
+        self.U_detection_threshold = 95 ## 0~2553
         self.img_size_x = 848
         self.img_size_y = 480
         self.depth_size_x = 848
@@ -101,7 +101,8 @@ class SpringColorChecker(Node):
         
         #############################################
         
-        self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        # self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        self.chess_model = YOLO('/home/skh/robot_ws/src/gukbang/gukbang/common/chess.pt')
         self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
         self.chess_count = 0
         self.chess_detection_flag = False
@@ -200,140 +201,69 @@ class SpringColorChecker(Node):
         return 1,1,1
     
 
-    def hsv_detection_example(self, img) :
+    def yuv_detection_test(self, img) :
         y, x, c = img.shape
         
         gaussian = cv2.GaussianBlur(img, (3, 3), 1)
-        hsv_img = cv2.cvtColor(gaussian, cv2.COLOR_BGR2HSV)
-        # Y_img, U_img, V_img = cv2.split(yuv_img)
+        yuv_img = cv2.cvtColor(gaussian, cv2.COLOR_BGR2YUV)
+        Y_img, U_img, V_img = cv2.split(yuv_img)
+        
+        uv_diff = cv2.subtract(U_img, V_img)
         
         # rescale = np.clip(U_img - V_img, 0, 255).astype(np.uint8)
-        # ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
+        ret,U_img_treated = cv2.threshold(uv_diff, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
         
         # resized = cv2.resize(U_img_treated, (424,240),interpolation=cv2.INTER_AREA)
         # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(U_img_treated))
-        # if ret :
+        if ret :
             # filterd = cv2.bitwise_and(img, img, mask=U_img_treated)
             # cv2.imshow("UUUU", filterd)
             
+            contours, _ = cv2.findContours(U_img_treated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        dominant_color = np.mean(hsv_img, axis=(0, 1)) # ROI 내 평균 색상
-        lower_bound = dominant_color - np.array([30, 70, 70]) # 하한/ 증가 = 초록색 더 인식 / 감소 = 초록색 덜 인식
-        upper_bound = dominant_color + np.array([130, 255, 255]) # 상한/ 증가 = 진한 파란색 더 인식 / 감소 = 진한 파란색 덜 인식
-        print(dominant_color, lower_bound, upper_bound)
+            max_area = 0
+            max_contour = None
+            for contour in contours:
+                area = cv2.contourArea(contour)
+                if area > max_area:
+                    max_area = area
+                    max_contour = contour
 
-
-        col_mask = cv2.inRange(hsv_img, lower_bound, upper_bound)
-        mask = col_mask
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        max_area = 0
-        max_contour = None
-        for contour in contours:
-            area = cv2.contourArea(contour)
-            if area > max_area:
-                max_area = area
-                max_contour = contour
-
-        if max_contour is not None:
-            max_contour_mask = np.zeros_like(col_mask)
-            cv2.drawContours(max_contour_mask, [max_contour], -1, (255, 255, 255), thickness=cv2.FILLED)
+            if max_contour is not None:
+                max_contour_mask = np.zeros_like(U_img_treated)
+                cv2.drawContours(max_contour_mask, [max_contour], -1, (255, 255, 255), thickness=cv2.FILLED)
+                
             
+                filterd = cv2.bitwise_and(img, img, mask=max_contour_mask)
+                cv2.imshow("UUUU", filterd)
+                cv2.waitKey(1)
         
-            filterd = cv2.bitwise_and(img, img, mask=max_contour_mask)
-            cv2.imshow("UUUU", filterd)
-            cv2.waitKey(1)
-    
-            histogram = np.sum(max_contour_mask, axis=0)
-            midpoint = int(x / 2)
-            L_histo = histogram[:midpoint]
-            R_histo = histogram[midpoint:]
-            
-            L_sum = int(np.sum(L_histo) / 255)
-            R_sum = int(np.sum(R_histo) / 255) - y
-            
-            # print(f'{L_sum}   {R_sum}')
-            # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(filterd))
-            
-            return L_sum, midpoint, R_sum
+                histogram = np.sum(max_contour_mask, axis=0)
+                midpoint = int(x / 2)
+                L_histo = histogram[:midpoint]
+                R_histo = histogram[midpoint:]
+                
+                L_sum = int(np.sum(L_histo) / 255)
+                R_sum = int(np.sum(R_histo) / 255) - y
+                
+                # print(f'{L_sum}   {R_sum}')
+                # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(filterd))
+                
+                return L_sum, midpoint, R_sum
         return 1,1,1
-    
-    
-    def hsv_detection(self, img) :
-        y, x, c = img.shape
-        
-        gaussian = cv2.GaussianBlur(img, (5, 5), 2)
-        # mopol_open = cv2.morphologyEx(gaussian, cv2.MORPH_OPEN, self.kernel)
-        # mopol_close = cv2.morphologyEx(mopol_open, cv2.MORPH_CLOSE, self.kernel)
-        hsv_img = cv2.cvtColor(gaussian, cv2.COLOR_BGR2HSV)
-        # Y_img, U_img, V_img = cv2.split(yuv_img)
-        
-        # rescale = np.clip(U_img - V_img, 0, 255).astype(np.uint8)
-        # ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
-        
-        # resized = cv2.resize(U_img_treated, (424,240),interpolation=cv2.INTER_AREA)
-        # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(U_img_treated))
-        # if ret :
-            # filterd = cv2.bitwise_and(img, img, mask=U_img_treated)
-            # cv2.imshow("UUUU", filterd)
-            
 
-        # dominant_color = np.mean(hsv_img, axis=(0, 1)) # ROI 내 평균 색상
-        lower_bound = np.array([17,10,10])
-        upper_bound = np.array([130, 255, 255]) # 상한/ 증가 = 진한 파란색 더 인식 / 감소 = 진한 파란색 덜 인식
-        # print(dominant_color, lower_bound, upper_bound)
-
-
-        col_mask = cv2.inRange(hsv_img, lower_bound, upper_bound)
-        mask = col_mask
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        max_area = 0
-        max_contour = None
-        for contour in contours:
-            area = cv2.contourArea(contour)
-            if area > max_area:
-                max_area = area
-                max_contour = contour
-
-        if max_contour is not None:
-            max_contour_mask = np.zeros_like(col_mask)
-            cv2.drawContours(max_contour_mask, [max_contour], -1, (255, 255, 255), thickness=cv2.FILLED)
-            
-        
-            filterd = cv2.bitwise_and(img, img, mask=max_contour_mask)
-            cv2.imshow("UUUU", filterd)
-            cv2.waitKey(1)
-    
-            histogram = np.sum(max_contour_mask, axis=0)
-            midpoint = int(x / 2)
-            L_histo = histogram[:midpoint]
-            R_histo = histogram[midpoint:]
-            
-            L_sum = int(np.sum(L_histo) / 255)
-            R_sum = int(np.sum(R_histo) / 255) - y
-            
-            # print(f'{L_sum}   {R_sum}')
-            # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(filterd))
-            
-            return L_sum, midpoint, R_sum
-        return 1,1,1
     
     
         
     def image_processing(self) :
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
-        self.chess_ROI = cv2.cvtColor(self.color_ROI, cv2.COLOR_BGR2GRAY)
-        ret, self.chess_ROI = cv2.threshold(self.chess_ROI, 127, 255, cv2.THRESH_BINARY)
 
 
-        l_sum, midpoint, r_sum = self.hsv_detection(self.color_ROI)
+
+        l_sum, midpoint, r_sum = self.yuv_detection_test(self.color_ROI)
         self.L_sum = l_sum
         self.R_sum = r_sum 
-        if ret :
-
-            chess_3d = np.dstack((self.chess_ROI, self.chess_ROI, self.chess_ROI))
-            self.result = self.chess_model.predict(chess_3d, conf = 0.8, verbose=False, max_det=1)
+        self.result = self.chess_model.predict(self.color_ROI, conf = 0.8, verbose=False, max_det=1)
         
         
         
