@@ -55,7 +55,7 @@ class JointSubscriber(Node):
         self.posarray = [0,0,0,0]
         self.data_buf = [0,0,0,0]
         self.pos_pre_array = [0,0,0,0]
-        self.pos_incorrect = [5,0,0,0]
+        self.pos_incorrect = [4,0,0,0]
         self.cur_posarr = self.posarray
         #self.ser = serial.Serial('/dev/ttyRS485', 9600, timeout=0.1)
         #self.read_pos()
