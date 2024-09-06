@@ -37,7 +37,7 @@ class BlueRatioCirculator(Node):
         
         self.joy_subscriber = self.create_subscription(
             Joy,
-            'joy',
+            'joy_drive',
             self.joy_msg_sampling,
             qos_profile)
         

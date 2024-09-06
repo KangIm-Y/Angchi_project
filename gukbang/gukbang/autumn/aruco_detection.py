@@ -91,14 +91,33 @@ class ArucoDetection(Node):
             gray0 = cv2.cvtColor(gaussian0, cv2.COLOR_BGR2GRAY)
             gray1 = cv2.cvtColor(gaussian1, cv2.COLOR_BGR2GRAY)
             
-            bw0 = cv2.threshold(gray0, self.threshold, 255, cv2.THRESH_BINARY)[1]
-            bw1 = cv2.threshold(gray1, self.threshold, 255, cv2.THRESH_BINARY)[1]
+            
+            gray_ssian0 = cv2.GaussianBlur(gray0, (5, 5), 2)
+            gray_ssian1 = cv2.GaussianBlur(gray1, (5, 5), 2)
+            
+            
+            
+            bw0 = cv2.threshold(gray_ssian0, self.threshold, 255, cv2.THRESH_BINARY)[1]
+            bw1 = cv2.threshold(gray_ssian1, self.threshold, 255, cv2.THRESH_BINARY)[1]
             
             corners0, ids0, points0 = aruco.detectMarkers(bw0, self.aruco_dict, parameters=self.aruco_param)
             corners1, ids1, points1 = aruco.detectMarkers(bw1, self.aruco_dict, parameters=self.aruco_param)
             
             img0 = aruco.drawDetectedMarkers(img0, corners0)
-            img1 = aruco.drawDetectedMarkers(img1, corners0)
+            img1 = aruco.drawDetectedMarkers(img1, corners1)
+            
+            
+                        
+            for corner in corners0:
+                pts = np.int32(corner)  # 좌표를 정수형으로 변환
+                img0 = cv2.polylines(img0, [pts], isClosed=True, color=(255, 0, 255), thickness=5)
+            
+                        
+            for corner in corners1:
+                pts = np.int32(corner)  # 좌표를 정수형으로 변환
+                img1 = cv2.polylines(img1, [pts], isClosed=True, color=(255, 0, 255), thickness=5)
+            
+            
             
             cv2.imshow("bw0", bw0)
             
@@ -111,8 +130,11 @@ class ArucoDetection(Node):
                     bottom_right = (int(corner[2][0]), int(corner[2][1]))
                     
                     marker_id = ids0[i][0]
+                    # 빨간색 사각형으로 마커의 경계 그리기
+                    # cv2.rectangle(img0, top_left, bottom_right, (0, 255, 0), 2)
+
                     if marker_id < len(self.marker_chars):
-                        cv2.putText(img0, self.marker_chars[marker_id], top_left, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+                        cv2.putText(img0, self.marker_chars[marker_id], top_left, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3, cv2.LINE_AA)
                         
                         
             if ids1 is not None:

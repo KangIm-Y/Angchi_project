@@ -13,9 +13,4 @@ def generate_launch_description():
             executable='odrive',  
             output='screen'  
         ),
-        Node(
-            package='gukbang',  
-            executable='joy_drive_sub_cam',  
-            output='screen'  
-        ),
     ])

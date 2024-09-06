@@ -8,14 +8,9 @@ def generate_launch_description():
             executable='center_joy_drive',  
             output='screen'  
         ),
-        Node(
-            package='gukbang',  
-            executable='odrive',  
-            output='screen'  
-        ),
-        Node(
-            package='gukbang',  
-            executable='center_joy_drive_sub_cam',  
-            output='screen'  
-        ),
+        # Node(
+        #     package='gukbang',  
+        #     executable='center_joy_drive_sub_cam',  
+        #     output='screen'  
+        # ),
     ])
