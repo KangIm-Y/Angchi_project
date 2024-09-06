@@ -61,6 +61,10 @@ class BlueRatioCirculator(Node):
         self.process_timer = self.create_timer(1/15, self.image_processing)
         self.pub_controll = self.create_timer(1/15, self.track_tracking)
         self.yolo_controll = self.create_timer(1/15, self.mission_decision)
+        
+        self.end_checker = self.create_timer(1/5, self.end_checking)
+        self.end_check_cnt = 0
+        self.end_check_flag = False
 
         #### LAST DANCE ADDED
         # self.chess_counter = self.create_timer(1/5, self.chess_timer_callback)
@@ -240,6 +244,7 @@ class BlueRatioCirculator(Node):
         ####### last_dance added
         
         
+        
         self.max_min_finder(self.depth_ROI)
         
         depth_3d = np.dstack((self.depth_ROI, self.depth_ROI, self.depth_ROI))
@@ -291,6 +296,59 @@ class BlueRatioCirculator(Node):
         cv2.waitKey(1)
         
         
+    
+    def yuv_detection_test(self, img) :
+        y, x, c = img.shape
+        
+        gaussian1 = cv2.GaussianBlur(img, (9, 9), 2)
+        gaussian2 = cv2.GaussianBlur(gaussian1, (9, 9), 2)
+        yuv_img = cv2.cvtColor(gaussian2, cv2.COLOR_BGR2YUV)
+        Y_img, U_img, V_img = cv2.split(yuv_img)
+        
+        uv_diff = cv2.subtract(U_img, V_img)
+        
+        # rescale = np.clip(U_img - V_img, 0, 255).astype(np.uint8)
+        ret,U_img_treated = cv2.threshold(uv_diff, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
+        
+        # resized = cv2.resize(U_img_treated, (424,240),interpolation=cv2.INTER_AREA)
+        # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(U_img_treated))
+        if ret :
+            # filterd = cv2.bitwise_and(img, img, mask=U_img_treated)
+            # cv2.imshow("UUUU", filterd)
+            
+            contours, _ = cv2.findContours(U_img_treated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            max_area = 0
+            max_contour = None
+            for contour in contours:
+                area = cv2.contourArea(contour)
+                if area > max_area:
+                    max_area = area
+                    max_contour = contour
+
+            if max_contour is not None:
+                max_contour_mask = np.zeros_like(U_img_treated)
+                cv2.drawContours(max_contour_mask, [max_contour], -1, (255, 255, 255), thickness=cv2.FILLED)
+                
+            
+                filterd = cv2.bitwise_and(img, img, mask=max_contour_mask)
+                cv2.imshow("UUUU", filterd)
+                cv2.waitKey(1)
+        
+                histogram = np.sum(max_contour_mask, axis=0)
+                midpoint = int(x / 2)
+                L_histo = histogram[:midpoint]
+                R_histo = histogram[midpoint:]
+                
+                L_sum = int(np.sum(L_histo) / 255)
+                R_sum = int(np.sum(R_histo) / 255) - y
+                
+                # print(f'{L_sum}   {R_sum}')
+                # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(filterd))
+                
+                return L_sum, midpoint, R_sum
+        return 1,1,1
+
         
     def image_spliter(self, got_img) :
         y, x = got_img.shape
@@ -311,7 +369,9 @@ class BlueRatioCirculator(Node):
         
         self.post_result = self.post_model.predict(self.color_img, conf = 0.5, verbose=False, max_det = 1)
         
-        
+        gammad = self.gamma(self.color_ROI)
+        l_sum, midpoint, r_sum = self.yuv_detection_test(gammad)
+        detect_sum = l_sum + r_sum
         
         
         if self.joy_status == True :
@@ -320,8 +380,8 @@ class BlueRatioCirculator(Node):
             msg.data = [self.odrive_mode, self.L_joy, self.R_joy]   
             self.control_publisher.publish(msg)
         
-        # elif self.finish_flag == True :
-        #     self.stop()
+        elif self.end_check_flag == True :
+            self.stop()
                 
         # elif self.chess_detection_flag == True :
         #     self.go(0.5)
@@ -407,17 +467,14 @@ class BlueRatioCirculator(Node):
         #         pass
                 
 
-        elif  ROI_sum < (self.ROI_size * 0.3) :
-            print('gogogo')
-            self.L_joy = self.max_speed * 0.3
-            
-            self.R_joy = self.max_speed * 0.3 
         else :
             detect_sum = self.L_sum + self.R_sum
             self.max_dis = 0.93 / self.depth_scale
-            if (detect_sum < (self.ROI_size * 0.3) ) :
-                self.L_joy = (self.max_speed / 4)
-                self.R_joy = (self.max_speed / 4)
+            if (detect_sum < (self.ROI_size * 0.3) ) & (self.end_check_cnt>=10):
+                self.go(1.)
+                time.sleep(1)
+                self.end_check_flag = True
+                
             
             elif (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
                 self.L_joy = (self.max_speed / 2)
@@ -715,6 +772,22 @@ class BlueRatioCirculator(Node):
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################
+    def end_checking(self) :
+        l_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.05):int(self.img_size_x * 0.06)]
+        r_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.94):int(self.img_size_x * 0.95)]
+        center_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.49):int(self.img_size_x * 0.51)]
+        
+        l_mean = np.mean(l_point)* self.depth_scale
+        r_mean = np.mean(r_point)* self.depth_scale
+        center_mean = np.mean(center_point)* self.depth_scale
+        
+        if center_mean > ((l_mean + r_mean)/2 + 0.15) :
+            self.end_check_cnt += 1
+            self.get_logger().info(f'end check cnt !! :{self.end_check_cnt}')
+        else :
+            self.end_check_cnt = 0
+    
+    
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
         
@@ -738,6 +811,16 @@ class BlueRatioCirculator(Node):
         else :
             self.joy_status = True
             self.joy_stick_data = [axes[1], axes[4]]
+            
+            
+    def gamma(self, img) :
+        # Gamma 값에 따른 룩업 테이블 생성
+        invGamma = 1.0 / 1.05
+        table = np.array([(i / 255.0) ** invGamma * 255 for i in np.arange(0, 256)]).astype("uint8")
+        
+        # 룩업 테이블을 이용한 Gamma 보정
+        return cv2.LUT(img, table)
+        
         
             
     ############ control preset ############
