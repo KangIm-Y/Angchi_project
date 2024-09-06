@@ -136,7 +136,7 @@ class TripSub(Node):
                 self.get_logger().info(f'ID={dxl_id} Dynamixel has been successfully connected')
 
             #gripper initializing
-            self.gripper(int(360 / 0.088))
+            self.gripper(int(304/0.088))
         
 
 
@@ -401,8 +401,8 @@ class TripSub(Node):
     def grip_callback(self, request, response):
         grip = request.data
         angle_step = 33
-        initial_position = int(360 / 0.088)
-        final_position = int(150/ 0.088)
+        initial_position = int(304 / 0.088)
+        final_position = int(94/ 0.088)
        
         # self.get_logger().info(f'Received grip command: {grip}')
         
