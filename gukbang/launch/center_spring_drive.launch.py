@@ -19,6 +19,11 @@ def generate_launch_description():
             output='screen'  
         ),
         Node(
+            package='gukbang',  
+            executable='center_joy_drive_sub_cam',  
+            output='screen'  
+        ),
+        Node(
             package='joy',  
             executable='joy_node',  
             output='screen'  
