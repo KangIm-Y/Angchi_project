@@ -1,5 +1,12 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
+import serial
+
+ser = serial.Serial('/dev/ttyArduino', 9600, timeout=5)
+time.sleep(2)
+ser.write(b'a')        
+ser.write('a'.encode())
+
 
 def generate_launch_description():
     return LaunchDescription([

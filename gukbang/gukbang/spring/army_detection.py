@@ -58,7 +58,7 @@ class ArmyDetectionNode(Node):
         else :
             frame = np.vstack((img0, img1))
             
-            result = self.model.predict(frame, conf = 0.4, verbose=False)
+            result = self.model.predict(frame, conf = 0.5, verbose=False)
             
             if len(result[0].boxes.cls) :
                 for box in result[0].boxes :

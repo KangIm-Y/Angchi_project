@@ -45,8 +45,10 @@ class SpringColorChecker(Node):
             QoSProfile(depth= 2))
         
         self.ser = serial.Serial('/dev/ttyArduino', 9600, timeout=5)
-        self.ser.write(b'a')
-        
+        time.sleep(2)
+        self.ser.write(b'a')        
+        self.ser.write('a'.encode())
+
         self.capture_timer = self.create_timer(1/15, self.image_capture)
         self.process_timer = self.create_timer(1/15, self.image_processing)
         self.pub_controll = self.create_timer(1/15, self.track_tracking)
