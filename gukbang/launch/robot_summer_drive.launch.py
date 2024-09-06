@@ -13,4 +13,10 @@ def generate_launch_description():
             executable='odrive',  
             output='screen'  
         ),
+
+        Node(
+            package='dynamixel_MJ',  
+            executable='Gripper_kokomk4',  
+            output='screen'  
+        ),
     ])

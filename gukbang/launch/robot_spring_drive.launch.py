@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 import serial
+import time
 
 ser = serial.Serial('/dev/ttyArduino', 9600, timeout=5)
 time.sleep(2)

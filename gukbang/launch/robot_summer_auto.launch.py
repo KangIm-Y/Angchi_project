@@ -14,6 +14,11 @@ def generate_launch_description():
             output='screen'  
         ),
         
+        Node(
+            package='dynamixel_MJ',  
+            executable='Gripper_kokomk4',  
+            output='screen'  
+        ),
         ## 대회때 제거
         # Node(
         #     package='joy',  
