@@ -470,11 +470,11 @@ class BlueRatioCirculator(Node):
         else :
             detect_sum = self.L_sum + self.R_sum
             self.max_dis = 0.93 / self.depth_scale
-            if (detect_sum < (self.ROI_size * 0.3) ) & (self.end_check_cnt>=10):
-                self.go(1.)
-                time.sleep(1)
+            if (self.end_check_cnt>=10):
+                self.go(0.5)
+                time.sleep(5)
                 self.end_check_flag = True
-                
+                self.stop()
             
             elif (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
                 self.L_joy = (self.max_speed / 2)
@@ -536,7 +536,7 @@ class BlueRatioCirculator(Node):
             request = PositionService.Request()
             self.goal_x = -x -0.1
             self.goal_y = -y -0.10 -0.03
-            self.goal_z = z + 0.93 + 0.2 + 0.03     + 0.1
+            self.goal_z = z + 0.93 + 0.2 + 0.03 + 0.02 
             
             request.coordinate.x = self.goal_x 
             request.coordinate.y = self.goal_y 

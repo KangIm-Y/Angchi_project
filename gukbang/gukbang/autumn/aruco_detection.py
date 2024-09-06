@@ -31,7 +31,7 @@ class ArucoDetection(Node):
         ########################
         
         ### params ###
-        self.threshold = 120
+        self.threshold = 130
         ##############
         
         ### aruco setting ###
@@ -84,8 +84,12 @@ class ArucoDetection(Node):
             if not ret1 :
                 print(f'cam1 is cannot connetion')
         else :
-            gray0 = cv2.cvtColor(img0, cv2.COLOR_BGR2GRAY)
-            gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+
+            gaussian0 = cv2.GaussianBlur(img0, (5, 5), 2)
+            gaussian1 = cv2.GaussianBlur(img1, (5, 5), 2)
+
+            gray0 = cv2.cvtColor(gaussian0, cv2.COLOR_BGR2GRAY)
+            gray1 = cv2.cvtColor(gaussian1, cv2.COLOR_BGR2GRAY)
             
             bw0 = cv2.threshold(gray0, self.threshold, 255, cv2.THRESH_BINARY)[1]
             bw1 = cv2.threshold(gray1, self.threshold, 255, cv2.THRESH_BINARY)[1]
@@ -96,7 +100,9 @@ class ArucoDetection(Node):
             img0 = aruco.drawDetectedMarkers(img0, corners0)
             img1 = aruco.drawDetectedMarkers(img1, corners0)
             
-                
+            cv2.imshow("bw0", bw0)
+            
+            cv2.imshow("bw1", bw1)    
             # Draw custom text
             if ids0 is not None:
                 for i in range(len(ids0)):

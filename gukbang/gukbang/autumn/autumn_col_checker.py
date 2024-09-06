@@ -51,7 +51,7 @@ class AutumnColorChecker(Node):
         # self.chess_counter = self.create_timer(1/7.5, self.chess_timer_callback)
         
         ### parameters ###
-        self.U_detection_threshold = 45 ## 0~2553
+        self.U_detection_threshold = 40 ## 0~2553
         self.img_size_x = 848
         self.img_size_y = 480
         self.depth_size_x = 848
@@ -76,7 +76,7 @@ class AutumnColorChecker(Node):
         device = depth_profile.get_device()
         color_sensor = device.query_sensors()[1]  # Color sensor 사용
         # 수동 화이트밸런스 값 설정 (기본값: 4600, 범위: 2800 ~ 6500)
-        color_sensor.set_option(rs.option.white_balance, 3500)  # 원하는 값으로 설정
+        color_sensor.set_option(rs.option.white_balance, 4000)  # 원하는 값으로 설정
         depth_sensor = depth_profile.get_device().first_depth_sensor()
         
         self.depth_scale = depth_sensor.get_depth_scale()

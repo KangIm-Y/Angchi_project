@@ -49,13 +49,13 @@ class SpringColorChecker(Node):
         self.roll_timer = self.create_timer(1/15, self.roll_finder)
         
         ### parameters ###
-        self.U_detection_threshold = 45 ## 0~255
+        self.U_detection_threshold = 40 ## 0~255
         self.img_size_x = 848
         self.img_size_y = 480
         self.depth_size_x = 848
         self.depth_size_y = 480
         
-        self.max_speed = 12
+        self.max_speed = 20
         
         
         
@@ -74,7 +74,7 @@ class SpringColorChecker(Node):
         device = depth_profile.get_device()
         color_sensor = device.query_sensors()[1]  # Color sensor 사용
         # 수동 화이트밸런스 값 설정 (기본값: 4600, 범위: 2800 ~ 6500)
-        color_sensor.set_option(rs.option.white_balance, 3500)  # 원하는 값으로 설정
+        color_sensor.set_option(rs.option.white_balance, 4000)  # 원하는 값으로 설정
         
         depth_sensor = depth_profile.get_device().first_depth_sensor()
         self.depth_scale = depth_sensor.get_depth_scale()
@@ -224,7 +224,7 @@ class SpringColorChecker(Node):
         array_max = np.max(dis_array) * self.depth_scale
 
         self.max_dis = (array_max + 0.05) / self.depth_scale
-        self.min_dis = (array_max - 0.07) / self.depth_scale
+        self.min_dis = (array_min - 0.07) / self.depth_scale
 
         # print(array_min, array_max)
     
@@ -434,18 +434,18 @@ class SpringColorChecker(Node):
     #         self.chess_count = 0
 
     def roll_finder(self) :
-        l_point_arr = self.depth_img[int(self.depth_size_y *0.08):int(self.depth_size_y*0.1),int(self.depth_size_x*0.34):int(self.depth_size_x*0.35)]
-        r_point_arr = self.depth_img[int(self.depth_size_y *0.08):int(self.depth_size_y*0.1),int(self.depth_size_x*0.65):int(self.depth_size_x*0.66)]
+        l_point_arr = self.depth_img[int(self.depth_size_y *0.55):int(self.depth_size_y*0.56),int(self.depth_size_x*0.34):int(self.depth_size_x*0.35)]
+        r_point_arr = self.depth_img[int(self.depth_size_y *0.55):int(self.depth_size_y*0.56),int(self.depth_size_x*0.65):int(self.depth_size_x*0.66)]
 
         l_mean = np.mean(l_point_arr)
         r_mean = np.mean(r_point_arr)
 
         if l_mean*1.15 < r_mean : 
             self.ahead_roll = True
-            # self.get_logger().info(f"ahead_roll True {l_mean:.5f}   {r_mean:.5f}")
+            self.get_logger().info(f"ahead_roll True {l_mean:.5f}   {r_mean:.5f}")
         else :
             self.ahead_roll = False
-            # self.get_logger().info(f"ahead_roll False {l_mean:.5f}   {r_mean:.5f}")
+            self.get_logger().info(f"ahead_roll False {l_mean:.5f}   {r_mean:.5f}")
 
     def imu_msg_sampling(self, msg) :
         imu_data = msg.data
@@ -499,8 +499,8 @@ class SpringColorChecker(Node):
     
     def go(self, speed_ratio) :
         msg = Float32MultiArray()
-        self.R_joy = self.max_speed * speed_ratio
-        self.L_joy = self.max_speed * speed_ratio
+        self.R_joy = self.max_speed/2 * speed_ratio
+        self.L_joy = self.max_speed/2 * speed_ratio
         msg.data = [self.odrive_mode,self.L_joy ,self.R_joy ]
         self.control_publisher.publish(msg)
     
