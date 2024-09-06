@@ -44,9 +44,6 @@ class AutumnColorChecker(Node):
             self.imu_msg_sampling,
             QoSProfile(depth= 2))
         
-        self.ser = serial.Serial('/dev/ttyArduino', 9600, timeout=5)
-        self.ser.write(b'a')
-        
         self.capture_timer = self.create_timer(1/15, self.image_capture)
         self.process_timer = self.create_timer(1/15, self.image_processing)
         self.pub_controll = self.create_timer(1/15, self.track_tracking)
