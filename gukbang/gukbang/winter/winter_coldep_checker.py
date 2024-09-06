@@ -317,7 +317,7 @@ class SpringColorChecker(Node):
             detect_sum = self.L_sum + self.R_sum
             
             if (detect_sum < (self.ROI_size * 0.25) ) :
-                self.go(1)
+                self.go(1.)
                 time.sleep(0.5)
                 self.stop()
             # if self.finish_flag == True :

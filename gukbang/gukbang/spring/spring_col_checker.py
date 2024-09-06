@@ -44,8 +44,8 @@ class SpringColorChecker(Node):
             self.imu_msg_sampling,
             QoSProfile(depth= 2))
         
-        self.ser = serial.Serial('/dev/ttyArduino', 9600, timeout=5)
-        self.ser.write(b'a')
+        # self.ser = serial.Serial('/dev/ttyArduino', 9600, timeout=5)
+        # self.ser.write(b'a')
         
         self.capture_timer = self.create_timer(1/15, self.image_capture)
         self.process_timer = self.create_timer(1/15, self.image_processing)
@@ -363,7 +363,7 @@ class SpringColorChecker(Node):
                 #     pass
             
             if (detect_sum < (self.ROI_size * 0.25) ) :
-                self.go(1)
+                self.go(1.)
                 time.sleep(0.5)
                 self.stop()
                 # time.sleep(3)

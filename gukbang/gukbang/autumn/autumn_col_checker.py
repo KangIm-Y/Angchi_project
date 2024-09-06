@@ -363,7 +363,7 @@ class AutumnColorChecker(Node):
                 #     pass
             
             if (detect_sum < (self.ROI_size * 0.25) ) :
-                self.go(1)
+                self.go(1.)
                 time.sleep(0.5)
                 self.stop()
                 # time.sleep(3)
