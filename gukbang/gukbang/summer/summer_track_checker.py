@@ -63,7 +63,7 @@ class BlueRatioCirculator(Node):
         self.yolo_controll = self.create_timer(1/15, self.mission_decision)
 
         #### LAST DANCE ADDED
-        self.chess_counter = self.create_timer(1/5, self.chess_timer_callback)
+        # self.chess_counter = self.create_timer(1/5, self.chess_timer_callback)
         #### LAST DANCE ADDED
         
         
@@ -105,7 +105,15 @@ class BlueRatioCirculator(Node):
         self.config.enable_stream(rs.stream.depth, self.depth_size_x,   self.depth_size_y,  rs.format.z16, 15)
         depth_profile = self.pipeline.start(self.config)
         
+        ####
+        device = depth_profile.get_device()
+        color_sensor = device.query_sensors()[1]  # Color sensor 사용
+        # 수동 화이트밸런스 값 설정 (기본값: 4600, 범위: 2800 ~ 6500)
+        color_sensor.set_option(rs.option.white_balance, 3500)  # 원하는 값으로 설정
+        #####
+        
         depth_sensor = depth_profile.get_device().first_depth_sensor()
+        
         self.depth_scale = depth_sensor.get_depth_scale()
         
         clipping_distance_in_meters = 1 #1 meter
@@ -126,10 +134,10 @@ class BlueRatioCirculator(Node):
         #############################################
         
         
-        self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        # self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
         self.post_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/dropbox.pt')
-        self.chess_detection_flag = False
-        self.finish_flag = False
+        # self.chess_detection_flag = False
+        # self.finish_flag = False
         
         ###### gripper state setting ######
         
@@ -185,8 +193,8 @@ class BlueRatioCirculator(Node):
         self.color_ROI = np.zeros((int(self.ROI_y * self.img_size_y), int(self.ROI_x * self.img_size_x), 3), dtype=np.uint8)
         self.depth_ROI = np.zeros((int(self.ROI_y * self.depth_size_y), int(self.ROI_x * self.depth_size_x), 3), dtype=np.uint8)
         
-        self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
-        self.chess_count = 0
+        # self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
+        # self.chess_count = 0
         
         
         self.get_logger().info("ininininininit")
@@ -227,8 +235,8 @@ class BlueRatioCirculator(Node):
         self.depth_ROI = self.depth_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         self.color_ROI = self.color_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         ####### last_dance added
-        self.chess_ROI = self.color_img[int(self.img_size_y * 0.6):int(self.img_size_y),:]
-        self.result = self.chess_model.predict(self.chess_ROI, conf = 0.65, verbose=False, max_det=1)
+        # self.chess_ROI = self.color_img[int(self.img_size_y * 0.6):int(self.img_size_y),:]
+        # self.result = self.chess_model.predict(self.chess_ROI, conf = 0.65, verbose=False, max_det=1)
         ####### last_dance added
         
         
@@ -312,17 +320,17 @@ class BlueRatioCirculator(Node):
             msg.data = [self.odrive_mode, self.L_joy, self.R_joy]   
             self.control_publisher.publish(msg)
         
-        elif self.finish_flag == True :
-            self.stop()
+        # elif self.finish_flag == True :
+        #     self.stop()
                 
-        elif self.chess_detection_flag == True :
-            self.go(0.5)
-            time.sleep(5)
-            self.stop()
-            self.finish_flag = True
+        # elif self.chess_detection_flag == True :
+        #     self.go(0.5)
+        #     time.sleep(5)
+        #     self.stop()
+        #     self.finish_flag = True
             
             
-            return
+            # return
         
         
         elif (len(self.post_result[0].boxes.cls)>0) & (self.track_tracking_flag==False):
@@ -390,13 +398,13 @@ class BlueRatioCirculator(Node):
             return
         
         
-        elif len(self.result[0].boxes.cls) :
+        # elif len(self.result[0].boxes.cls) :
             
-            if self.chess_count >= 4 :
-                self.get_logger().info(f'find finish')
-                self.chess_detection_flag = True
-            else : 
-                pass
+        #     if self.chess_count >= 4 :
+        #         self.get_logger().info(f'find finish')
+        #         self.chess_detection_flag = True
+        #     else : 
+        #         pass
                 
 
         elif  ROI_sum < (self.ROI_size * 0.3) :
@@ -452,12 +460,12 @@ class BlueRatioCirculator(Node):
         self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
 
 
-    def chess_timer_callback(self) :
-        if (len(self.result[0].boxes.cls) > 0) :
-            self.chess_count += 1
-            self.get_logger().info(f'{self.chess_count}')
-        else :
-            self.chess_count = 0
+    # def chess_timer_callback(self) :
+    #     if (len(self.result[0].boxes.cls) > 0) :
+    #         self.chess_count += 1
+    #         self.get_logger().info(f'{self.chess_count}')
+    #     else :
+    #         self.chess_count = 0
 
 
 

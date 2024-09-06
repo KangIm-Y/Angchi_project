@@ -49,7 +49,7 @@ class SpringColorChecker(Node):
         self.roll_timer = self.create_timer(1/15, self.roll_finder)
         
         ### parameters ###
-        self.U_detection_threshold = 130 ## 0~255
+        self.U_detection_threshold = 45 ## 0~255
         self.img_size_x = 848
         self.img_size_y = 480
         self.depth_size_x = 848
@@ -68,6 +68,13 @@ class SpringColorChecker(Node):
         self.config.enable_stream(rs.stream.color, self.img_size_x,     self.img_size_y,    rs.format.bgr8, 15)
         self.config.enable_stream(rs.stream.depth, self.depth_size_x,   self.depth_size_y,  rs.format.z16, 15)
         depth_profile = self.pipeline.start(self.config)
+        
+        
+        
+        device = depth_profile.get_device()
+        color_sensor = device.query_sensors()[1]  # Color sensor 사용
+        # 수동 화이트밸런스 값 설정 (기본값: 4600, 범위: 2800 ~ 6500)
+        color_sensor.set_option(rs.option.white_balance, 3500)  # 원하는 값으로 설정
         
         depth_sensor = depth_profile.get_device().first_depth_sensor()
         self.depth_scale = depth_sensor.get_depth_scale()
@@ -98,11 +105,11 @@ class SpringColorChecker(Node):
         
         #############################################
         
-        self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
-        self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
-        self.chess_count = 0
-        self.chess_detection_flag = False
-        self.finish_flag = False
+        # self.chess_model = YOLO('/home/lattepanda/robot_ws/src/gukbang/gukbang/common/chess.pt')
+        # self.chess_ROI = np.zeros((int(0.4 * self.img_size_y), int(self.img_size_x), 3), dtype=np.uint8)
+        # self.chess_count = 0
+        # self.chess_detection_flag = False
+        # self.finish_flag = False
         
         
         ############################ ratio of ROI img #########################
@@ -161,12 +168,15 @@ class SpringColorChecker(Node):
     def yuv_detection(self, img) :
         y, x, c = img.shape
         
-        gaussian = cv2.GaussianBlur(img, (3, 3), 1)
-        yuv_img = cv2.cvtColor(gaussian, cv2.COLOR_BGR2YUV)
+        gaussian1 = cv2.GaussianBlur(img, (9, 9), 2)
+        gaussian2 = cv2.GaussianBlur(gaussian1, (9, 9), 2)
+        yuv_img = cv2.cvtColor(gaussian2, cv2.COLOR_BGR2YUV)
         Y_img, U_img, V_img = cv2.split(yuv_img)
         
+        uv_diff = cv2.subtract(U_img, V_img)
+        
         # rescale = np.clip(U_img - V_img, 0, 255).astype(np.uint8)
-        ret,U_img_treated = cv2.threshold(U_img, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
+        ret,U_img_treated = cv2.threshold(uv_diff, self.U_detection_threshold, 255, cv2.THRESH_BINARY)
         
         # resized = cv2.resize(U_img_treated, (424,240),interpolation=cv2.INTER_AREA)
         # self.img_publisher.publish(self.cvbrid.cv2_to_imgmsg(U_img_treated))
@@ -237,7 +247,7 @@ class SpringColorChecker(Node):
         self.depth_ROI = self.depth_img[int(self.img_size_y * self.ROI_y_h):int(self.img_size_y * self.ROI_y_l),int(self.img_size_x * self.ROI_x_l):int(self.img_size_x * self.ROI_x_h)]
         
         
-        self.result = self.chess_model.predict(self.color_ROI, conf = 0.4, verbose=False, max_det=1)
+        # self.result = self.chess_model.predict(self.color_ROI, conf = 0.4, verbose=False, max_det=1)
         
         if self.robot_roll == 0 :
             self.max_min_finder(self.depth_ROI)
@@ -280,7 +290,8 @@ class SpringColorChecker(Node):
         
         elif self.robot_roll == 1 :
             
-            l_sum, midpoint, r_sum = self.yuv_detection(self.color_ROI)
+            gammad = self.gamma(self.color_ROI)
+            l_sum, midpoint, r_sum = self.yuv_detection(gammad)
             self.L_sum = l_sum
             self.R_sum = r_sum 
         
@@ -304,26 +315,31 @@ class SpringColorChecker(Node):
             self.R_joy = (self.joy_stick_data[1] * self.max_speed)
         else :
             detect_sum = self.L_sum + self.R_sum
-            if self.finish_flag == True :
-                self.stop()
-                
-            elif self.chess_detection_flag == True :
-                self.go(0.5)
-                time.sleep(5)
-                self.stop()
-                self.finish_flag = True
-                
-                
-                return
             
-            elif len(self.result[0].boxes.cls) :
+            if (detect_sum < (self.ROI_size * 0.25) ) :
+                self.go(1)
+                time.sleep(0.5)
+                self.stop()
+            # if self.finish_flag == True :
+            #     self.stop()
+                
+            # elif self.chess_detection_flag == True :
+            #     self.go(0.5)
+            #     time.sleep(5)
+            #     self.stop()
+            #     self.finish_flag = True
+                
+                
+            #     return
+            
+            # elif len(self.result[0].boxes.cls) :
                 
             
-                if self.chess_count >= 4 :
-                    self.get_logger().info(f'find finish')
-                    self.chess_detection_flag = True
-                else : 
-                    pass
+            #     if self.chess_count >= 4 :
+            #         self.get_logger().info(f'find finish')
+            #         self.chess_detection_flag = True
+            #     else : 
+            #         pass
                 # for box in self.result[0].boxes :
                 #     label = box.cls
                 #     confidence = box.conf.item()
@@ -410,12 +426,12 @@ class SpringColorChecker(Node):
         
     ########################################
     
-    def chess_timer_callback(self) :
-        if (len(self.result[0].boxes.cls) > 0) :
-            self.chess_count += 1
-            self.get_logger().info(f'{self.chess_count}')
-        else :
-            self.chess_count = 0
+    # def chess_timer_callback(self) :
+    #     if (len(self.result[0].boxes.cls) > 0) :
+    #         self.chess_count += 1
+    #         self.get_logger().info(f'{self.chess_count}')
+    #     else :
+    #         self.chess_count = 0
 
     def roll_finder(self) :
         l_point_arr = self.depth_img[int(self.depth_size_y *0.08):int(self.depth_size_y*0.1),int(self.depth_size_x*0.34):int(self.depth_size_x*0.35)]
@@ -455,6 +471,14 @@ class SpringColorChecker(Node):
             self.joy_status = True
             self.joy_stick_data = [axes[1], axes[4]]
         
+        
+    def gamma(self, img) :
+        # Gamma 값에 따른 룩업 테이블 생성
+        invGamma = 1.0 / 1.05
+        table = np.array([(i / 255.0) ** invGamma * 255 for i in np.arange(0, 256)]).astype("uint8")
+        
+        # 룩업 테이블을 이용한 Gamma 보정
+        return cv2.LUT(img, table)
         
     ########################################
     ############ control preset ############
