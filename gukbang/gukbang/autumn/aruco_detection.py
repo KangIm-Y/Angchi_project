@@ -154,7 +154,7 @@ class ArucoDetection(Node):
             self.publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
         
         
-        cv2.imshow('frame', frame)
+        # cv2.imshow('frame', frame)
         cv2.waitKey(1)
 
 def main(args=None):

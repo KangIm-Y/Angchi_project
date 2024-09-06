@@ -62,9 +62,9 @@ class BlueRatioCirculator(Node):
         self.pub_controll = self.create_timer(1/15, self.track_tracking)
         self.yolo_controll = self.create_timer(1/15, self.mission_decision)
         
-        self.end_checker = self.create_timer(1/5, self.end_checking)
-        self.end_check_cnt = 0
-        self.end_check_flag = False
+        # self.end_checker = self.create_timer(1/5, self.end_checking)
+        # self.end_check_cnt = 0
+        # self.end_check_flag = False
 
         #### LAST DANCE ADDED
         # self.chess_counter = self.create_timer(1/5, self.chess_timer_callback)
@@ -380,8 +380,8 @@ class BlueRatioCirculator(Node):
             msg.data = [self.odrive_mode, self.L_joy, self.R_joy]   
             self.control_publisher.publish(msg)
         
-        elif self.end_check_flag == True :
-            self.stop()
+        # elif self.end_check_flag == True :
+        #     self.stop()
                 
         # elif self.chess_detection_flag == True :
         #     self.go(0.5)
@@ -470,13 +470,14 @@ class BlueRatioCirculator(Node):
         else :
             detect_sum = self.L_sum + self.R_sum
             self.max_dis = 0.93 / self.depth_scale
-            if (self.end_check_cnt>=10):
-                self.go(0.5)
-                time.sleep(5)
-                self.end_check_flag = True
-                self.stop()
+            # if (self.end_check_cnt>=10):
+            #     self.go(0.5)
+            #     time.sleep(5)
+            #     self.end_check_flag = True
+            #     self.stop()
             
-            elif (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
+            
+            if (((self.L_sum < self.R_sum*1.1) & (self.L_sum > self.R_sum*0.9)) | ((self.R_sum < self.L_sum*1.1) & (self.R_sum > self.L_sum*0.9))) :
                 self.L_joy = (self.max_speed / 2)
                 self.R_joy = (self.max_speed / 2)
             elif ((self.L_sum < self.R_sum*0.25) | (self.R_sum < self.L_sum*0.25)) :
@@ -772,20 +773,20 @@ class BlueRatioCirculator(Node):
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################
-    def end_checking(self) :
-        l_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.05):int(self.img_size_x * 0.06)]
-        r_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.94):int(self.img_size_x * 0.95)]
-        center_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.49):int(self.img_size_x * 0.51)]
+    # def end_checking(self) :
+    #     l_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.05):int(self.img_size_x * 0.06)]
+    #     r_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.94):int(self.img_size_x * 0.95)]
+    #     center_point = self.depth_ROI = self.depth_img[int(self.img_size_y * 0.49):int(self.img_size_y * 0.51),int(self.img_size_x * 0.49):int(self.img_size_x * 0.51)]
         
-        l_mean = np.mean(l_point)* self.depth_scale
-        r_mean = np.mean(r_point)* self.depth_scale
-        center_mean = np.mean(center_point)* self.depth_scale
+    #     l_mean = np.mean(l_point)* self.depth_scale
+    #     r_mean = np.mean(r_point)* self.depth_scale
+    #     center_mean = np.mean(center_point)* self.depth_scale
         
-        if center_mean > ((l_mean + r_mean)/2 + 0.15) :
-            self.end_check_cnt += 1
-            self.get_logger().info(f'end check cnt !! :{self.end_check_cnt}')
-        else :
-            self.end_check_cnt = 0
+    #     if center_mean > ((l_mean + r_mean)/2 + 0.15) :
+    #         self.end_check_cnt += 1
+    #         self.get_logger().info(f'end check cnt !! :{self.end_check_cnt}')
+    #     else :
+    #         self.end_check_cnt = 0
     
     
     def imu_msg_sampling(self, msg) :

@@ -31,7 +31,7 @@ setup(
         
         ########## summer #############
         'summer_track_checker=gukbang.summer.summer_track_checker:main',
-        'summer_joy_drive=gukbang.summer.summer_joy_drive:main',
+        'robot_summer_joy_drive=gukbang.summer.robot_summer_joy_drive:main',
         'center_summer_joy_drive=gukbang.summer.center_summer_joy_drive:main',
         
         

@@ -5,7 +5,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='gukbang',  
-            executable='joy_drive',  
+            executable='robot_summer_joy_drive',  
             output='screen'  
         ),
         Node(

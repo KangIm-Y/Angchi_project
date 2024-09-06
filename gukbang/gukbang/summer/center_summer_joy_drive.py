@@ -52,7 +52,7 @@ class SpringColorChecker(Node):
         btn = msg.buttons
 
         if not (axes[2] == 1) :
-            self.max_speed = 5
+            self.max_speed = 10
             if btn[2] == 1 :
                 self.go()
             elif btn[1] == 1 :
@@ -65,7 +65,7 @@ class SpringColorChecker(Node):
                 self.joy_stick_data = [axes[1], axes[4]]
                 self.joy_pub()
         elif not (axes[5] == 1) :
-            self.max_speed = 10
+            self.max_speed = 18
             if btn[2] == 1 :
                 self.go()
             elif btn[1] == 1 :
