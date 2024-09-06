@@ -47,7 +47,7 @@ class JointSubscriber(Node):
         self.state = 0
         
         self.send_request()
-        self.init_flag = 0
+        self.repeat_cnt = 0
 
         self.storecount = 0
 
@@ -82,100 +82,93 @@ class JointSubscriber(Node):
         #t.sleep(0.2)
         #self.check_srv_res()
 
-        
-        
-
     def subscribe_topic_message(self, msg):
-
-        if self.state == 0 :
-            if self.init_flag == 0 and self.srv_flag == False:
+        if self.srv_flag == False:
+            if self.state == 0:
                 self.get_logger().info('\033[96m' + "start initializing..." + '\033[0m')
                 self.get_logger().info(f"{self.state} : motor check")
-                self.init_flag += 1
                 self.send_request(codecommand="Init")
                 t.sleep(0.5)
                 self.future.add_done_callback(self.state_plus)
-        elif self.state == 1:
-            if self.init_flag == 1 and self.srv_flag == False:
-                self.get_logger().info(f"{self.state} : set gear ratio")
-                self.init_flag += 1
-                self.set_1_gear()
-                t.sleep(0.5)
-                self.future.add_done_callback(self.state_plus)
-        elif self.state == 2:
-            if self.init_flag == 2 and self.srv_flag == False:
+            elif self.state == 1:
+                if self.repeat_cnt < 6:
+                    self.get_logger().info(f"{self.state} : set gear ratio")
+                    self.set_1_gear()
+                    t.sleep(0.1)
+                    self.future.add_done_callback(self.repeat_cnt_plus)
+                else:
+                    self.repeat_cnt = 0
+                    self.state += 1
+            elif self.state == 2:   
                 self.get_logger().info(f"{self.state} : set offset")
-                self.init_flag += 1
                 self.set_nuri_zero()
-                t.sleep(0.5)
+                t.sleep(0.1)
                 self.future.add_done_callback(self.state_plus)
-        elif self.state == 3:
-            if self.init_flag == 3 and self.srv_flag == False:
+            elif self.state == 3:
                 self.get_logger().info(f"{self.state} : control off")
-                self.init_flag += 1
                 self.control_off()
-                t.sleep(0.5)
+                t.sleep(0.1)
                 self.future.add_done_callback(self.state_plus)
-        elif self.state >= 4 and self.state < 10 :
-            if self.init_flag >= 4 and self.srv_flag < 10 and self.srv_flag == False:
-                self.get_logger().info(f"{self.state} : control on")
-                self.init_flag += 1
-                self.control_on()
-                t.sleep(0.5)
-                self.future.add_done_callback(self.state_plus)
-        elif self.state == 10:
-            if self.init_flag == 10 and self.srv_flag == False:
+            elif self.state == 4:
+                if self.repeat_cnt < 6:
+                    self.get_logger().info(f"{self.state} : control on")
+                    self.control_on()
+                    t.sleep(0.1)
+                    self.future.add_done_callback(self.repeat_cnt_plus)
+                else:
+                    self.repeat_cnt = 0
+                    self.state += 1
+            elif self.state == 5:
                 self.get_logger().info(f"{self.state} : move to zeropos")
-                self.init_flag += 1
                 self.read_pos()
                 t.sleep(1)
                 self.nuri_initpos()
                 t.sleep(5)
                 self.future.add_done_callback(self.state_plus)
-        elif self.state == 11:
-            if self.init_flag == 11 and self.srv_flag == False:
+            elif self.state == 6:
                 self.get_logger().info(f"{self.state} : set offset")
-                self.init_flag += 1
                 self.set_nuri_zero()
-                t.sleep(0.5)
+                t.sleep(0.1)
                 self.future.add_done_callback(self.state_plus)
-        elif self.state == 12:
-            if self.init_flag == 12 and self.srv_flag == False:
+            elif self.state == 7:
                 self.get_logger().info(f"{self.state} : control off")
-                self.init_flag += 1
                 self.control_off()
-                t.sleep(0.5)
+                t.sleep(0.1)
                 self.future.add_done_callback(self.state_plus)
-        elif self.state >= 13 and self.state < 19:
-            if self.init_flag >= 13  and self.srv_flag < 19 and self.srv_flag == False:
-                self.get_logger().info(f"{self.state} : control on")
-                self.init_flag += 1
-                self.control_on()
-                t.sleep(0.5)
-                self.future.add_done_callback(self.state_plus)
-        elif self.state == 19:
-            self.get_logger().info(f"{self.state} : finish init")
-            self.state += 1
-            self.init_fin_flag = True
-            self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
-        elif self.state >= 20 and self.srv_flag == False:
-            self.data_buf = self.inv_data(msg.data)
-            for i in range(4):
-                if self.data_buf[i] > self.pos_pre_array[i]:
-                    self.posarray[i] = self.data_buf[i] + self.pos_incorrect[i]
-                elif self.data_buf[i] < self.pos_pre_array[i]:
-                    self.posarray[i] = self.data_buf[i] - self.pos_incorrect[i]
+            elif self.state == 8:
+                if self.repeat_cnt < 6:
+                    self.get_logger().info(f"{self.state} : control on")
+                    self.control_on()
+                    t.sleep(0.1)
+                    self.future.add_done_callback(self.repeat_cnt_plus)
                 else:
-                    self.posarray[i] = self.data_buf[i]
+                    self.repeat_cnt = 0
+                    self.state += 1
+            elif self.state == 9:
+                self.get_logger().info(f"{self.state} : finish init")
+                self.state += 1
+                self.init_fin_flag = True
+                self.get_logger().info('\033[92m' + 'Init Done. Now we can move!' + '\033[0m')
+            elif self.state >= 10:
+                self.data_buf = self.inv_data(msg.data)
+                for i in range(4):
+                    if self.data_buf[i] > self.pos_pre_array[i]:
+                        self.posarray[i] = self.data_buf[i] + self.pos_incorrect[i]
+                    elif self.data_buf[i] < self.pos_pre_array[i]:
+                        self.posarray[i] = self.data_buf[i] - self.pos_incorrect[i]
+                    else:
+                        self.posarray[i] = self.data_buf[i]
 
-            self.get_logger().debug('Received message: {0}'.format(self.posarray))
-            #self.store_pos()
-            self.pos_nuri()
-            self.pos_pre_array = self.data_buf
+                self.get_logger().debug('Received message: {0}'.format(self.posarray))
+                #self.store_pos()
+                self.pos_nuri()
+                self.pos_pre_array = self.data_buf
 
         else:
             pass
 
+    def repeat_cnt_plus(self, future):
+        self.repeat_cnt += 1
 
     def control_on(self):
         self.req.sercommand.id0 = control_sw(0, 0)
@@ -198,11 +191,6 @@ class JointSubscriber(Node):
         self.req.sercommand.id2 = set_gear_ratio(2, 0)
         self.req.sercommand.id3 = set_gear_ratio(3, 0)
         self.send_request("Config")
-
-
-
-
-                
         
 
     def state_plus(self, future):
@@ -211,20 +199,7 @@ class JointSubscriber(Node):
                 self.state += 1
             else:
                 pass
-
-
-        # if self.init_start_flag == False:
-        #     self.init_start_flag = True
-        #     self.init()
-        #     #self.init_flag = True
-        # elif self.init_flag == False:
-        #     self.get_logger().warn("waiting for init...")
-        # elif self.data_read == False:
-        #     self.get_logger().warn("file data is not read.")
-        # else:
             
-
-
 
     def nuri_initpos(self):
         self.get_logger().info('\033[96m' + 'Moving to zeropos.' + '\033[0m')
@@ -234,9 +209,6 @@ class JointSubscriber(Node):
         self.posarray = pos_inv
         self.pos_nuri()
         
-        
-
-
                     
 
     def checkID(self, data):
@@ -332,7 +304,7 @@ class JointSubscriber(Node):
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id1))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id2))
                     self.cur_posarr.append(self.extract_deg_data(response.feedback.id3))
-                    #self.get_logger().info(f"success! response : {self.cur_posarr}")
+                    self.get_logger().info(f"success! response : {self.cur_posarr}")
                     self.storecount += 1
                     if self.storecount > 2 :
                         self.store_pos()
@@ -345,10 +317,25 @@ class JointSubscriber(Node):
             self.srv_flag = False
         # to print in the console
 
+    # def extract_deg_data(self, data):
+    #     deg = list(data)
+    #     #self.get_logger().info(f"response bytes data : {data}")
+    #     pos = 0.01 * int(str(hex(deg[7])) + str(hex(deg[8]))[2:], 16)
+    #     if deg[6] == 0:
+    #         pos = pos * -1
+    #     elif deg[6] == 1:
+    #         pass
+    #     else:
+    #         self.get_logger().warn(f"Can't read dir. data : {deg[6]}")
+    #     return pos
+
     def extract_deg_data(self, data):
         deg = list(data)
-        #self.get_logger().info(f"response bytes data : {data}")
-        pos = 0.01 * int(str(hex(deg[7])) + str(hex(deg[8]))[2:], 16)
+        # 2자리 16진수로 변환 후 연결
+        hex_value = f"{deg[7]:02X}{deg[8]:02X}"
+        # 16진수 문자열을 10진수로 변환
+        pos = 0.01 * int(hex_value, 16)
+        # 방향에 따라 부호를 조정
         if deg[6] == 0:
             pos = pos * -1
         elif deg[6] == 1:
@@ -356,7 +343,6 @@ class JointSubscriber(Node):
         else:
             self.get_logger().warn(f"Can't read dir. data : {deg[6]}")
         return pos
-
     
           
 
