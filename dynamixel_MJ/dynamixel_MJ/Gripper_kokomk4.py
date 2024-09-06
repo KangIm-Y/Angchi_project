@@ -134,6 +134,9 @@ class TripSub(Node):
                 raise Exception(f'ID={dxl_id} Failed to enable torque')
             else:
                 self.get_logger().info(f'ID={dxl_id} Dynamixel has been successfully connected')
+
+            #gripper initializing
+            self.gripper(int(360 / 0.088))
         
 
 
