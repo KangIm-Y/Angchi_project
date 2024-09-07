@@ -536,8 +536,8 @@ class BlueRatioCirculator(Node):
         if self.client.service_is_ready():
             request = PositionService.Request()
             self.goal_x = -x -0.1
-            self.goal_y = -y -0.10 -0.03
-            self.goal_z = z + 0.93 + 0.2 + 0.03 + 0.02 
+            self.goal_y = -y -0.10 -0.04
+            self.goal_z = z + 0.93 + 0.2 + 0.03 + 0.01 
             
             request.coordinate.x = self.goal_x 
             request.coordinate.y = self.goal_y 

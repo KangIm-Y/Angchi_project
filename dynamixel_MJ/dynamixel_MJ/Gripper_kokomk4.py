@@ -65,7 +65,7 @@ packetHandler = PacketHandler(PROTOCOL_VERSION)
 
 #4~5 joint
 OFFSET_4 = 160
-OFFSET_5 = 120
+OFFSET_5 = 117
 
 
 datalen = 12

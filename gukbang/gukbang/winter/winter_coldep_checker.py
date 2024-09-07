@@ -440,7 +440,7 @@ class SpringColorChecker(Node):
         l_mean = np.mean(l_point_arr)
         r_mean = np.mean(r_point_arr)
 
-        if l_mean*1.15 < r_mean : 
+        if l_mean*1.2 < r_mean : 
             self.ahead_roll = True
             self.get_logger().info(f"ahead_roll True {l_mean:.5f}   {r_mean:.5f}")
         else :
