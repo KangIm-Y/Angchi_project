@@ -9,12 +9,12 @@ def generate_launch_description():
             output='screen'  
         ),
         
-        Node(
-            package='joy',  
-            executable='joy_node',  
-            output='screen',
-            remappings=[
-                ('/joy', 'joy_drive'),
-        ]  
-        )
+        # Node(
+        #     package='joy',  
+        #     executable='joy_node',  
+        #     output='screen',
+        #     remappings=[
+        #         ('/joy', 'joy_drive'),
+        # ]  
+        # )
     ])
