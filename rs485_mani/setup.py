@@ -27,6 +27,7 @@ setup(
             'pub_joint = rs485_mani.pub_joint:main',
             'tf_joint_states = rs485_mani.tf_joint_states:main',
             'tf_joint_states_indy = rs485_mani.tf_joint_states_indy:main',
+            'joy_drive_pub = rs485_mani.joy_drive_pub:main',
         ],
     },
 )

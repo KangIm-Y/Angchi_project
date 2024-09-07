@@ -33,4 +33,16 @@ def generate_launch_description():
             name='mani_moveit',
             output='screen'
             ),
+        launch_ros.actions.Node(
+            package='rs485_mani',
+            executable='joy_drive_pub',
+            name='joy_drive_pub',
+            output='screen'
+            ),
+        launch_ros.actions.Node(
+            package='joy',
+            executable='joy_node',
+            name='joy_node',
+            output='screen'
+            ),
   ])
