@@ -402,7 +402,7 @@ class TripSub(Node):
         grip = request.data
         angle_step = 33
         initial_position = int(304 / 0.088)
-        final_position = int(94/ 0.088)
+        final_position = int(114/ 0.088)
        
         # self.get_logger().info(f'Received grip command: {grip}')
         

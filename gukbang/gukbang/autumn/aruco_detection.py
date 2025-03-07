@@ -31,7 +31,7 @@ class ArucoDetection(Node):
         ########################
         
         ### params ###
-        self.threshold = 130
+        self.threshold = 120
         ##############
         
         ### aruco setting ###
@@ -92,8 +92,8 @@ class ArucoDetection(Node):
             gray1 = cv2.cvtColor(gaussian1, cv2.COLOR_BGR2GRAY)
             
             
-            gray_ssian0 = cv2.GaussianBlur(gray0, (5, 5), 2)
-            gray_ssian1 = cv2.GaussianBlur(gray1, (5, 5), 2)
+            gray_ssian0 = cv2.GaussianBlur(gray0, (3, 3), 1)
+            gray_ssian1 = cv2.GaussianBlur(gray1, (3, 3), 1)
             
             
             
@@ -154,7 +154,7 @@ class ArucoDetection(Node):
             self.publisher.publish(self.cvbrid.cv2_to_imgmsg(resized))
         
         
-        # cv2.imshow('frame', frame)
+        cv2.imshow('frame', frame)
         cv2.waitKey(1)
 
 def main(args=None):
